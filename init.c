@@ -12,6 +12,7 @@ main(void)
 {
   int pid, wpid;
 
+
   if(open("console", O_RDWR) < 0){
     mknod("console", 1, 1);
     open("console", O_RDWR);
@@ -20,6 +21,7 @@ main(void)
   dup(0);  // stderr
 
   for(;;){
+      printf(1,"Final stage of boot\n");
     printf(1, "init: starting sh\n");
     pid = fork();
     if(pid < 0){

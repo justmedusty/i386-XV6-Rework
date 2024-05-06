@@ -1,149 +1,137 @@
 // Routines to let C code use special x86 instructions.
 
-static inline uchar
-inb(ushort port)
+// Reads a byte from the specified I/O port.
+static inline uchar inb(ushort port)
 {
-  uchar data;
-
-  asm volatile("in %1,%0" : "=a" (data) : "d" (port));
-  return data;
+    uchar data;
+    asm volatile("in %1,%0" : "=a" (data) : "d" (port));
+    return data;
 }
 
-static inline void
-insl(int port, void *addr, int cnt)
+// Reads a sequence of 32-bit values from the specified I/O port into memory.
+static inline void insl(int port, void *addr, int cnt)
 {
-  asm volatile("cld; rep insl" :
-               "=D" (addr), "=c" (cnt) :
-               "d" (port), "0" (addr), "1" (cnt) :
-               "memory", "cc");
+    asm volatile("cld; rep insl" :
+            "=D" (addr), "=c" (cnt) :
+            "d" (port), "0" (addr), "1" (cnt) :
+            "memory", "cc");
 }
 
-static inline void
-outb(ushort port, uchar data)
+// Writes a byte to the specified I/O port.
+static inline void outb(ushort port, uchar data)
 {
-  asm volatile("out %0,%1" : : "a" (data), "d" (port));
+    asm volatile("out %0,%1" : : "a" (data), "d" (port));
 }
 
-static inline void
-outw(ushort port, ushort data)
+// Writes a 16-bit value to the specified I/O port.
+static inline void outw(ushort port, ushort data)
 {
-  asm volatile("out %0,%1" : : "a" (data), "d" (port));
+    asm volatile("out %0,%1" : : "a" (data), "d" (port));
 }
 
-static inline void
-outsl(int port, const void *addr, int cnt)
+// Writes a sequence of 32-bit values from memory to the specified I/O port.
+static inline void outsl(int port, const void *addr, int cnt)
 {
-  asm volatile("cld; rep outsl" :
-               "=S" (addr), "=c" (cnt) :
-               "d" (port), "0" (addr), "1" (cnt) :
-               "cc");
+    asm volatile("cld; rep outsl" :
+            "=S" (addr), "=c" (cnt) :
+            "d" (port), "0" (addr), "1" (cnt) :
+            "cc");
 }
 
-static inline void
-stosb(void *addr, int data, int cnt)
+// Writes a byte value repeatedly to a memory location.
+static inline void stosb(void *addr, int data, int cnt)
 {
-  asm volatile("cld; rep stosb" :
-               "=D" (addr), "=c" (cnt) :
-               "0" (addr), "1" (cnt), "a" (data) :
-               "memory", "cc");
+    asm volatile("cld; rep stosb" :
+            "=D" (addr), "=c" (cnt) :
+            "0" (addr), "1" (cnt), "a" (data) :
+            "memory", "cc");
 }
 
-static inline void
-stosl(void *addr, int data, int cnt)
+// Writes a 32-bit value repeatedly to a memory location.
+static inline void stosl(void *addr, int data, int cnt)
 {
-  asm volatile("cld; rep stosl" :
-               "=D" (addr), "=c" (cnt) :
-               "0" (addr), "1" (cnt), "a" (data) :
-               "memory", "cc");
+    asm volatile("cld; rep stosl" :
+            "=D" (addr), "=c" (cnt) :
+            "0" (addr), "1" (cnt), "a" (data) :
+            "memory", "cc");
 }
 
-struct segdesc;
-
-static inline void
-lgdt(struct segdesc *p, int size)
+// Loads the Global Descriptor Table (GDT) register.
+static inline void lgdt(struct segdesc *p, int size)
 {
-  volatile ushort pd[3];
-
-  pd[0] = size-1;
-  pd[1] = (uint)p;
-  pd[2] = (uint)p >> 16;
-
-  asm volatile("lgdt (%0)" : : "r" (pd));
+    volatile ushort pd[3];
+    pd[0] = size-1;
+    pd[1] = (uint)p;
+    pd[2] = (uint)p >> 16;
+    asm volatile("lgdt (%0)" : : "r" (pd));
 }
 
-struct gatedesc;
-
-static inline void
-lidt(struct gatedesc *p, int size)
+// Loads the Interrupt Descriptor Table (IDT) register.
+static inline void lidt(struct gatedesc *p, int size)
 {
-  volatile ushort pd[3];
-
-  pd[0] = size-1;
-  pd[1] = (uint)p;
-  pd[2] = (uint)p >> 16;
-
-  asm volatile("lidt (%0)" : : "r" (pd));
+    volatile ushort pd[3];
+    pd[0] = size-1;
+    pd[1] = (uint)p;
+    pd[2] = (uint)p >> 16;
+    asm volatile("lidt (%0)" : : "r" (pd));
 }
 
-static inline void
-ltr(ushort sel)
+// Loads the Task Register (TR).
+static inline void ltr(ushort sel)
 {
-  asm volatile("ltr %0" : : "r" (sel));
+    asm volatile("ltr %0" : : "r" (sel));
 }
 
-static inline uint
-readeflags(void)
+// Reads the EFLAGS register.
+static inline uint readeflags(void)
 {
-  uint eflags;
-  asm volatile("pushfl; popl %0" : "=r" (eflags));
-  return eflags;
+    uint eflags;
+    asm volatile("pushfl; popl %0" : "=r" (eflags));
+    return eflags;
 }
 
-static inline void
-loadgs(ushort v)
+// Loads a 16-bit value into the GS segment register.
+static inline void loadgs(ushort v)
 {
-  asm volatile("movw %0, %%gs" : : "r" (v));
+    asm volatile("movw %0, %%gs" : : "r" (v));
 }
 
-static inline void
-cli(void)
+// Disables interrupts.
+static inline void cli(void)
 {
-  asm volatile("cli");
+    asm volatile("cli");
 }
 
-static inline void
-sti(void)
+// Enables interrupts.
+static inline void sti(void)
 {
-  asm volatile("sti");
+    asm volatile("sti");
 }
 
-static inline uint
-xchg(volatile uint *addr, uint newval)
+// Atomic exchange of a value.
+static inline uint xchg(volatile uint *addr, uint newval)
 {
-  uint result;
-
-  // The + in "+m" denotes a read-modify-write operand.
-  asm volatile("lock; xchgl %0, %1" :
-               "+m" (*addr), "=a" (result) :
-               "1" (newval) :
-               "cc");
-  return result;
+    uint result;
+    asm volatile("lock; xchgl %0, %1" :
+            "+m" (*addr), "=a" (result) :
+            "1" (newval) :
+            "cc");
+    return result;
 }
 
-static inline uint
-rcr2(void)
+// Reads the CR2 register.
+static inline uint rcr2(void)
 {
-  uint val;
-  asm volatile("movl %%cr2,%0" : "=r" (val));
-  return val;
+    uint val;
+    asm volatile("movl %%cr2,%0" : "=r" (val));
+    return val;
 }
 
-static inline void
-lcr3(uint val)
+// Loads a value into the CR3 register.
+static inline void lcr3(uint val)
 {
-  asm volatile("movl %0,%%cr3" : : "r" (val));
+    asm volatile("movl %0,%%cr3" : : "r" (val));
 }
-
 //PAGEBREAK: 36
 // Layout of the trap frame built on the stack by the
 // hardware and by trapasm.S, and passed to trap().

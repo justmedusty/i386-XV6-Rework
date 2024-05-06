@@ -28,24 +28,34 @@ memcmp(const void *v1, const void *v2, uint n)
   return 0;
 }
 
-void*
-memmove(void *dst, const void *src, uint n)
+void* memmove(void *dst, const void *src, uint n)
 {
-  const char *s;
-  char *d;
+    // Define pointers to source and destination memory regions
+    const char *s; // Pointer to source memory region (const to indicate that it won't be modified)
+    char *d;       // Pointer to destination memory region
 
-  s = src;
-  d = dst;
-  if(s < d && s + n > d){
-    s += n;
-    d += n;
-    while(n-- > 0)
-      *--d = *--s;
-  } else
-    while(n-- > 0)
-      *d++ = *s++;
+    // Assign src and dst to their respective pointers
+    s = src;
+    d = dst;
 
-  return dst;
+    // Check if the source and destination regions overlap and determine the direction of copy
+    if(s < d && s + n > d){
+        // If the regions overlap and the source is before the destination,
+        // move pointers to the ends of the regions
+        s += n;
+        d += n;
+        // Copy memory from end to beginning to avoid overwriting source data
+        while(n-- > 0)
+            *--d = *--s;
+    } else {
+        // If the regions do not overlap or if the source is after the destination,
+        // copy memory from beginning to end
+        while(n-- > 0)
+            *d++ = *s++;
+    }
+
+    // Return a pointer to the destination memory region
+    return dst;
 }
 
 // memcpy exists to placate GCC.  Use memmove.
