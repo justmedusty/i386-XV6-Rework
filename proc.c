@@ -303,9 +303,9 @@ exit(void)
         wakeup1(initproc);
     }
   }
-    //kfree(curproc->kstack);
+    kfree(curproc->kstack);
     curproc->kstack = 0;
-    //freevm(curproc->pgdir);
+    freevm(curproc->pgdir);
     curproc->pid = 0;
     curproc->parent = 0;
     curproc->name[0] = 0;
