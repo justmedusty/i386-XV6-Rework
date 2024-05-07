@@ -140,6 +140,7 @@ userinit(void)
   p->tf->eip = 0;  // beginning of initcode.S
 
   safestrcpy(p->name, "initcode", sizeof(p->name));
+  //The init process' current working directory will be the root dir inode
   p->cwd = namei("/");
 
   // this assignment to p->state lets other cores
@@ -224,6 +225,12 @@ fork(void)
 // Exit the current process.  Does not return.
 // An exited process remains in the zombie state
 // until its parent calls wait() to find out it exited.
+
+/*
+ * We will get rid of the zombieification of processes. When a child exits there will no longer be a zombie that is required
+ * to be reaped, but instead we will clear the process entry in the process table and zero it.
+ * Dustyn - 5/7/24
+ */
 void
 exit(void)
 {
@@ -261,8 +268,16 @@ exit(void)
     }
   }
 
-  // Jump into the scheduler, never to return.
-  curproc->state = ZOMBIE;
+    kfree(curproc->kstack);
+    curproc->kstack = 0;
+    curproc->parent = 0;
+    curproc->pid = 0;
+    curproc->parent = 0;
+    curproc->name[0] = 0;
+    curproc->killed = 0;
+    curproc->state = UNUSED;
+
+    // Jump into the scheduler, never to return.
   sched();
   panic("zombie exit");
 }
@@ -462,6 +477,19 @@ wakeup1(void *chan)
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
     if(p->state == SLEEPING && p->chan == chan)
       p->state = RUNNABLE;
+}
+
+
+// Wake up all processes sleeping on chan.
+// The ptable lock must be held.
+static void
+creatZombie(void *chan)
+{
+    struct proc *p;
+
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+        if(p->state == SLEEPING && p->chan == chan)
+            p->state = ZOMBIE;
 }
 
 // Wake up all processes sleeping on chan.
