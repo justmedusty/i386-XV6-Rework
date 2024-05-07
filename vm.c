@@ -6,6 +6,8 @@
 #include "mmu.h"
 #include "proc.h"
 #include "elf.h"
+#include "vm.h"
+#include "spinlock.h"
 
 extern char data[];  // defined by kernel.ld
 pde_t *kpgdir;  // for use in scheduler()
@@ -79,28 +81,29 @@ mappages(pde_t *pgdir, void *va, uint size, uint pa, int perm)
   return 0;
 }
 
-/*
- * This will iterate through each process and tally up allocated pages in each processes page directory as
- * well as tallying up allocated kernel pages.
- */
-void tally_allocated_memory_for_all_procs(void) {
-    struct proc *p;
-    uint total_pages = 0;
-    total_pages += tally_page_directory(kpgdir);
-    // Iterate through all processes
-    for (p = proc; p < &proc[NPROC]; p++) {
-        if (p->state != UNUSED) {
-            // Tally memory for each process
-            total_pages += tally_page_directory(p->pgdir);
-        }
-    }
-
-    cprintf("Total allocated memory for all processes: %d pages totalling %d bytes\n", total_pages, (total_pages * PGSIZE));
-}
 
 
 uint tally_page_directory(pde_t *pgdir) {
     uint total_pages = 0;
+
+    // Traverse page directory and count allocated pages
+    for (int i = 0; i < NPDENTRIES; i++) {
+        if (pgdir[i] & PTE_P) {
+            pte_t *pgtab = (pte_t*)P2V(PTE_ADDR(pgdir[i]));
+            for (int j = 0; j < NPTENTRIES; j++) {
+                if (pgtab[j] & PTE_P)
+                    total_pages++;
+            }
+        }
+    }
+
+    return total_pages;
+}
+
+uint tally_kernel_page_directory(void) {
+    uint total_pages = 0;
+    pde_t *pgdir = kpgdir;
+
 
     // Traverse page directory and count allocated pages
     for (int i = 0; i < NPDENTRIES; i++) {

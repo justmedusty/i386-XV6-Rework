@@ -55,7 +55,11 @@ sys_sbrk(void)
     return -1;
   return addr;
 }
-
+int
+sys_freemem(void){
+    tally_allocated_memory_for_all_procs();
+    return 0;
+}
 int
 sys_sleep(void)
 {
