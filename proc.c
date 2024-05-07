@@ -238,8 +238,10 @@ exit(void)
   struct proc *p;
   int fd;
 
-  if(curproc == initproc)
-    panic("init exiting");
+  if(curproc == initproc){
+      panic("initproc exiting");
+  }
+
 
   // Close all open files.
   for(fd = 0; fd < NOFILE; fd++){
@@ -257,6 +259,10 @@ exit(void)
   acquire(&ptable.lock);
 
   // Parent might be sleeping in wait().
+  /*
+   * Wait is unecessary now that zombies are not created so we
+   * will comment his out
+   */
   wakeup1(curproc->parent);
 
   // Pass abandoned children to init.
@@ -267,10 +273,9 @@ exit(void)
         wakeup1(initproc);
     }
   }
-
-    kfree(curproc->kstack);
+    //kfree(curproc->kstack);
     curproc->kstack = 0;
-    curproc->parent = 0;
+    //freevm(curproc->pgdir);
     curproc->pid = 0;
     curproc->parent = 0;
     curproc->name[0] = 0;
