@@ -60,4 +60,4 @@ struct proc {
 
 /* Dustyn's extra function */
 
-void tally_allocated_memory_for_all_procs(void);
+uint tally_allocated_memory_for_all_procs(void);

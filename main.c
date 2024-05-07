@@ -54,6 +54,8 @@ mpmain(void)
   cprintf("cpu%d: starting %d\n", cpuid(), cpuid());
   idtinit();       // load idt register
   xchg(&(mycpu()->started), 1); // tell startothers() we're up
+  int pages_used = tally_allocated_memory_for_all_procs();
+    cprintf("pages used %d\n",pages_used);
   scheduler();     // start running processes
 }
 

@@ -57,21 +57,27 @@ mycpu(void)
  * This will iterate through each process and tally up allocated pages in each processes page directory as
  * well as tallying up allocated kernel pages.
  */
-void tally_allocated_memory_for_all_procs(void) {
+uint tally_allocated_memory_for_all_procs(void) {
     uint total_pages = 0;
     struct proc *p;
     // Tally memory for the kernel
+
     total_pages += tally_kernel_page_directory();
+
     acquire(&ptable.lock);
 
-    for( p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-        total_pages += tally_page_directory(p->pgdir);
-    }
 
+    for( p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+        if(p->state != UNUSED){
+            total_pages += tally_page_directory(p->pgdir);
+        }
+
+    }
     release(&ptable.lock);
 
+    //cprintf("Total allocated memory for all processes: %d pages totaling %d bytes\n", total_pages, (total_pages * PGSIZE));
 
-    cprintf("Total allocated memory for all processes: %d pages totaling %d bytes\n", total_pages, (total_pages * PGSIZE));
+    return total_pages;
 }
 
 // Disable interrupts so that we are not rescheduled
@@ -203,6 +209,8 @@ growproc(int n)
 int
 fork(void)
 {
+
+    tally_allocated_memory_for_all_procs();
   int i, pid;
   struct proc *np;
   struct proc *curproc = myproc();
