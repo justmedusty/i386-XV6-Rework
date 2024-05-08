@@ -57,7 +57,7 @@ mycpu(void)
  * This will iterate through each process and tally up allocated pages in each processes page directory as
  * well as tallying up allocated kernel pages.
  */
-uint tally_allocated_memory_for_all_procs(void) {
+int freemem(void) {
     uint total_pages = 0;
     struct proc *p;
     // Tally memory for the kernel
@@ -209,8 +209,6 @@ growproc(int n)
 int
 fork(void)
 {
-
-    tally_allocated_memory_for_all_procs();
   int i, pid;
   struct proc *np;
   struct proc *curproc = myproc();
@@ -538,6 +536,7 @@ wakeup(void *chan)
 
 // Kill the process with the given pid.
 // Process won't exit until it returns
+// Process won't exit until it returns
 // to user space (see trap in trap.c).
 int
 kill(int pid)
@@ -594,10 +593,4 @@ procdump(void)
     }
     cprintf("\n");
   }
-}
-
-int freemem(void){
-    int pages_used = tally_allocated_memory_for_all_procs();
-    return pages_used;
-
 }

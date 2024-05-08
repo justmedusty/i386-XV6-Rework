@@ -442,11 +442,3 @@ sys_pipe(void)
   fd[1] = fd1;
   return 0;
 }
-
-int
-sys_freemem(void ){
-
-    int pages = tally_allocated_memory_for_all_procs();
-    return pages;
-
-}
