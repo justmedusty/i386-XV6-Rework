@@ -121,6 +121,7 @@ found:
   p->state = EMBRYO;
   p->pid = nextpid++;
 
+
   release(&ptable.lock);
 
   // Allocate kernel stack.
@@ -232,6 +233,11 @@ fork(void)
   np->sz = curproc->sz;
   np->parent = curproc;
   *np->tf = *curproc->tf;
+  /*
+   * We will see the approriate scheduling flags and whatnot , we will check
+   * the child pri flag to indicate whether or not the scheduler should
+   */
+  np->p_flag = curproc->p_flag;
 
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
@@ -423,7 +429,6 @@ sched(void)
 {
   int intena;
   struct proc *p = myproc();
-
   if(!holding(&ptable.lock))
     panic("sched ptable.lock");
   if(mycpu()->ncli != 1)
@@ -433,6 +438,12 @@ sched(void)
   if(readeflags()&FL_IF)
     panic("sched interruptible");
   intena = mycpu()->intena;
+
+  //Is this a higher priority than the current process?
+  if(mycpu()->proc->p_pri < p->p_pri || mycpu()->proc->space_flag < p->space_flag){
+      p->p_flag = SSWAP;
+      swtch(&p->context, mycpu()->scheduler);
+  }
   swtch(&p->context, mycpu()->scheduler);
   mycpu()->intena = intena;
 }

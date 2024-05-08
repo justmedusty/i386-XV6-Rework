@@ -36,9 +36,20 @@ struct context {
  */
 enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE, WAIT};
 
+#define DEFAULT_KERNEL_PRIORITY = 2;
+#define DEFAULT_USER_PRIORITY = 1;
 #define SLOAD                   01;     // process is in core
 #define SSYS                    02;     //scheduling process
 #define SSWAP                   010;    //process is being swapped
+#define SLOCK                   04;     //
+
+#define SCHED                  0;
+#define KERNEL_PROC            1;
+#define USER_PROC              2;
+
+#define CHILD_SAME_PRI         0;
+#define CHILD_DIFF_PRI         1;
+
 
 // Per-process state
 struct proc {
@@ -48,6 +59,8 @@ struct proc {
   char p_time;                  //The resident time for scheduling
   char p_nice;                  //nice value, lower nice value means more important and should be scheduled faster, higher nice value means opposite
   char p_flag;                  //Flag indicating the schedule status of this proc
+  int space_flag;              //flag to mark a process as either kernel space or user space
+  int child_pri;               //A binary flag that will just indicate whether any children on fork should retain the same scheduling priority.
   pde_t* pgdir;                // Page table
   char *kstack;                // Bottom of kernel stack for this process
   enum procstate state;        // Process state
