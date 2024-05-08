@@ -2,7 +2,7 @@
 #include "stat.h"
 #include "user.h"
 #include "fs.h"
-
+#include "syscall.h"
 char*
 fmtname(char *path)
 {

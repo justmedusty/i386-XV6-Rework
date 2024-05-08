@@ -57,8 +57,8 @@ sys_sbrk(void)
 }
 int
 sys_freemem(void){
-    tally_allocated_memory_for_all_procs();
-    return 0;
+    int pages = tally_allocated_memory_for_all_procs();
+    return pages;
 }
 int
 sys_sleep(void)

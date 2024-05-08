@@ -595,3 +595,9 @@ procdump(void)
     cprintf("\n");
   }
 }
+
+int freemem(void){
+    int pages_used = tally_allocated_memory_for_all_procs();
+    return pages_used;
+
+}

@@ -1,10 +1,13 @@
 //
 // Created by dustyn on 5/7/24.
 //
-#include "user.h"
+#include "syscall.h"
 #include "types.h"
-#include "proc.h"
+#include "user.h"
+
+
 int main(){
-    tally_allocated_memory_for_all_procs();
+    int free_pages = freemem();
+    printf(1,"Pages allocated : %d which amounts to %d bytes\n",free_pages,free_pages * 4096);
     exit();
 };

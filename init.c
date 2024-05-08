@@ -4,6 +4,7 @@
 #include "stat.h"
 #include "user.h"
 #include "fcntl.h"
+#include "syscall.h"
 
 char *argv[] = { "sh", 0 };
 
@@ -21,6 +22,7 @@ main(void)
   dup(0);  // stderr
 
   for(;;){
+
       printf(1,"Final stage of boot\n");
     printf(1, "init: starting sh\n");
     pid = fork();
