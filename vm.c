@@ -100,6 +100,12 @@ uint tally_page_directory(pde_t *pgdir) {
     return total_pages;
 }
 
+/*
+ * This just returns a maxed out unsigned 16 bit integer for some reason, hmmmm
+ *
+ * maybe a context switch issue? I don't know. I will come back to this. Ah I think it is because it is set and
+ * reset constantly every time there is a kvmalloc call...
+ */
 uint tally_kernel_page_directory(void) {
     uint total_pages = 0;
     pde_t *pgdir = kpgdir;

@@ -62,13 +62,11 @@ int freemem(void) {
     struct proc *p;
     // Tally memory for the kernel
 
-    total_pages += tally_kernel_page_directory();
-
     acquire(&ptable.lock);
 
 
     for( p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-        if(p->state != UNUSED){
+        if(p->kstack != 0 || p->pgdir != 0){
             total_pages += tally_page_directory(p->pgdir);
         }
 
@@ -301,14 +299,14 @@ exit(void)
         wakeup1(initproc);
     }
   }
-   // kfree(curproc->kstack);
-    curproc->kstack = 0;
-   // freevm(curproc->pgdir);
+
     curproc->pid = 0;
     curproc->parent = 0;
     curproc->name[0] = 0;
     curproc->killed = 0;
     curproc->state = UNUSED;
+    freevm(curproc->pgdir);
+    kfree(curproc->kstack);
 
     // Jump into the scheduler, never to return.
   sched();
