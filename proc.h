@@ -31,12 +31,23 @@ struct context {
   uint ebp;
   uint eip;
 };
+/*
+ * Added WAIT which will be a low priority sleep
+ */
+enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE, WAIT};
 
-enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
+#define SLOAD                   01;     // process is in core
+#define SSYS                    02;     //scheduling process
+#define SSWAP                   010;    //process is being swapped
 
 // Per-process state
 struct proc {
   uint sz;                     // Size of process memory (bytes)
+  char p_sig;                  //The signal sent to this process
+  char p_pri;                  // The priority of this process, for scheduling
+  char p_time;                  //The resident time for scheduling
+  char p_nice;                  //nice value, lower nice value means more important and should be scheduled faster, higher nice value means opposite
+  char p_flag;                  //Flag indicating the schedule status of this proc
   pde_t* pgdir;                // Page table
   char *kstack;                // Bottom of kernel stack for this process
   enum procstate state;        // Process state

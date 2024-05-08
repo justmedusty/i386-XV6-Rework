@@ -67,6 +67,12 @@ int freemem(void) {
 
     for( p = ptable.proc; p < &ptable.proc[NPROC]; p++){
         if(p->kstack != 0 || p->pgdir != 0){
+            if(p->kstack != 0 && p->state == UNUSED){
+                kfree(p->kstack);
+            }
+            if(p->state == UNUSED && p->pgdir != 0){
+                freevm(p->pgdir);
+            }
             total_pages += tally_page_directory(p->pgdir);
         }
 
@@ -295,18 +301,22 @@ exit(void)
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
     if(p->parent == curproc){
       p->parent = initproc;
-      if(p->state == ZOMBIE)
+      if(p->state == UNUSED && p->kstack != 0){
+          kfree(p->kstack);
+      }
+
+        if(p->state == UNUSED && p->pgdir != 0){
+            freevm(p->pgdir);
+        }
         wakeup1(initproc);
     }
   }
 
-    curproc->pid = 0;
-    curproc->parent = 0;
     curproc->name[0] = 0;
     curproc->killed = 0;
     curproc->state = UNUSED;
-    freevm(curproc->pgdir);
-    kfree(curproc->kstack);
+    //freevm(curproc->pgdir);
+    //kfree(curproc->kstack);
 
     // Jump into the scheduler, never to return.
   sched();

@@ -1,7 +1,10 @@
 // On-disk file system format.
 // Both the kernel and user programs use this header file.
 
-
+/*
+ * The root inode is stored as a global variable in unix systems in order to always be able to map
+ * inodes from root no matter where you are in the file system.
+ */
 #define ROOTINO 1  // root i-number
 #define BSIZE 512  // block size
 
