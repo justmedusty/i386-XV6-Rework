@@ -7,6 +7,7 @@
 #include "proc.h"
 #include "spinlock.h"
 #include "vm.h"
+#include "signal.h"
 
 struct {
   struct spinlock lock;
@@ -238,6 +239,19 @@ fork(void)
    * the child pri flag to indicate whether or not the scheduler should
    */
   np->p_flag = curproc->p_flag;
+  if(curproc->child_pri == CHILD_SAME_PRI){
+      np->p_pri = curproc->p_pri;
+  } else{
+
+      int new_pri = (curproc->p_pri == 0) ? 0 : (curproc->p_pri - 1);
+      np->p_pri = new_pri;
+
+  }
+  /*
+   * Clear time taken and copy the time quantum from the parent
+   */
+  np->p_time_taken = 0;
+  np->p_time_quantum = curproc->p_time_quantum;
 
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
@@ -387,7 +401,8 @@ scheduler(void)
 
   struct proc *p;
   struct cpu *c = mycpu();
-  struct proc *highest_run_candidate;
+  //Init to a null pointer
+  struct proc *highest_run_candidate = (proc*) 0
   c->proc = 0;
 
   for(;;){
@@ -401,6 +416,16 @@ scheduler(void)
           continue;
       }
 
+      if(highest_run_candidate == (proc*) 0){
+          highest_run_candidate = p;
+      }
+
+      if(p->p_pri > highest_run_candidate->p_pri){
+          highest_run_candidate = p;
+      }
+
+
+
       /*
        * If this process has taken it's full time quantum and is a user process, switch it out
        * We will increment it's priority as a well to have it not be stuck here forever, only for a cycle or two.
@@ -410,18 +435,21 @@ scheduler(void)
       if(p->time_taken >= p->p_time_quantum && p->p_pri =< DEFAULT_KERNEL_PRIORITY){
           p->state = RUNNABLE;
           p->p_pri++
-          break;
+          continue;
       }
-      if(p->p_pri > DEFAULT_KERNEL_PRIORITY){
-          highest_run_candidate = p;
-      }
+
+        if (p->p_sig == SIGKILL || p->p_sig == SIGSEG || p->p_sig == SIGHUP){
+            kill(p->pid);
+            continue;
+        }
+
+
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
       c->proc = p;
       switchuvm(p);
       p->state = RUNNING;
-      p->p_flag = SLOAD;
 
       swtch(&(c->scheduler), p->context);
       switchkvm();
@@ -429,12 +457,11 @@ scheduler(void)
       // Process is done running for now.
       // It should have changed its p->state before coming back.
       c->proc = 0;
+
+      //increment the procs time taken so the time quantum comparison has teeth
+      p->p_time_taken++;
     }
     release(&ptable.lock);
-    /*
-     * increment our time quantum ticker, if it reaches 2 billion reset it to 0 to
-     * avoid overflows
-     */
 
   }
 }

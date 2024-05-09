@@ -36,25 +36,25 @@ struct context {
  */
 enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE, WAIT};
 
-#define DEFAULT_KERNEL_PRIORITY = 2;
-#define DEFAULT_USER_PRIORITY = 1;
-#define SLOAD                  1;     // process is in core
-#define SSYS                   2;     //scheduling process
-#define SSWAP                  4;    //process is being swapped
-#define SLOCK                  8;     //
+#define DEFAULT_KERNEL_PRIORITY = 2
+#define DEFAULT_USER_PRIORITY = 1
+#define SLOAD                  1     // process is in core
+#define SSYS                   2     //scheduling process
+#define SSWAP                  4    //process is being swapped
+#define SLOCK                  8     //
 
-#define SCHED                  0;
-#define KERNEL_PROC            1;
-#define USER_PROC              2;
+#define SCHED                  0
+#define KERNEL_PROC            1
+#define USER_PROC              2
 
-#define CHILD_SAME_PRI         0;
-#define CHILD_DIFF_PRI         1;
+#define CHILD_SAME_PRI         0
+#define CHILD_DIFF_PRI         1
 
 
 // Per-process state
 struct proc {
   uint sz;                     // Size of process memory (bytes)
-  char p_sig;                  //The signal sent to this process
+  int p_sig;                  //The signal sent to this process
   char p_pri;                  // The priority of this process, for scheduling
   int p_time_quantum;         //The resident time for scheduling
   int p_time_taken;
