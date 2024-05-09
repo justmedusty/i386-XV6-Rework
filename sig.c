@@ -6,9 +6,9 @@
 /*
  * User executable for the sig sys call to be run from the terminal, send a signal of a certain id
  */
-#include "user.h"
-#include "types.h"
 #include "syscall.h"
+#include "types.h"
+#include "user.h"
 
 
 int main(int argc,char *argv[]) {

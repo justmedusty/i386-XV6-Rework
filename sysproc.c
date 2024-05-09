@@ -63,6 +63,7 @@ sys_freemem(void){
 
 int
 sys_sig(void){
+
     int signal,pid;
     if((argint(0, &signal) < 0 || (argint(1, &pid) < 0))){
         return -1;
@@ -71,6 +72,7 @@ sys_sig(void){
     int result = sig(signal,pid);
     return result;
 }
+
 int
 sys_sleep(void)
 {

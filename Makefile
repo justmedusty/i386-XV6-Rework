@@ -184,7 +184,7 @@ UPROGS=\
 	_wc\
 	_zombie\
 	_freemem\
-	_sig \
+	_sig\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
