@@ -36,14 +36,13 @@ forktest(void)
  * Since there are no more zombies and procs are wiped upon exit, this can be commented out
  */
 
-/*
   for(; n > 0; n--){
     if(wait() < 0){
       printf(1, "wait stopped early\n");
      exit();
     }
   }
-*/
+
   if(wait() != -1){
     printf(1, "wait got too many\n");
     exit();

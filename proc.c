@@ -421,6 +421,13 @@ scheduler(void)
       if(p->state != RUNNABLE){
           continue;
       }
+        /*
+         * handle these signals , I will leave a very bare implementation for now that I can build upon later.
+         */
+        if (p->p_sig == SIGKILL || p->p_sig == SIGSEG || p->p_sig == SIGHUP || p->p_sig == SIGINT || p->p_sig ){
+            kill(p->pid);
+            continue;
+        }
 
       /*
        * Is the SSWAP flag is set?
@@ -458,10 +465,6 @@ scheduler(void)
        * I have not implmented signals yet but we will add a check in here for now.
        */
 
-        if (p->p_sig == SIGKILL || p->p_sig == SIGSEG || p->p_sig == SIGHUP){
-            kill(p->pid);
-            continue;
-        }
 
         //goto sched routine.
         goto sched;
@@ -668,6 +671,42 @@ kill(int pid)
   }
   release(&ptable.lock);
   return -1;
+}
+
+
+/*
+ * Send a signal to a process, we will do a check to ensure it's a valid signal.
+ * We will loop through until we find the pid and change its signal and then
+ * change its priority to high and reset its time quantum so that it will be scheduled quickly.
+ *
+ * We will also change the state to runnable , making the scheduler pick it up and process the signal quickly.
+ */
+int sig(int sig_id,int pid){
+
+    struct proc *proc;
+
+    if( sig_id != SIGHUP ||  sig_id != SIGSEG ||  sig_id != SIGKILL ||  sig_id != SIGINT ||  sig_id !=  SIGPIPE ){
+        return SIG_ERROR;
+    }
+
+    acquire(&ptable.lock);
+    for(proc = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+        if (proc->pid == pid) {
+            //set the signal
+            proc->p_sig = sig_id;
+            // Wake process from sleep if necessary.
+            if (proc->state != RUNNING){
+                proc->state = RUNNABLE;
+            }
+            proc->p_time_taken = 0;
+            proc->p_pri = TOP_PRIORITY;
+            release(&ptable.lock);
+            return 0;
+        }
+
+
+    }
+    return ENOPROC;
 }
 
 //PAGEBREAK: 36

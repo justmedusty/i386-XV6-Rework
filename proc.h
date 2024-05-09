@@ -36,6 +36,7 @@ struct context {
  */
 enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE, WAIT};
 
+#define TOP_PRIORITY             10
 #define DEFAULT_KERNEL_PRIORITY  2  //default pri for kernel proc
 #define DEFAULT_USER_PRIORITY    1  //default pri for user proc
 
@@ -51,6 +52,9 @@ enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE, WAIT};
 
 #define CHILD_SAME_PRI         0     //child of fork should maintain same pri
 #define CHILD_DIFF_PRI         1    //child diff pri, decrement
+
+#define ESIG                    1000000000
+#define ENOPROC                 1000000001
 
 // Per-process state
 struct proc {
