@@ -384,10 +384,12 @@ wait(void)
 void
 scheduler(void)
 {
+
   struct proc *p;
   struct cpu *c = mycpu();
+  struct proc *highest_run_candidate;
   c->proc = 0;
-  
+
   for(;;){
     // Enable interrupts on this processor.
     sti();
@@ -395,15 +397,31 @@ scheduler(void)
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      if(p->state != RUNNABLE)
-        continue;
+      if(p->state != RUNNABLE){
+          continue;
+      }
 
+      /*
+       * If this process has taken it's full time quantum and is a user process, switch it out
+       * We will increment it's priority as a well to have it not be stuck here forever, only for a cycle or two.
+       * A user process will need to wait 2 iterations to be scheduled again and a kernel process with the
+       * default kernel priority will need to wait 1 iteration to be scheduled again
+       */
+      if(p->time_taken >= p->p_time_quantum && p->p_pri =< DEFAULT_KERNEL_PRIORITY){
+          p->state = RUNNABLE;
+          p->p_pri++
+          break;
+      }
+      if(p->p_pri > DEFAULT_KERNEL_PRIORITY){
+          highest_run_candidate = p;
+      }
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
       c->proc = p;
       switchuvm(p);
       p->state = RUNNING;
+      p->p_flag = SLOAD;
 
       swtch(&(c->scheduler), p->context);
       switchkvm();
@@ -413,6 +431,10 @@ scheduler(void)
       c->proc = 0;
     }
     release(&ptable.lock);
+    /*
+     * increment our time quantum ticker, if it reaches 2 billion reset it to 0 to
+     * avoid overflows
+     */
 
   }
 }
@@ -444,7 +466,6 @@ sched(void)
       p->p_flag = SSWAP;
       swtch(&p->context, mycpu()->scheduler);
   }
-  swtch(&p->context, mycpu()->scheduler);
   mycpu()->intena = intena;
 }
 
@@ -530,7 +551,18 @@ wakeup1(void *chan)
     if(p->state == SLEEPING && p->chan == chan)
       p->state = RUNNABLE;
 }
+/*
+ * This is for waking up higher priorityh processes
+ */
+static void
+wakeup2(void *chan)
+{
+    struct proc *p;
 
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+        if(p->state == WAIT && p->chan == chan)
+            p->state = RUNNABLE;
+}
 
 // Wake up all processes sleeping on chan.
 // The ptable lock must be held.

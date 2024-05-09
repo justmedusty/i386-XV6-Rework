@@ -38,10 +38,10 @@ enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE, WAIT};
 
 #define DEFAULT_KERNEL_PRIORITY = 2;
 #define DEFAULT_USER_PRIORITY = 1;
-#define SLOAD                   01;     // process is in core
-#define SSYS                    02;     //scheduling process
-#define SSWAP                   010;    //process is being swapped
-#define SLOCK                   04;     //
+#define SLOAD                  1;     // process is in core
+#define SSYS                   2;     //scheduling process
+#define SSWAP                  4;    //process is being swapped
+#define SLOCK                  8;     //
 
 #define SCHED                  0;
 #define KERNEL_PROC            1;
@@ -56,7 +56,8 @@ struct proc {
   uint sz;                     // Size of process memory (bytes)
   char p_sig;                  //The signal sent to this process
   char p_pri;                  // The priority of this process, for scheduling
-  char p_time;                  //The resident time for scheduling
+  int p_time_quantum;         //The resident time for scheduling
+  int p_time_taken;
   char p_nice;                  //nice value, lower nice value means more important and should be scheduled faster, higher nice value means opposite
   char p_flag;                  //Flag indicating the schedule status of this proc
   int space_flag;              //flag to mark a process as either kernel space or user space
