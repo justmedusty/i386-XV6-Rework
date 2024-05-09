@@ -36,24 +36,20 @@ struct context {
  */
 enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE, WAIT};
 
-#define DEFAULT_KERNEL_PRIORITY  2
-#define DEFAULT_USER_PRIORITY    1
-
-
-
+#define DEFAULT_KERNEL_PRIORITY  2  //default pri for kernel proc
+#define DEFAULT_USER_PRIORITY    1  //default pri for user proc
 
 #define SLOAD                  1     // process is in core
 #define SSYS                   2     //scheduling process
 #define SSWAP                  4    //process is being swapped
-#define SLOCK                  8     //
+#define SLOCK                  8     //currently locked
 
-#define SCHED                  0
-#define KERNEL_PROC            1
-#define USER_PROC              2
+#define SCHED                  0    //is sched proc
+#define KERNEL_PROC            1    // is kernel proc
+#define USER_PROC              2    //is user proc
 
-#define CHILD_SAME_PRI         0
-#define CHILD_DIFF_PRI         1
-
+#define CHILD_SAME_PRI         0     //child of fork should maintain same pri
+#define CHILD_DIFF_PRI         1    //child diff pri, decrement
 
 // Per-process state
 struct proc {

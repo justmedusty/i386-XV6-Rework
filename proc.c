@@ -239,11 +239,15 @@ fork(void)
    * the child pri flag to indicate whether or not the scheduler should
    */
   np->p_flag = curproc->p_flag;
+
   if(curproc->child_pri == CHILD_SAME_PRI){
+
       np->p_pri = curproc->p_pri;
+
   } else{
 
       int new_pri = (curproc->p_pri == 0) ? 0 : (curproc->p_pri - 1);
+
       np->p_pri = new_pri;
 
   }
@@ -398,11 +402,11 @@ wait(void)
 void
 scheduler(void)
 {
-
+    struct proc *null = 0;
   struct proc *p;
   struct cpu *c = mycpu();
   //Init to a null pointer
-  struct proc *highest_run_candidate = (proc*) 0
+  struct proc *highest_run_candidate = null;
   c->proc = 0;
 
   for(;;){
@@ -416,7 +420,7 @@ scheduler(void)
           continue;
       }
 
-      if(highest_run_candidate == (proc*) 0){
+      if(highest_run_candidate == null){
           highest_run_candidate = p;
       }
 
@@ -432,9 +436,9 @@ scheduler(void)
        * A user process will need to wait 2 iterations to be scheduled again and a kernel process with the
        * default kernel priority will need to wait 1 iteration to be scheduled again
        */
-      if(p->time_taken >= p->p_time_quantum && p->p_pri =< DEFAULT_KERNEL_PRIORITY){
+      if(p->p_time_taken >= p->p_time_quantum && p->p_pri <= DEFAULT_KERNEL_PRIORITY){
           p->state = RUNNABLE;
-          p->p_pri++
+          p->p_pri++;
           continue;
       }
 
@@ -491,8 +495,10 @@ sched(void)
   //Is this a higher priority than the current process?
   if(mycpu()->proc->p_pri < p->p_pri || mycpu()->proc->space_flag < p->space_flag){
       p->p_flag = SSWAP;
-      swtch(&p->context, mycpu()->scheduler);
+
   }
+
+  swtch(&p->context, mycpu()->scheduler);
   mycpu()->intena = intena;
 }
 
