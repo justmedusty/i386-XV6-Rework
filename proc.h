@@ -53,8 +53,8 @@ enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE, WAIT};
 #define CHILD_SAME_PRI         0     //child of fork should maintain same pri
 #define CHILD_DIFF_PRI         1    //child diff pri, decrement
 
-#define ESIG                    1000000000
-#define ENOPROC                 1000000001
+#define ESIG                    1000000000    //Bad signal || no such signal
+#define ENOPROC                 1000000001    // No proc of this pid found
 
 // Per-process state
 struct proc {

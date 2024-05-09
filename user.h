@@ -1,5 +1,10 @@
+#include "types.h"
 struct stat;
 struct rtcdate;
+
+//Errors defined here as well
+#define ESIG                    1000000000    //Bad signal || no such signal
+#define ENOPROC                 1000000001    // No proc of this pid found
 
 // system calls
 int fork(void);
@@ -24,6 +29,7 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 int freemem(void);
+int sig(int, int);
 
 
 // ulib.c

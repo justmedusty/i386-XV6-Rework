@@ -686,11 +686,11 @@ int sig(int sig_id,int pid){
     struct proc *proc;
 
     if( sig_id != SIGHUP ||  sig_id != SIGSEG ||  sig_id != SIGKILL ||  sig_id != SIGINT ||  sig_id !=  SIGPIPE ){
-        return SIG_ERROR;
+        return ESIG;
     }
 
     acquire(&ptable.lock);
-    for(proc = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+    for(proc = ptable.proc; proc < &ptable.proc[NPROC]; proc++) {
         if (proc->pid == pid) {
             //set the signal
             proc->p_sig = sig_id;

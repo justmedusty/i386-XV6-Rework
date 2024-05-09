@@ -60,6 +60,17 @@ sys_freemem(void){
     int pages = freemem();
     return pages;
 }
+
+int
+sys_sig(void){
+    int signal,pid;
+    if((argint(0, &signal) < 0 || (argint(1, &pid) < 0))){
+        return -1;
+    }
+
+    int result = sig(signal,pid);
+    return result;
+}
 int
 sys_sleep(void)
 {

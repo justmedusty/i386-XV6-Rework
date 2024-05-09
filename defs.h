@@ -121,7 +121,7 @@ void            userinit(void);
 int             wait(void);
 void            wakeup(void*);
 void            yield(void);
-int             sig(int sig_id,int pid);
+int             sig(int,int);
 
 // swtch.S
 void            swtch(struct context**, struct context*);
