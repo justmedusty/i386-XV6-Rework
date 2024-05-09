@@ -684,11 +684,11 @@ kill(int pid)
 int sig(int sig_id,int pid){
 
     struct proc *proc;
-
+/*
     if( sig_id != SIGHUP ||  sig_id != SIGSEG ||  sig_id != SIGKILL ||  sig_id != SIGINT ||  sig_id !=  SIGPIPE ){
         return ESIG;
     }
-
+*/
     acquire(&ptable.lock);
     for(proc = ptable.proc; proc < &ptable.proc[NPROC]; proc++) {
         if (proc->pid == pid) {
@@ -706,6 +706,7 @@ int sig(int sig_id,int pid){
 
 
     }
+    release(&ptable.lock);
     return ENOPROC;
 }
 
