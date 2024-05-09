@@ -173,6 +173,14 @@ userinit(void)
   p->tf->esp = PGSIZE;
   p->tf->eip = 0;  // beginning of initcode.S
 
+  /*
+   * Setting our new scheduling fields
+   */
+  p->p_time_quantum = 5;
+  p->child_pri = CHILD_SAME_PRI;
+  p->p_pri = DEFAULT_USER_PRIORITY;
+  p->space_flag = USER_PROC;
+
   safestrcpy(p->name, "initcode", sizeof(p->name));
   //The init process' current working directory will be the root dir inode
   p->cwd = namei("/");
@@ -325,6 +333,7 @@ exit(void)
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
     if(p->parent == curproc){
       p->parent = initproc;
+      /*
       if(p->state == UNUSED && p->kstack != 0){
           kfree(p->kstack);
       }
@@ -332,13 +341,14 @@ exit(void)
         if(p->state == UNUSED && p->pgdir != 0){
             freevm(p->pgdir);
         }
+        */
         wakeup1(initproc);
     }
   }
 
-    curproc->name[0] = 0;
-    curproc->killed = 0;
-    curproc->state = UNUSED;
+   // curproc->name[0] = 0;
+   // curproc->killed = 0;
+   curproc->state = ZOMBIE;
     //freevm(curproc->pgdir);
     //kfree(curproc->kstack);
 
@@ -419,6 +429,9 @@ scheduler(void)
       if(p->state != RUNNABLE){
           continue;
       }
+      if(p->p_flag == SSWAP){
+          goto sched;
+      }
 
       if(highest_run_candidate == null){
           highest_run_candidate = p;
@@ -446,21 +459,24 @@ scheduler(void)
             kill(p->pid);
             continue;
         }
+        goto sched;
 
 
-      // Switch to chosen process.  It is the process's job
-      // to release ptable.lock and then reacquire it
-      // before jumping back to us.
-      c->proc = p;
-      switchuvm(p);
-      p->state = RUNNING;
+        sched:    // Switch to chosen process.  It is the process's job
+                    // to release ptable.lock and then reacquire it
+                    // before jumping back to us.
+                    c->proc = p;
+                    switchuvm(p);
+                    p->state = RUNNING;
 
-      swtch(&(c->scheduler), p->context);
-      switchkvm();
+                    swtch(&(c->scheduler), p->context);
+                    switchkvm();
 
-      // Process is done running for now.
-      // It should have changed its p->state before coming back.
-      c->proc = 0;
+                    // Process is done running for now.
+                    // It should have changed its p->state before coming back.
+                    c->proc = 0;
+
+
 
       //increment the procs time taken so the time quantum comparison has teeth
       p->p_time_taken++;
@@ -495,7 +511,6 @@ sched(void)
   //Is this a higher priority than the current process?
   if(mycpu()->proc->p_pri < p->p_pri || mycpu()->proc->space_flag < p->space_flag){
       p->p_flag = SSWAP;
-
   }
 
   swtch(&p->context, mycpu()->scheduler);
