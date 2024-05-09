@@ -429,7 +429,7 @@ scheduler(void)
       if(p->p_flag == SSWAP){
           goto sched;
       }
-
+//TODO highest run is global make sure that you are not swapping in old process images that completed a while ago !
       /*
        * Is the highest run candidae null? if yes assign this proc to it
        */
