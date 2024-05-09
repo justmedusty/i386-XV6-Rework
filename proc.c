@@ -61,26 +61,18 @@ mycpu(void)
 int freemem(void) {
     uint total_pages = 0;
     struct proc *p;
-    // Tally memory for the kernel
+    // Tally memory used by all procs
 
     acquire(&ptable.lock);
 
 
     for( p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-        if(p->kstack != 0 || p->pgdir != 0){
-            if(p->kstack != 0 && p->state == UNUSED){
-                kfree(p->kstack);
-            }
-            if(p->state == UNUSED && p->pgdir != 0){
-                freevm(p->pgdir);
-            }
+        if(p->state != UNUSED){
             total_pages += tally_page_directory(p->pgdir);
         }
 
     }
     release(&ptable.lock);
-
-    //cprintf("Total allocated memory for all processes: %d pages totaling %d bytes\n", total_pages, (total_pages * PGSIZE));
 
     return total_pages;
 }
@@ -415,7 +407,7 @@ scheduler(void)
     struct proc *null = 0;
   struct proc *p;
   struct cpu *c = mycpu();
-  //Init to a null pointer
+  //Init to a null pointer so we can assign the first proc to it and then from there keep checking.
   struct proc *highest_run_candidate = null;
   c->proc = 0;
 
@@ -429,18 +421,25 @@ scheduler(void)
       if(p->state != RUNNABLE){
           continue;
       }
+
+      /*
+       * Is the SSWAP flag is set?
+       * If it is go right ahead and swap it in
+       */
       if(p->p_flag == SSWAP){
           goto sched;
       }
 
+      /*
+       * Is the highest run candidae null? if yes assign this proc to it
+       */
       if(highest_run_candidate == null){
           highest_run_candidate = p;
       }
-
+      //Is this procs pri higher than the highest run candidate? if so set it accordingly
       if(p->p_pri > highest_run_candidate->p_pri){
           highest_run_candidate = p;
       }
-
 
 
       /*
@@ -455,10 +454,16 @@ scheduler(void)
           continue;
       }
 
+      /*
+       * I have not implmented signals yet but we will add a check in here for now.
+       */
+
         if (p->p_sig == SIGKILL || p->p_sig == SIGSEG || p->p_sig == SIGHUP){
             kill(p->pid);
             continue;
         }
+
+        //goto sched routine.
         goto sched;
 
 
@@ -508,11 +513,19 @@ sched(void)
     panic("sched interruptible");
   intena = mycpu()->intena;
 
-  //Is this a higher priority than the current process?
+  //default will be SCHOOSE which is just schedule it when the algorithm gets to it
+  p->p_flag = SCHOOSE;
+
+  //Is this a higher priority than the current process? if so, set it to SSWAP so that it will be swapped in immediately
   if(mycpu()->proc->p_pri < p->p_pri || mycpu()->proc->space_flag < p->space_flag){
       p->p_flag = SSWAP;
   }
 
+    //Is the current running process out of its time quantum? if it is swap it out
+  if(mycpu()->proc->p_time_quantum <= mycpu()->proc->p_time_quantum){
+      p->p_flag = SSWAP;
+  }
+  //Put this process into the scheduler
   swtch(&p->context, mycpu()->scheduler);
   mycpu()->intena = intena;
 }
