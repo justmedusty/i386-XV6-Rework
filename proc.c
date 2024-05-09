@@ -425,8 +425,8 @@ scheduler(void)
          * handle these signals , I will leave a very bare implementation for now that I can build upon later.
          */
         if (p->p_sig == SIGKILL || p->p_sig == SIGSEG || p->p_sig == SIGHUP || p->p_sig == SIGINT || p->p_sig ){
-            kill(p->pid);
-            continue;
+            p->killed = 1;
+            p->p_sig = 0;
         }
 
       /*
@@ -616,7 +616,9 @@ wakeup1(void *chan)
       p->state = RUNNABLE;
 }
 /*
- * This is for waking up higher priorityh processes
+ * This is for waking up higher priority processes
+ *
+ * unimplemented right now
  */
 static void
 wakeup2(void *chan)
@@ -691,7 +693,7 @@ int sig(int sig_id,int pid){
 */
     acquire(&ptable.lock);
     for(proc = ptable.proc; proc < &ptable.proc[NPROC]; proc++) {
-        if (proc->pid == pid) {
+        if (proc->pid == pid && proc->state != UNUSED) {
             //set the signal
             proc->p_sig = sig_id;
             // Wake process from sleep if necessary.

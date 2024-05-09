@@ -63,10 +63,8 @@ sys_freemem(void){
 
 int
 sys_sig(void){
-
     int signal,pid;
     if((argint(0, &signal) < 0) || (argint(1, &pid) < 0)){
-        panic("NO");
         return -1;
     }
 
