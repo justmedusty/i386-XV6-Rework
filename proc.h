@@ -36,8 +36,12 @@ struct context {
  */
 enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE, WAIT};
 
-#define DEFAULT_KERNEL_PRIORITY = 2
-#define DEFAULT_USER_PRIORITY = 1
+#define DEFAULT_KERNEL_PRIORITY  2
+#define DEFAULT_USER_PRIORITY    1
+
+
+
+
 #define SLOAD                  1     // process is in core
 #define SSYS                   2     //scheduling process
 #define SSWAP                  4    //process is being swapped
