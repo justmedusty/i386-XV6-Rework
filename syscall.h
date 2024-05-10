@@ -23,3 +23,4 @@
 #define SYS_freemem 22
 #define SYS_sig     23
 #define SYS_sighandler 24
+#define SYS_sigignore 25

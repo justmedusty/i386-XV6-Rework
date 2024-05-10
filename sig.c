@@ -13,13 +13,14 @@
 #include "signal.h"
 
 
-void sig_handler(int sig_id){
+void *sig_handler(int sig_id){
 
     if(sig_id == SIGINT){
         printf(1,"RECEIVED INTERRUPT\n");
     } else{
         printf(1,"RECEIVED OTHER SIGNAL\n");
     }
+    return;
 }
 
 int main(int argc,char **argv) {
@@ -28,7 +29,7 @@ int main(int argc,char **argv) {
         exit();
     }
 
-    sighandler((void*) &sig_handler);
+    sighandler(sig_handler);
 
 
     int result = sig(atoi(argv[1]), atoi(argv[2]));

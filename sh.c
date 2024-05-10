@@ -61,13 +61,16 @@ void *sig_handler(int sig_id){
     } else{
         printf(1,"RECEIVED OTHER SIGNAL\n");
     }
+    return;
 }
 
 // Execute cmd.  Never returns.
 void
 runcmd(struct cmd *cmd)
 {
-    sighandler(sig_handler);
+    //sighandler(sig_handler);
+    //turn interrupts off for sh
+    sigignore(1);
 
   int p[2];
   struct backcmd *bcmd;

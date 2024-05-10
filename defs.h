@@ -123,6 +123,7 @@ void            wakeup(void*);
 void            yield(void);
 int             sig(int,int);
 void            sighandler(void*(int));
+void            sigignore(int);
 
 // swtch.S
 void            swtch(struct context**, struct context*);

@@ -106,6 +106,7 @@ extern int sys_uptime(void);
 extern int sys_freemem(void);
 extern int sys_sig(void);
 extern int sys_sighandler(void);
+extern int sys_sigignore(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -132,6 +133,7 @@ static int (*syscalls[])(void) = {
 [SYS_freemem] sys_freemem,
 [SYS_sig]     sys_sig,
 [SYS_sighandler] sys_sighandler,
+[SYS_sigignore] sys_sigignore,
 };
 
 void

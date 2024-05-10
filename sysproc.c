@@ -84,6 +84,18 @@ sys_sighandler(void){
 }
 
 int
+sys_sigignore(void){
+    int arg;
+
+    if(argint(1,&arg) < 0){
+        return -1;
+    }
+    sigignore(arg);
+    return 0;
+
+}
+
+int
 sys_sleep(void)
 {
   int n;
