@@ -131,7 +131,7 @@ static int (*syscalls[])(void) = {
 [SYS_close]   sys_close,
 [SYS_freemem] sys_freemem,
 [SYS_sig]     sys_sig,
-[SYS_sighandler] sys_handler,
+[SYS_sighandler] sys_sighandler,
 };
 
 void

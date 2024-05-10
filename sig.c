@@ -10,7 +10,17 @@
 #include "syscall.h"
 #include "types.h"
 #include "user.h"
+#include "signal.h"
 
+
+void sig_handler(int sig_id){
+
+    if(sig_id == SIGINT){
+        printf(1,"RECEIVED INTERRUPT\n");
+    } else{
+        printf(1,"RECEIVED OTHER SIGNAL\n");
+    }
+}
 
 int main(int argc,char **argv) {
     if (argc < 3 || argc > 3) {
@@ -18,6 +28,7 @@ int main(int argc,char **argv) {
         exit();
     }
 
+    sighandler((void*) &sig_handler);
 
 
     int result = sig(atoi(argv[1]), atoi(argv[2]));

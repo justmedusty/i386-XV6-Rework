@@ -168,10 +168,20 @@ userinit(void)
   /*
    * Setting our new scheduling fields
    */
-  p->p_time_quantum = 5;
+  p->p_time_quantum = 2;
   p->child_pri = CHILD_SAME_PRI;
   p->p_pri = DEFAULT_USER_PRIORITY;
   p->space_flag = USER_PROC;
+
+  /*
+   * Setting up intr/ signal fields
+   */
+
+  p->signal_handler = (void*) 0;
+  p->p_ign = 0;
+  p->p_sig = 0;
+
+
 
   safestrcpy(p->name, "initcode", sizeof(p->name));
   //The init process' current working directory will be the root dir inode
@@ -256,6 +266,19 @@ fork(void)
    */
   np->p_time_taken = 0;
   np->p_time_quantum = curproc->p_time_quantum;
+
+  /*
+   * Fill the intr/ign/handler fields
+   */
+
+
+    //null pointer for handler
+  np->signal_handler = (void*) 0;
+  //non-zero, do not ignore signals
+  np->p_ign = 0;
+  //we don't want a proc to have a signal at birth
+  np->p_sig = 0;
+
 
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
@@ -418,29 +441,36 @@ scheduler(void)
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      if(p->state != RUNNABLE){
-          continue;
-      }
+
         /*
          * handle these signals , I will leave a very bare implementation for now that I can build upon later. A handler
          * may be allowed for this particular function to handle certain non fatal signals. It will be called here if there
          * is a handler present.
          */
-        if (p->p_sig == SIGKILL || p->p_sig == SIGSEG || p->p_sig == SIGHUP || p->p_sig == SIGINT || p->p_sig ){
+        if(p->p_sig != 0){
 
-            if(p->signal_handler != (void *) 0){
-                if(p->p_sig != SIGSEG && p->p_sig == SIGKILL){
-                    p->signal_handler(p->p_sig);
-                    continue;
+            if (p->p_sig == SIGKILL || p->p_sig == SIGSEG || p->p_sig == SIGHUP || p->p_sig == SIGINT || p->p_sig ){
+
+                if(p->signal_handler != (void*) 0){
+                    panic("got here");
+                    if(p->p_sig != SIGSEG && p->p_sig == SIGKILL){
+                        p->signal_handler(p->p_sig);
+                        p->p_sig = 0;
+                        continue;
+                    }
+                } else {
+                    if(p->p_ign != 0 && p->p_sig != SIGSEG && p->p_sig != SIGKILL){
+                        p->p_sig = 0;
+                        continue;
+                    }
                 }
-            } else {
-                if(p->p_ign != 0 && p->p_sig != SIGSEG && p->p_sig != SIGKILL){
-                    p->p_sig = 0;
-                    continue;
-                }
+                p->killed = 1;
+                p->p_sig = 0;
             }
-            p->killed = 1;
-            p->p_sig = 0;
+        }
+
+        if(p->state != RUNNABLE){
+            continue;
         }
 
       /*
@@ -700,11 +730,10 @@ kill(int pid)
 int sig(int sig_id,int pid){
 
     struct proc *proc;
-/*
-    if( sig_id != SIGHUP ||  sig_id != SIGSEG ||  sig_id != SIGKILL ||  sig_id != SIGINT ||  sig_id !=  SIGPIPE ){
+    //make sure this is a valid signal
+    if( sig_id != SIGHUP &&  sig_id != SIGSEG &&  sig_id != SIGKILL &&  sig_id != SIGINT &&  sig_id !=  SIGPIPE ){
         return ESIG;
     }
-*/
     acquire(&ptable.lock);
     for(proc = ptable.proc; proc < &ptable.proc[NPROC]; proc++) {
         if (proc->pid == pid && proc->state != UNUSED) {
@@ -728,9 +757,10 @@ int sig(int sig_id,int pid){
 /*
  * This will be a system call for setting a processes signal
  */
-void sighandler(int sig_id){
-
-
+void sighandler(void* func){
+    myproc()->signal_handler = func;
+    cprintf("func = %d",func);
+    return;
 
 }
 

@@ -3,6 +3,7 @@
 #include "types.h"
 #include "user.h"
 #include "fcntl.h"
+#include "signal.h"
 
 // Parsed command representation
 #define EXEC  1
@@ -53,10 +54,21 @@ int fork1(void);  // Fork but panics on failure.
 void panic(char*);
 struct cmd *parsecmd(char*);
 
+
+void sig_handler(int sig_id){
+    if(sig_id == SIGINT){
+        printf(1,"RECEIVED INTERRUPT\n");
+    } else{
+        printf(1,"RECEIVED OTHER SIGNAL\n");
+    }
+}
+
 // Execute cmd.  Never returns.
 void
 runcmd(struct cmd *cmd)
 {
+    sighandler((void*)&sig_handler);
+
   int p[2];
   struct backcmd *bcmd;
   struct execcmd *ecmd;

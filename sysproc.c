@@ -73,6 +73,17 @@ sys_sig(void){
 }
 
 int
+sys_sighandler(void){
+    void *sig_handler;
+    if(argptr(1,sig_handler,sizeof (void*)) < 0){
+        return 1;
+    }
+
+    sighandler(sig_handler);
+    return 0;
+}
+
+int
 sys_sleep(void)
 {
   int n;
