@@ -30,7 +30,7 @@ int sleep(int);
 int uptime(void);
 int freemem(void);
 int sig(int, int);
-void sighandler(void*);
+void sighandler(char *(*)(int));
 void sigignore(int);
 
 

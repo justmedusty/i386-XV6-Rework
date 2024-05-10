@@ -60,7 +60,7 @@ enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE, WAIT};
 struct proc {
   uint sz;                     // Size of process memory (bytes)
   int p_sig;                   //The signal sent to this process
-  void (*signal_handler)(int); // Pointer to signal handler function
+  char (*signal_handler)(int); // Pointer to signal handler function
   int p_ign;                   //flag to ignore signals (other than a kill, seg fault)
   char p_pri;                  // The priority of this process, for scheduling
   int p_time_quantum;          //The resident time for scheduling

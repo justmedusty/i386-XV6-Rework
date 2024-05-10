@@ -74,8 +74,8 @@ sys_sig(void){
 
 int
 sys_sighandler(void){
-    void *sig_handler;
-    if (argptr(1, (char **)&sig_handler, sizeof(void *)) < 0) {
+    char *sig_handler;
+    if (argptr(1, sig_handler, sizeof(int)) < 0) {
         return -1; // Error: Failed to extract pointer argument
     }
 

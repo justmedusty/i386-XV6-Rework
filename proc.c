@@ -437,6 +437,7 @@ scheduler(void) {
                     if (p->signal_handler != (void *) 0) {
 
                         if (p->p_sig != SIGSEG && p->p_sig != SIGKILL) {
+                            cprintf("signal handler addr %d , signal %d\n",p->signal_handler,p->p_sig);
                             p->signal_handler(p->p_sig);
                             p->p_sig = 0;
                             continue;
@@ -736,9 +737,10 @@ int sig(int sig_id, int pid) {
 /*
  * This will be a system call for setting a processes signal
  */
-void sighandler(void *func(int)) {
+void sighandler(char *func(int)) {
+
     myproc()->signal_handler = func;
-    cprintf("func = %d\n", func);
+    cprintf("func = %s\n", func);
     return;
 
 }
