@@ -55,7 +55,7 @@ void panic(char*);
 struct cmd *parsecmd(char*);
 
 
-void sig_handler(int sig_id){
+void *sig_handler(int sig_id){
     if(sig_id == SIGINT){
         printf(1,"RECEIVED INTERRUPT\n");
     } else{
@@ -67,7 +67,7 @@ void sig_handler(int sig_id){
 void
 runcmd(struct cmd *cmd)
 {
-    sighandler((void*)&sig_handler);
+    sighandler(sig_handler);
 
   int p[2];
   struct backcmd *bcmd;

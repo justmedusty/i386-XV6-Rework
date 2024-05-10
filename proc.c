@@ -452,8 +452,8 @@ scheduler(void)
             if (p->p_sig == SIGKILL || p->p_sig == SIGSEG || p->p_sig == SIGHUP || p->p_sig == SIGINT || p->p_sig ){
 
                 if(p->signal_handler != (void*) 0){
-                    panic("got here");
-                    if(p->p_sig != SIGSEG && p->p_sig == SIGKILL){
+
+                    if(p->p_sig != SIGSEG && p->p_sig != SIGKILL){
                         p->signal_handler(p->p_sig);
                         p->p_sig = 0;
                         continue;
@@ -757,7 +757,7 @@ int sig(int sig_id,int pid){
 /*
  * This will be a system call for setting a processes signal
  */
-void sighandler(void* func){
+void sighandler(void *func(int)){
     myproc()->signal_handler = func;
     cprintf("func = %d",func);
     return;

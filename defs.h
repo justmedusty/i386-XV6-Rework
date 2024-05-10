@@ -122,7 +122,7 @@ int             wait(void);
 void            wakeup(void*);
 void            yield(void);
 int             sig(int,int);
-void            sighandler(void*);
+void            sighandler(void*(int));
 
 // swtch.S
 void            swtch(struct context**, struct context*);
