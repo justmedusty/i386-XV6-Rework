@@ -422,9 +422,23 @@ scheduler(void)
           continue;
       }
         /*
-         * handle these signals , I will leave a very bare implementation for now that I can build upon later.
+         * handle these signals , I will leave a very bare implementation for now that I can build upon later. A handler
+         * may be allowed for this particular function to handle certain non fatal signals. It will be called here if there
+         * is a handler present.
          */
         if (p->p_sig == SIGKILL || p->p_sig == SIGSEG || p->p_sig == SIGHUP || p->p_sig == SIGINT || p->p_sig ){
+
+            if(p->signal_handler != (void *) 0){
+                if(p->p_sig != SIGSEG && p->p_sig == SIGKILL){
+                    p->signal_handler(p->p_sig);
+                    continue;
+                }
+            } else {
+                if(p->p_ign != 0 && p->p_sig != SIGSEG && p->p_sig != SIGKILL){
+                    p->p_sig = 0;
+                    continue;
+                }
+            }
             p->killed = 1;
             p->p_sig = 0;
         }
@@ -436,17 +450,17 @@ scheduler(void)
       if(p->p_flag == SSWAP){
           goto sched;
       }
-//TODO highest run is global make sure that you are not swapping in old process images that completed a while ago !
       /*
        * Is the highest run candidae null? if yes assign this proc to it
        */
-      if(highest_run_candidate == null){
+      if(highest_run_candidate == null || highest_run_candidate->state == UNUSED || highest_run_candidate->state == ZOMBIE || highest_run_candidate->state == SLEEPING){
           highest_run_candidate = p;
       }
       //Is this procs pri higher than the highest run candidate? if so set it accordingly
       if(p->p_pri > highest_run_candidate->p_pri){
           highest_run_candidate = p;
       }
+
 
 
       /*
@@ -710,6 +724,14 @@ int sig(int sig_id,int pid){
     }
     release(&ptable.lock);
     return ENOPROC;
+}
+/*
+ * This will be a system call for setting a processes signal
+ */
+void sighandler(int sig_id){
+
+
+
 }
 
 //PAGEBREAK: 36
