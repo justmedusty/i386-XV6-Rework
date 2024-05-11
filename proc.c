@@ -351,6 +351,7 @@ exit(void) {
     // curproc->killed = 0;
     curproc->state = ZOMBIE;
     curproc->killed = 1;
+    nextpid = curproc->pid;
     //freevm(curproc->pgdir);
     //kfree(curproc->kstack);
 
