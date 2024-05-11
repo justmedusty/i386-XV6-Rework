@@ -44,10 +44,32 @@ int verify_credentials(char username[MAX_USER_LEN], char password[MAX_PASSWD_LEN
     }
     printf(1, "Entry: %s\n", entry);
 
-    // Rest of your code for verifying credentials goes here...
+    char buf[MAX_USER_LEN + MAX_PASSWD_LEN + 1];
+    int bytes_read = read(fd,&buf, sizeof buf);
+    buf[bytes_read] = '\0';
+    entry[bytes_read] = '\0';
 
+    for(int i=0;i<= strlen(buf);i++){
+        if(buf[i] == '\n' || buf[i] == '\r' ){
+            buf[i] = ' ';
+        }
+    }
+
+
+    printf(1,"%s %s\n",buf,entry);
+    printf(1,"len 1 %d len 2 %d\n", strlen(buf), strlen(entry));
+
+
+
+
+    if(strcmp(buf,entry) == 0){
+        close(fd);
+        return 0;
+    }
     close(fd);
-    return 0;
+    return -1;
+
+
 }
 /*
  * Taken from the sh file , gets the cmd and packs it into the buffer via gets invocation
@@ -83,6 +105,7 @@ int main() {
     }
     start:
         if(attempts > 5){
+            printf(1,"Console locked\n");
             for(;;){
                 //lock them out
             }
@@ -100,11 +123,11 @@ int main() {
 
 
     
-        int result = (verify_credentials(username,password);
+        int result = verify_credentials(username,password);
         if(result == 0){
             goto finish;
         } else{
-            attempts++
+            attempts++;
             goto start;
         }
     finish:
