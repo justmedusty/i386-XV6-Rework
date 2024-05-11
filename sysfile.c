@@ -442,3 +442,12 @@ sys_pipe(void)
   fd[1] = fd1;
   return 0;
 }
+
+int sys_changeconsmode(void){
+    int mode;
+    if(fetchint(1,&mode) <0){
+        return -1;
+    }
+    else change_mode(mode);
+    return 0;
+}

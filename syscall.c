@@ -107,6 +107,8 @@ extern int sys_freemem(void);
 extern int sys_sig(void);
 extern int sys_sighandler(void);
 extern int sys_sigignore(void);
+extern int sys_changeconsmode(void);
+
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,

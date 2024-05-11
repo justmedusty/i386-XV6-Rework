@@ -24,14 +24,14 @@ main(void)
   for(;;){
 
       printf(1,"Final stage of boot\n");
-    printf(1, "init: starting sh\n");
+    printf(1, "init: starting login shell\n");
     pid = fork();
     if(pid < 0){
       printf(1, "init: fork failed\n");
       exit();
     }
     if(pid == 0){
-      exec("sh", argv);
+      exec("login", argv);
       printf(1, "init: exec sh failed\n");
       exit();
     }

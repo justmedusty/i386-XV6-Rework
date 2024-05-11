@@ -185,6 +185,7 @@ UPROGS=\
 	_zombie\
 	_freemem\
 	_sig\
+	_login\
 
 fs.img: mkfs README passwd $(UPROGS)
 	./mkfs fs.img README passwd $(UPROGS)
