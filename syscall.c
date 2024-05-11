@@ -136,6 +136,7 @@ static int (*syscalls[])(void) = {
 [SYS_sig]     sys_sig,
 [SYS_sighandler] sys_sighandler,
 [SYS_sigignore] sys_sigignore,
+[SYS_changeconsmode] sys_changeconsmode,
 };
 
 void

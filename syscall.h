@@ -24,3 +24,4 @@
 #define SYS_sig     23
 #define SYS_sighandler 24
 #define SYS_sigignore 25
+#define SYS_changeconsmode 26

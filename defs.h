@@ -21,7 +21,7 @@ void            consoleinit(void);
 void            cprintf(char*, ...);
 void            consoleintr(int(*)(void));
 void            panic(char*) __attribute__((noreturn));
-static void     change_mode(int mode);
+void            change_mode(int mode);
 // exec.c
 int             exec(char*, char**);
 

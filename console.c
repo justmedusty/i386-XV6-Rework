@@ -28,14 +28,16 @@ static struct {
 
 static int passwd_mode = 0;
 
-static void change_mode(int mode){
-    if(mode == 0){
+void change_mode(int mode) {
+    if (mode == 0) {
         passwd_mode = 0;
-    } else{
+    } else {
         passwd_mode = 1;
     }
+    cprintf("Mode changed to %d\n", passwd_mode);
     return;
 }
+
 static void
 printint(int xx, int base, int sign) {
     static char digits[] = "0123456789abcdef";
@@ -284,13 +286,9 @@ consolewrite(struct inode *ip, char *buf, int n) {
 
     iunlock(ip);
     acquire(&cons.lock);
-    if(passwd_mode == 1){
-        for (i = 0; i < n; i++)
-            consputc(PASSWORD_CHAR & 0xff);
-    } else{
-        for (i = 0; i < n; i++)
-            consputc(buf[i] & 0xff);
-    }
+    for (i = 0; i < n; i++)
+        consputc(buf[i] & 0xff);
+
 
     release(&cons.lock);
     ilock(ip);

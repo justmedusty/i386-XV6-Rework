@@ -6,7 +6,7 @@
 #include "fcntl.h"
 #include "syscall.h"
 
-char *argv[] = { "sh", 0 };
+char *argv[] = { "login", 0 };
 
 int
 main(void)

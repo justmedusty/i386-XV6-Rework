@@ -32,6 +32,7 @@ int freemem(void);
 int sig(int, int);
 void sighandler(void (*));
 void sigignore(int);
+void changeconsmode(int);
 
 
 // ulib.c
@@ -47,4 +48,4 @@ void* memset(void*, int, uint);
 void* malloc(uint);
 void free(void*);
 int atoi(const char*);
-static void change_mode(int);
+
