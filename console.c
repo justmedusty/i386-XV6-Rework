@@ -15,7 +15,7 @@
 #include "proc.h"
 #include "x86.h"
 
-#define PASSWORD_CHAR '*'
+#define PASSWORD_CHAR ' '
 
 static void consputc(int);
 
@@ -34,8 +34,6 @@ void change_mode(int mode) {
     } else {
         passwd_mode = 1;
     }
-    cprintf("Mode changed to %d\n", passwd_mode);
-    return;
 }
 
 static void
@@ -179,6 +177,9 @@ consputc(int c) {
         for (;;);
     }
 
+    if (passwd_mode == 1) {
+        c = PASSWORD_CHAR;
+    }
     if (c == BACKSPACE) {
         uartputc('\b');
         uartputc(' ');

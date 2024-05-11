@@ -13,8 +13,11 @@ char *argv[] = {"sh", 0};
 #define MAX_PASSWD_LEN 40
 
 int
+verify_credentials(){
+
+}
+int
 getcmd(char *buf, int nbuf) {
-    printf(2, "$ ");
     memset(buf, 0, nbuf);
     gets(buf, nbuf);
     if (buf[0] == 0) // EOF
@@ -44,11 +47,13 @@ int main() {
     printf(1, "Enter password\n");
     changeconsmode(1);
     getcmd(buf, MAX_PASSWD_LEN);
+    changeconsmode(0);
+    printf(1,"\n");
     memmove(password, buf, strlen(buf));
 
-    changeconsmode(0);
 
-    printf(1,"Login success, starting shell proc")
+    printf(1,"Username : %s , Password : %s \n",username,password);
+    printf(1,"Login success, starting shell proc\n");
     exec("sh", argv);
     printf(1, "init: exec sh failed\n");
     exit();
