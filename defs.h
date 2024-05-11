@@ -122,7 +122,7 @@ int             wait(void);
 void            wakeup(void*);
 void            yield(void);
 int             sig(int,int);
-void            sighandler(char*(int));
+void            sighandler(void (*)(int));
 void            sigignore(int);
 
 // swtch.S

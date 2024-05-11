@@ -74,13 +74,15 @@ sys_sig(void){
 
 int
 sys_sighandler(void){
-    char *sig_handler;
-    if (argptr(1, sig_handler, sizeof(int)) < 0) {
+    void *sig_handler;
+    char **handler_ptr;
+    if (argptr(1, handler_ptr, sizeof(int)) < 0) {
         return -1; // Error: Failed to extract pointer argument
     }
-
-    sighandler(sig_handler);
-    return sig_handler;
+    sig_handler = *handler_ptr;
+    cprintf("The pointer address is %p\n", sig_handler);
+    sighandler(*(void(**)(int))sig_handler);
+    return 0;
 }
 
 int

@@ -55,6 +55,7 @@ void panic(char*);
 struct cmd *parsecmd(char*);
 
 
+
 void *sig_handler(int sig_id){
     if(sig_id == SIGINT){
         printf(1,"RECEIVED INTERRUPT\n");
@@ -68,7 +69,11 @@ void *sig_handler(int sig_id){
 void
 runcmd(struct cmd *cmd)
 {
+
     sighandler(sig_handler);
+
+    printf(1,"addr of sig handler is %d\n",sig_handler);
+
 
 
     //turn interrupts off for sh

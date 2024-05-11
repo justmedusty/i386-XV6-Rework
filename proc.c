@@ -102,6 +102,7 @@ allocproc(void) {
 
     acquire(&ptable.lock);
 
+
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
         if (p->state == UNUSED)
             goto found;
@@ -349,6 +350,7 @@ exit(void) {
     // curproc->name[0] = 0;
     // curproc->killed = 0;
     curproc->state = ZOMBIE;
+    curproc->killed = 1;
     //freevm(curproc->pgdir);
     //kfree(curproc->kstack);
 
@@ -437,7 +439,7 @@ scheduler(void) {
                     if (p->signal_handler != (void *) 0) {
 
                         if (p->p_sig != SIGSEG && p->p_sig != SIGKILL) {
-                            cprintf("signal handler addr %d , signal %d\n",p->signal_handler,p->p_sig);
+                            cprintf("signal handler addr %d  , signal %d\n",p->signal_handler,p->p_sig);
                             p->signal_handler(p->p_sig);
                             p->p_sig = 0;
                             continue;
@@ -557,6 +559,10 @@ sched(void) {
     //Is the current running process out of its time quantum? if it is swap it out
     if (mycpu()->proc->p_time_quantum <= mycpu()->proc->p_time_quantum) {
         p->p_flag = SSWAP;
+    }
+
+    if(p->p_flag != SSWAP && p->p_pri < DEFAULT_USER_PRIORITY){
+
     }
     //Put this process into the scheduler
     swtch(&p->context, mycpu()->scheduler);
@@ -737,10 +743,10 @@ int sig(int sig_id, int pid) {
 /*
  * This will be a system call for setting a processes signal
  */
-void sighandler(char *func(int)) {
+void sighandler(void (*func)(int)){
 
     myproc()->signal_handler = func;
-    cprintf("func = %s\n", func);
+    cprintf("func = %d\n", func);
     return;
 
 }
@@ -757,6 +763,8 @@ void sigignore(int flag) {
     return;
 
 }
+
+
 
 //PAGEBREAK: 36
 // Print a process listing to console.  For debugging.
