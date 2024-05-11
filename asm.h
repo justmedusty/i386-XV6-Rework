@@ -1,4 +1,4 @@
-ra//
+//
 // assembler macros to create x86 segments
 //
 

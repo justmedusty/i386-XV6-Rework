@@ -187,8 +187,8 @@ UPROGS=\
 	_sig\
 	_login\
 
-fs.img: mkfs README passwd $(UPROGS)
-	./mkfs fs.img README passwd $(UPROGS)
+fs.img: mkfs README passwd largefile $(UPROGS)
+	./mkfs fs.img README passwd largefile $(UPROGS)
 
 -include *.d
 

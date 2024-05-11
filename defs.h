@@ -15,6 +15,7 @@ void            binit(void);
 struct buf*     bread(uint, uint);
 void            brelse(struct buf*);
 void            bwrite(struct buf*);
+int   breada(uint,uint,uint);
 
 // console.c
 void            consoleinit(void);
@@ -192,3 +193,4 @@ void            clearpteu(pde_t *pgdir, char *uva);
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))
+#define NULL (void *) 0

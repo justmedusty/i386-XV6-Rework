@@ -25,7 +25,9 @@
 #include "sleeplock.h"
 #include "fs.h"
 #include "buf.h"
+#include "file.h"
 
+#define MAX_READA 4
 struct {
   struct spinlock lock;
   struct buf buf[NBUF];
@@ -103,6 +105,33 @@ bread(uint dev, uint blockno)
     iderw(b);
   }
   return b;
+}
+
+int
+breada(uint dev, uint blockno,uint reada_len){
+
+    if(reada_len > MAX_READA){
+        return -1;
+    }
+    struct buf *b[MAX_READA];
+    for(int i=0;i<reada_len;i++){
+
+        b[i] = bget(dev, blockno + i);
+
+        if(b[i] == (void *) 0){
+
+            for (int (j) = 0; (j) < i ; ++(j)) {
+                brelse(b[j]);
+            }
+            return -1;
+        }
+        if((b[i]->flags & B_VALID) == 0) {
+            iderw(b[i]);
+        }
+    }
+
+        return reada_len;
+
 }
 
 // Write b's contents to disk.  Must be locked.

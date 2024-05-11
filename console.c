@@ -15,7 +15,7 @@
 #include "proc.h"
 #include "x86.h"
 
-#define PASSWORD_CHAR ' '
+#define PASSWORD_CHAR '\0'
 
 static void consputc(int);
 

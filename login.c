@@ -44,7 +44,6 @@ int verify_credentials(char username[MAX_USER_LEN], char password[MAX_PASSWD_LEN
             entry[i] = ' ';
         }
     }
-    printf(1, "Entry: %s\n", entry);
 
     char buf[MAX_USER_LEN + MAX_PASSWD_LEN + 1];
     int bytes_read = read(fd,&buf, sizeof buf);
@@ -56,13 +55,6 @@ int verify_credentials(char username[MAX_USER_LEN], char password[MAX_PASSWD_LEN
             buf[i] = ' ';
         }
     }
-
-
-    printf(1,"%s %s\n",buf,entry);
-    printf(1,"len 1 %d len 2 %d\n", strlen(buf), strlen(entry));
-
-
-
 
     if(strcmp(buf,entry) == 0){
         close(fd);
@@ -127,6 +119,7 @@ int main() {
         if(result == 0){
             goto finish;
         } else{
+            printf(1,"Incorrect credentials\n");
             attempts++;
             goto start;
         }
