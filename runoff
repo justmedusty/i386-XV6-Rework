@@ -14,6 +14,7 @@ pad()
 mkdir -p fmt
 rm -f fmt/*
 cp README fmt
+cp passwd fmt
 echo > fmt/blank
 files=`grep -v '^#' runoff.list | awk '{print $1}'`
 n=99
@@ -211,6 +212,7 @@ awk '
 # format the whole thing
 (
 	../pr.pl README
+	../pr.pl passwd
 	../pr.pl -h "table of contents" toc
 	# pr -t -2 t.defs | ../pr.pl -h "definitions" | pad
 	pr -t -l50 -2 refs | ../pr.pl -h "cross-references" | pad

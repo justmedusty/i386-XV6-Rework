@@ -56,7 +56,7 @@ struct cmd *parsecmd(char*);
 
 
 
-void *sig_handler(int sig_id){
+void sig_handler(int sig_id){
     if(sig_id == SIGINT){
         printf(1,"RECEIVED INTERRUPT\n");
     } else{
@@ -70,7 +70,7 @@ void
 runcmd(struct cmd *cmd)
 {
 
-    sighandler(sig_handler);
+    sighandler(&sig_handler);
 
     printf(1,"addr of sig handler is %d\n",sig_handler);
 
