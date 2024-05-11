@@ -185,6 +185,7 @@ int
 sys_unlink(void)
 {
   struct inode *ip, *dp;
+  //this is directory entry, we need to name things better names i was like what the fuck is a dirent
   struct dirent de;
   char name[DIRSIZ], *path;
   uint off;
