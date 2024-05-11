@@ -14,6 +14,8 @@ char *argv[] = {"sh", 0};
 
 /*
  * Will verify the creds out of the passwd file
+ *
+ * Will just verify one user, I don't really care to implement full blown user users ,permissions groups etc right now so it will just be one superuser login
  */
 
 int verify_credentials(char username[MAX_USER_LEN], char password[MAX_PASSWD_LEN]) {
@@ -68,8 +70,6 @@ int verify_credentials(char username[MAX_USER_LEN], char password[MAX_PASSWD_LEN
     }
     close(fd);
     return -1;
-
-
 }
 /*
  * Taken from the sh file , gets the cmd and packs it into the buffer via gets invocation
