@@ -124,7 +124,7 @@ int main() {
             goto start;
         }
     finish:
-        printf(1,"Login success, starting shell proc\n");
+        printf(1,"\nLogin success, starting shell proc\n");
         exec("sh", argv);
         printf(1, "init: exec sh failed\n");
         exit();
