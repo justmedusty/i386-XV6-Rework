@@ -469,7 +469,7 @@ scheduler(void) {
             goto sched;
         }
         /*
-         * Is the highest run candidae null? if yes assign this proc to it
+         * Is the highest run candidate null? if yes assign this proc to it
          */
         if (highest_run_candidate == null || highest_run_candidate->state == UNUSED ||
             highest_run_candidate->state == ZOMBIE || highest_run_candidate->state == SLEEPING) {
@@ -539,35 +539,38 @@ void
 sched(void) {
     int intena;
     struct proc *p = myproc();
+    struct cpu *cpup = mycpu();
     if (!holding(&ptable.lock))
         panic("sched ptable.lock");
-    if (mycpu()->ncli != 1)
+    if (cpup->ncli != 1)
         panic("sched locks");
     if (p->state == RUNNING)
         panic("sched running");
     if (readeflags() & FL_IF)
         panic("sched interruptible");
-    intena = mycpu()->intena;
+    intena = cpup->intena;
 
     //default will be SCHOOSE which is just schedule it when the algorithm gets to it
     p->p_flag = SCHOOSE;
 
     //Is this a higher priority than the current process? if so, set it to SSWAP so that it will be swapped in immediately
-    if (mycpu()->proc->p_pri < p->p_pri || mycpu()->proc->space_flag < p->space_flag) {
+    if (cpup->proc->p_pri < p->p_pri || cpup->proc->space_flag < p->space_flag) {
         p->p_flag = SSWAP;
     }
 
     //Is the current running process out of its time quantum? if it is swap it out
-    if (mycpu()->proc->p_time_quantum <= mycpu()->proc->p_time_quantum) {
+    if (cpup->proc->p_time_taken <= cpup->proc->p_time_quantum) {
         p->p_flag = SSWAP;
     }
 
+    //If this process is low pri and flag is not status swap, increment priority to avoid an infinite loop
     if(p->p_flag != SSWAP && p->p_pri < DEFAULT_USER_PRIORITY){
-
+        p->p_pri++;
+        yield();
     }
     //Put this process into the scheduler
-    swtch(&p->context, mycpu()->scheduler);
-    mycpu()->intena = intena;
+    swtch(&p->context, cpup->scheduler);
+    cpup->intena = intena;
 }
 
 // Give up the CPU for one scheduling round.
