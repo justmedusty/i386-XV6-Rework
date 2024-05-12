@@ -15,7 +15,6 @@
 #include "proc.h"
 #include "x86.h"
 
-#define PASSWORD_CHAR '\0'
 
 static void consputc(int);
 
@@ -178,7 +177,7 @@ consputc(int c) {
     }
 
     if (passwd_mode == 1) {
-        c = PASSWORD_CHAR;
+        return;
     }
     if (c == BACKSPACE) {
         uartputc('\b');
