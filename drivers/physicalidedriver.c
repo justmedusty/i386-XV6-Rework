@@ -21,10 +21,18 @@ void ide_read_register(unsigned short reg, unsigned char *value) {
 }
 //Tight loop waiting for the command register to free up, once the busy flag in the bitmask is clear loop will break
 void ide_wait_busy() {
-    while (ide_read_register(IDE_REG_COMMAND) & (1 << 7)) {} // Wait for busy flag to clear
+    unsigned char value;
+    ide_read_register(IDE_REG_COMMAND,&value)
+    while ( value & (1 << 7)) {
+        ide_read_register(IDE_REG_COMMAND,&value)
+    } // Wait for busy flag to clear
 }
 
 //Wait for the ready flag to be set
 void ide_wait_ready() {
-    while (!(ide_read_register(IDE_REG_COMMAND) & (1 << 3))) {} // Wait for ready bit to be set
+    unsigned char value;
+    ide_read_register(IDE_REG_COMMAND,&value)
+    while (!(value & (1 << 3))) {
+        ide_read_register(IDE_REG_COMMAND,&value)
+    } // Wait for ready bit to be set
 }
