@@ -118,7 +118,7 @@ cpu: count=2, ips=10000000
 #megs: 256
 #megs: 128
 #megs: 64
-megs: 32
+megs: 1024
 #megs: 16
 #megs: 8
 
