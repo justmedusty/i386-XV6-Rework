@@ -539,27 +539,26 @@ void
 sched(void) {
     int intena;
     struct proc *p = myproc();
-    struct cpu *cpup = mycpu();
     if (!holding(&ptable.lock))
         panic("sched ptable.lock");
-    if (cpup->ncli != 1)
+    if (mycpu()->ncli != 1)
         panic("sched locks");
     if (p->state == RUNNING)
         panic("sched running");
     if (readeflags() & FL_IF)
         panic("sched interruptible");
-    intena = cpup->intena;
+    intena = mycpu()->intena;
 
     //default will be SCHOOSE which is just schedule it when the algorithm gets to it
     p->p_flag = SCHOOSE;
 
     //Is this a higher priority than the current process? if so, set it to SSWAP so that it will be swapped in immediately
-    if (cpup->proc->p_pri < p->p_pri || cpup->proc->space_flag < p->space_flag) {
+    if (mycpu()->proc->p_pri < p->p_pri || mycpu()->proc->space_flag < p->space_flag) {
         p->p_flag = SSWAP;
     }
 
     //Is the current running process out of its time quantum? if it is swap it out
-    if (cpup->proc->p_time_taken <= cpup->proc->p_time_quantum) {
+    if (mycpu()->proc->p_time_taken <= mycpu()->proc->p_time_quantum) {
         p->p_flag = SSWAP;
     }
 
@@ -569,8 +568,8 @@ sched(void) {
         yield();
     }
     //Put this process into the scheduler
-    swtch(&p->context, cpup->scheduler);
-    cpup->intena = intena;
+    swtch(&p->context, mycpu()->scheduler);
+    mycpu()->intena = intena;
 }
 
 // Give up the CPU for one scheduling round.
@@ -748,7 +747,7 @@ int sig(int sig_id, int pid) {
  * This will be a system call for setting a processes signal
  */
 void sighandler(void (*func)(int)){
-
+    uva2ka(myproc()->pgdir,(char*) func);
     myproc()->signal_handler = func;
     cprintf("func = %d\n", func);
     return;
