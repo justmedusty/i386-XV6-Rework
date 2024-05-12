@@ -47,6 +47,10 @@ trap(struct trapframe *tf)
   }
 
   switch(tf->trapno){
+      /*
+       * I will implement more of my scheduling alg here when
+       * I get to it
+       */
   case T_IRQ0 + IRQ_TIMER:
     if(cpuid() == 0){
       acquire(&tickslock);
@@ -56,6 +60,7 @@ trap(struct trapframe *tf)
     }
     lapiceoi();
     break;
+    //We will swap this out with a real handler once we implement our new drivers
   case T_IRQ0 + IRQ_IDE:
     ideintr();
     lapiceoi();

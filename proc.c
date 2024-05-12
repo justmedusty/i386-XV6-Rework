@@ -753,7 +753,9 @@ void sighandler(void (*func)(int)){
     return;
 
 }
-
+/*
+ * This system call let's a process ignore non fatal signals
+ */
 void sigignore(int flag) {
     struct proc *p = myproc();
     if (flag == 0) {
