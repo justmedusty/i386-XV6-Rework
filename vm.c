@@ -91,7 +91,7 @@ uint tally_page_directory(pde_t *pgdir) {
         if (pgdir[i] & PTE_P) {
             pte_t *pgtab = (pte_t*)P2V(PTE_ADDR(pgdir[i]));
             for (int j = 0; j < NPTENTRIES; j++) {
-                if (pgtab[j] & PTE_P)
+                if (pgtab[j] & PTE_U)
                     total_pages++;
             }
         }

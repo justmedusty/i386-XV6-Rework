@@ -463,7 +463,9 @@ readi(struct inode *ip, char *dst, uint off, uint n) {
 
     /*
     * Read ahead if applicable, if the caller is reading a lot we will want to read ahead and store the upcoming blocks in the buffer cache early.
+     * This isn't going to work as it exists here so I will comment it out for now.
     */
+    /*
     if(ip->type == T_FILE){
         int blocks_ahead = ((ip->size - off) / BSIZE);
         cprintf("BLOCKS AHEAD %d FILE SIZE %d OFFSET %d\n", blocks_ahead,ip->size,off);
@@ -471,9 +473,13 @@ readi(struct inode *ip, char *dst, uint off, uint n) {
             blocks_ahead = 4;
         }
         if (blocks_ahead > 0) {
-           int result = breada(ip->dev, bmap(ip, off / BSIZE), blocks_ahead);
+            struct buf *read_ahead_buffers;
+           read_ahead_buffers = breada(ip->dev, bmap(ip, off / BSIZE), blocks_ahead);
+
+
         }
     }
+     */
 
 
     return n;

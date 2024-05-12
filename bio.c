@@ -107,7 +107,7 @@ bread(uint dev, uint blockno)
   return b;
 }
 
-int
+struct buf*
 breada(uint dev, uint blockno,uint reada_len){
 
     if(reada_len > MAX_READA){
@@ -118,7 +118,7 @@ breada(uint dev, uint blockno,uint reada_len){
 
         b[i] = bget(dev, blockno + i);
 
-        if(b[i] == (void *) 0){
+        if(b[i] == NULL){
 
             for (int (j) = 0; (j) < i ; ++(j)) {
                 brelse(b[j]);
@@ -130,7 +130,7 @@ breada(uint dev, uint blockno,uint reada_len){
         }
     }
 
-        return reada_len;
+        return b[0];
 
 }
 

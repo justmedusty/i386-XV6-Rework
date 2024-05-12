@@ -72,7 +72,7 @@ runcmd(struct cmd *cmd)
 
     sighandler(&sig_handler);
 
-    printf(1,"addr of sig handler is %d\n",sig_handler);
+    printf(1,"addr of sig handler is %d\n",&sig_handler);
 
 
 
