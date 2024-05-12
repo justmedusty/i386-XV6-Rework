@@ -26,7 +26,6 @@ void ide_select_device(unsigned char device);
 void ide_write_register(unsigned short reg, unsigned char  value);
 void ide_read_register(unsigned short reg, unsigned char  *value);
 void ide_wait_busy();
-void ide_write_data(const unsigned char  *data, unsigned long long count);
 void ide_wait_ready();
 
 

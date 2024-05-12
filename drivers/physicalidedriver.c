@@ -23,12 +23,7 @@ void ide_read_register(unsigned short reg, unsigned char *value) {
 void ide_wait_busy() {
     while (ide_read_register(IDE_REG_COMMAND) & (1 << 7)) {} // Wait for busy flag to clear
 }
-//write data to the ide disk
-void ide_write_data(const unsigned char  *data, unsigned long long count) {
-    for (unsigned long long i = 0; i < count; i++) {
-        outb(IDE_REG_DATA, data[i]);
-    }
-}
+
 //Wait for the ready flag to be set
 void ide_wait_ready() {
     while (!(ide_read_register(IDE_REG_COMMAND) & (1 << 3))) {} // Wait for ready bit to be set
