@@ -41,11 +41,8 @@ enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE, WAIT};
 #define DEFAULT_USER_PRIORITY    3  //default pri for user proc
 #define DEFAULT_TIME_QUANTUM    750000 //default time quantum (clock cycles permitted for execution before pri drops and shceduler permits another proc to run)
 
-#define SLOAD                  1     // process is in core
-#define SSYS                   2     //scheduling process
-#define SSWAP                  4    //process is being swapped
-#define SLOCK                  8     //currently locked
-#define SCHOOSE                16   //Not of high priority, let scheduler decide when it is time to run
+#define URGENT                  1   //A way to suddenly indicate a process is high pri and just for this round
+#define LOW                     2   //low pri just for this round
 
 #define SCHED                  0    //is sched proc
 #define KERNEL_PROC            1    // is kernel proc
@@ -93,3 +90,5 @@ struct proc {
 /* Dustyn's extra function */
 
 uint tally_allocated_memory_for_all_procs(void);
+void inc_time_quantum(struct proc *p);
+

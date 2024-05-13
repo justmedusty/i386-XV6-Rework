@@ -84,12 +84,15 @@ sys_sighandler(void) {
 }
 int
 sys_sigignore(void){
-    int arg;
+    int arg1, arg2;
 
-    if(argint(1,&arg) < 0){
+    if(argint(0,&arg1) < 0){
         return -1;
     }
-    sigignore(arg);
+    if(argint(1,&arg2) < 0){
+        return -1;
+    }
+    sigignore(arg1,arg2);
     return 0;
 
 }

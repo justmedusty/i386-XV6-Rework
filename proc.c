@@ -428,103 +428,99 @@ scheduler(void) {
         acquire(&ptable.lock);
         for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
 
+
             /*
              * handle these signals , I will leave a very bare implementation for now that I can build upon later. A handler
              * may be allowed for this particular function to handle certain non fatal signals. It will be called here if there
              * is a handler present.
              */
+
+
             if (p->p_sig != 0) {
+                if (((p->p_sig & SIGKILL) != 0) || ((p->p_sig & SIGSEG) != 0) || ((p->p_sig & SIGPIPE) != 0)) {
+                    p->killed = 1;
+                    sched();
+                }
+                if (p->signal_handler != (void *) 0) {
 
-                if (p->p_sig == SIGKILL || p->p_sig == SIGSEG || p->p_sig == SIGHUP || p->p_sig == SIGINT || p->p_sig) {
 
-                    if (p->signal_handler != (void *) 0) {
-
-                        if (p->p_sig != SIGSEG && p->p_sig != SIGKILL) {
-                            cprintf("signal handler addr %d  , signal %d\n",p->signal_handler,p->p_sig);
-                            p->signal_handler(p->p_sig);
-                            p->p_sig = 0;
-                            continue;
-                        }
-                    }
-
-                    if (p->p_ign != 0 && p->p_sig != SIGSEG && p->p_sig != SIGKILL) {
+                    if ((p->p_ign & p->p_sig) != 0) {
                         p->p_sig = 0;
                         continue;
+                    } else {
+                        p->killed = 1;
+                        p->p_sig = 0;
                     }
 
-                p->killed = 1;
-                p->p_sig = 0;
+
+                }
             }
-        }
+            if (p->state != RUNNABLE) {
+                continue;
+            }
+            /*
+            * Is the flag set to urgent?
+             * If it is go right ahead and swap it in
+             *
+            * immediately reset the flag because this will be a temp pri
+            */
+            if (p->p_flag == URGENT) {
+                p->p_flag = 0;
+                goto sched;
+            }
 
-        if (p->state != RUNNABLE) {
-            continue;
-        }
+            // again this is a temp pri flag so we will reset it after passing over this process
+            if (p->p_flag == LOW) {
+                p->p_flag = 0;
+                continue;
+            }
 
-        /*
-         * Is the SSWAP flag is set?
-         * If it is go right ahead and swap it in
-         */
-        if (p->p_flag == SSWAP) {
+            /*
+             * Is the highest run candidate null? if yes assign this proc to it
+             */
+            if (highest_run_candidate == null || highest_run_candidate->state == UNUSED ||
+                highest_run_candidate->state == ZOMBIE || highest_run_candidate->state == SLEEPING) {
+                highest_run_candidate = p;
+            }
+            //Is this procs pri higher than the highest run candidate? if so set it accordingly
+            if (p->p_pri > highest_run_candidate->p_pri) {
+                highest_run_candidate = p;
+            }
+
+
+
+            /*
+             * If this process has taken it's full time quantum and is a user process, switch it out
+             * We will increment it's priority as a well to have it not be stuck here forever, only for a cycle or two.
+             * A user process will need to wait 2 iterations to be scheduled again and a kernel process with the
+             * default kernel priority will need to wait 1 iteration to be scheduled again
+             */
+            if (p->p_time_taken >= p->p_time_quantum && p->p_pri <= DEFAULT_KERNEL_PRIORITY) {
+                p->state = RUNNABLE;
+                p->p_pri++;
+                continue;
+            }
+
             goto sched;
+
+            sched:    // Switch to chosen process.  It is the process's job
+            // to release ptable.lock and then reacquire it
+            // before jumping back to us.
+            c->proc = p;
+            switchuvm(p);
+            p->state = RUNNING;
+
+            swtch(&(c->scheduler), p->context);
+            switchkvm();
+
+            // Process is done running for now.
+            // It should have changed its p->state before coming back.
+            c->proc = 0;
+
         }
-        /*
-         * Is the highest run candidate null? if yes assign this proc to it
-         */
-        if (highest_run_candidate == null || highest_run_candidate->state == UNUSED ||
-            highest_run_candidate->state == ZOMBIE || highest_run_candidate->state == SLEEPING) {
-            highest_run_candidate = p;
-        }
-        //Is this procs pri higher than the highest run candidate? if so set it accordingly
-        if (p->p_pri > highest_run_candidate->p_pri) {
-            highest_run_candidate = p;
-        }
+        release(&ptable.lock);
 
-
-
-        /*
-         * If this process has taken it's full time quantum and is a user process, switch it out
-         * We will increment it's priority as a well to have it not be stuck here forever, only for a cycle or two.
-         * A user process will need to wait 2 iterations to be scheduled again and a kernel process with the
-         * default kernel priority will need to wait 1 iteration to be scheduled again
-         */
-        if (p->p_time_taken >= p->p_time_quantum && p->p_pri <= DEFAULT_KERNEL_PRIORITY) {
-            p->state = RUNNABLE;
-            p->p_pri++;
-            continue;
-        }
-
-        /*
-         * I have not implmented signals yet but we will add a check in here for now.
-         */
-
-
-        //goto sched routine.
-        goto sched;
-
-
-        sched:    // Switch to chosen process.  It is the process's job
-        // to release ptable.lock and then reacquire it
-        // before jumping back to us.
-        c->proc = p;
-        switchuvm(p);
-        p->state = RUNNING;
-
-        swtch(&(c->scheduler), p->context);
-        switchkvm();
-
-        // Process is done running for now.
-        // It should have changed its p->state before coming back.
-        c->proc = 0;
-
-
-
-        //increment the procs time taken so the time quantum comparison has teeth
-        p->p_time_taken++;
     }
-    release(&ptable.lock);
-
-}
 
 }
 
@@ -549,21 +545,20 @@ sched(void) {
         panic("sched interruptible");
     intena = mycpu()->intena;
 
-    //default will be SCHOOSE which is just schedule it when the algorithm gets to it
-    p->p_flag = SCHOOSE;
+
 
     //Is this a higher priority than the current process? if so, set it to SSWAP so that it will be swapped in immediately
     if (mycpu()->proc->p_pri < p->p_pri || mycpu()->proc->space_flag < p->space_flag) {
-        p->p_flag = SSWAP;
+        p->p_flag = URGENT;
     }
 
     //Is the current running process out of its time quantum? if it is swap it out
-    if (mycpu()->proc->p_time_taken <= mycpu()->proc->p_time_quantum) {
-        p->p_flag = SSWAP;
+    if ((mycpu()->proc->p_time_taken <= mycpu()->proc->p_time_quantum) && (mycpu()->proc->p_pri <= DEFAULT_KERNEL_PRIORITY)) {
+        p->p_flag = URGENT;
     }
 
     //If this process is low pri and flag is not status swap, increment priority to avoid an infinite loop
-    if(p->p_flag != SSWAP && p->p_pri < DEFAULT_USER_PRIORITY){
+    if (p->p_flag == LOW || p->p_pri < DEFAULT_USER_PRIORITY) {
         p->p_pri++;
         yield();
     }
@@ -719,7 +714,7 @@ int sig(int sigmask, int pid) {
 
     struct proc *proc;
     //make sure this is a valid signal
-    if(sigmask < (SIGKILL + SIGSEG + SIGINT + SIGPIPE + SIGHUP + SIGSYS + SIGCPU)){
+    if (sigmask < (SIGKILL + SIGSEG + SIGINT + SIGPIPE + SIGHUP + SIGSYS + SIGCPU)) {
         return ESIG;
     }
     acquire(&ptable.lock);
@@ -750,6 +745,7 @@ int sig(int sigmask, int pid) {
  */
 void sighandler(void (*func)(int)) {
     acquire(&ptable.lock);
+
     myproc()->signal_handler = V2P(func);
     cprintf("func = %d\n", func);
     release(&ptable.lock);
@@ -771,7 +767,7 @@ void sighandler(void (*func)(int)) {
 void sigignore(int sigmask, int action) {
     struct proc *p = myproc();
     acquire(&ptable.lock);
-    if (flag == 0) {
+    if (action == 0) {
         //enable the specified signal bits
         p->p_ign &= ~sigmask;
     } else {
@@ -783,7 +779,6 @@ void sigignore(int sigmask, int action) {
     return;
 
 }
-
 
 
 //PAGEBREAK: 36
@@ -820,4 +815,17 @@ procdump(void) {
         }
         cprintf("\n");
     }
+}
+
+
+/*
+ * Increment time quantum every 10000 clock cycles
+ * We do not want to tank performance by doing this every clock cycle or anything crazy so 10,000 is fair
+ * in my eyes
+ */
+void inc_time_quantum(struct proc *p){
+    acquire(&ptable.lock);
+    p->p_time_taken += 10000;
+    release(&ptable.lock);
+    return;
 }
