@@ -438,21 +438,23 @@ scheduler(void) {
 
             if (p->p_sig != 0) {
                 if (((p->p_sig & SIGKILL) != 0) || ((p->p_sig & SIGSEG) != 0) || ((p->p_sig & SIGPIPE) != 0)) {
+                    cprintf("pid %d received fatal signal %d\n",p->pid,p->p_sig & SIGKILL & SIGSEG & SIGPIPE);
                     p->killed = 1;
                     sched();
                 }
+
                 /*
                  * If the time quantum has been exceeded, goto sched and let another process run.
                  * This is handled here with kill seg pipe etc because it cannot be ignored.
                  */
                 if((p->p_sig & SIGCPU) != 0){
-                    p->p_sig = 0;
+                    p->p_sig &= ~SIGCPU;
                     sched();
                 }
                 if (p->signal_handler != (void *) 0) {
 
 
-                    if ((p->p_ign & p->p_sig) != 0) {
+                    if ((p->p_ign & p->p_sig) == 0) {
                         p->p_sig = 0;
                         continue;
                     } else {
