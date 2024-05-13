@@ -102,13 +102,15 @@ trap(struct trapframe *tf) {
     // If interrupts were on while locks held, would need to check nlock.
 
     if (myproc() && myproc()->state == RUNNING && tf->trapno == T_IRQ0 + IRQ_TIMER) {
-        inc_time_quantum(myproc());
+        if((ticks % 100) == 0){
+            inc_time_quantum(myproc());
+        }
+
     }
-/*
-    if (myproc()->p_time_taken > myproc()->p_time_quantum) {
+    if (myproc() && myproc()->p_time_taken > myproc()->p_time_quantum) {
         yield();
     }
-*/
+
 
 // Check if the process has been killed since we yielded
     if (myproc() && myproc()->killed && (tf->cs & 3) == DPL_USER)

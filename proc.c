@@ -124,6 +124,7 @@ allocproc(void) {
     }
     sp = p->kstack + KSTACKSIZE;
 
+
     // Leave room for trap frame.
     sp -= sizeof *p->tf;
     p->tf = (struct trapframe *) sp;
@@ -505,7 +506,7 @@ scheduler(void) {
              * A user process will need to wait 2 iterations to be scheduled again and a kernel process with the
              * default kernel priority will need to wait 1 iteration to be scheduled again
              */
-            if (p->p_time_taken >= p->p_time_quantum && p->p_pri <= DEFAULT_KERNEL_PRIORITY) {
+            if (p->p_time_taken >= p->p_time_quantum && p->p_pri <= DEFAULT_KERNEL_PRIORITY && p->space_flag != KERNEL_PROC) {
                 p->state = RUNNABLE;
                 p->p_pri++;
                 continue;
@@ -827,20 +828,37 @@ procdump(void) {
 
 
 /*
- * Increment time quantum every 10000 clock cycles
- * We do not want to tank performance by doing this every clock cycle or anything crazy so 10,000 is fair
- * in my eyes
+ * Increment time quantum every clock cycle
  *
- * If the time quantum is exceeded, send a SIGCPU signal to the process.
+ * If the time quantum is exceeded, send a SIGCPU signal to the process and yield for a scheduling round.
  */
 void inc_time_quantum(struct proc *p){
     acquire(&ptable.lock);
-    p->p_time_taken += 1000;
+    p->p_time_taken += 100;
 
     if(p->p_time_taken < p->p_time_quantum){
         p->p_sig |= SIGCPU;
+        if(p->space_flag == USER_PROC){
+            release(&ptable.lock);
+            yield();
+        }
     }
 
+    release(&ptable.lock);
+    return;
+}
+
+/*
+ * Changes the space flag in the process table to indicate this process is running in ring 0 , probably from a system
+ * call context switch
+ */
+void change_process_space(int state_flag){
+    acquire(&ptable.lock);
+     if(state_flag == 1) {
+         myproc()->space_flag = KERNEL_PROC;
+     } else{
+         myproc()->space_flag = USER_PROC;
+     }
     release(&ptable.lock);
     return;
 }
