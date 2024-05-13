@@ -744,7 +744,6 @@ int sig(int sigmask, int pid) {
  */
 void sighandler(void (*func)(int)) {
     acquire(&ptable.lock);
-
     myproc()->signal_handler = V2P(func);
     cprintf("func = %d\n", func);
     release(&ptable.lock);
@@ -821,10 +820,17 @@ procdump(void) {
  * Increment time quantum every 10000 clock cycles
  * We do not want to tank performance by doing this every clock cycle or anything crazy so 10,000 is fair
  * in my eyes
+ *
+ * If the time quantum is exceeded, send a SIGCPU signal to the process.
  */
 void inc_time_quantum(struct proc *p){
     acquire(&ptable.lock);
     p->p_time_taken += 10000;
+
+    if(p->p_time_taken < p->p_time_quantum){
+        p->p_sig |= SIGCPU;
+    }
+
     release(&ptable.lock);
     return;
 }
