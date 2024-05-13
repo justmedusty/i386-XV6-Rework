@@ -714,7 +714,7 @@ int sig(int sigmask, int pid) {
 
     struct proc *proc;
     //make sure this is a valid signal
-    if (sigmask < (SIGKILL + SIGSEG + SIGINT + SIGPIPE + SIGHUP + SIGSYS + SIGCPU)) {
+    if (sigmask > (SIGKILL + SIGSEG + SIGINT + SIGPIPE + SIGHUP + SIGSYS + SIGCPU)) {
         return ESIG;
     }
     acquire(&ptable.lock);
@@ -726,7 +726,6 @@ int sig(int sigmask, int pid) {
             if (proc->state != RUNNING) {
                 proc->state = RUNNABLE;
             }
-            proc->p_time_taken = 0;
             proc->p_pri = TOP_PRIORITY;
             release(&ptable.lock);
             return 0;
