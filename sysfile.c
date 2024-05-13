@@ -445,6 +445,7 @@ sys_pipe(void)
 }
 
 int sys_changeconsmode(void){
+
     int mode;
     if(argint(0,&mode) < 0){
         return -1;

@@ -715,18 +715,18 @@ kill(int pid) {
  *
  * We will also change the state to runnable , making the scheduler pick it up and process the signal quickly.
  */
-int sig(int sig_id, int pid) {
+int sig(int sigmask, int pid) {
 
     struct proc *proc;
     //make sure this is a valid signal
-    if (sig_id != SIGHUP && sig_id != SIGSEG && sig_id != SIGKILL && sig_id != SIGINT && sig_id != SIGPIPE) {
+    if(sigmask < (SIGKILL + SIGSEG + SIGINT + SIGPIPE + SIGHUP + SIGSYS + SIGCPU)){
         return ESIG;
     }
     acquire(&ptable.lock);
     for (proc = ptable.proc; proc < &ptable.proc[NPROC]; proc++) {
         if (proc->pid == pid && proc->state != UNUSED) {
             //set the signal
-            proc->p_sig = sig_id;
+            proc->p_sig |= sigmask;
             // Wake process from sleep if necessary.
             if (proc->state != RUNNING) {
                 proc->state = RUNNABLE;
@@ -745,26 +745,41 @@ int sig(int sig_id, int pid) {
 
 /*
  * This will be a system call for setting a processes signal
+ *
+ * This does not work yet I will need to find a way to stash the program counter / eip at the right spot and have it be accessible in kernel memory.
  */
-void sighandler(void (*func)(int)){
-    uva2ka(myproc()->pgdir,(char*) func);
-    myproc()->signal_handler = func;
+void sighandler(void (*func)(int)) {
+    acquire(&ptable.lock);
+    myproc()->signal_handler = V2P(func);
     cprintf("func = %d\n", func);
+    release(&ptable.lock);
     return;
 
 }
+
 /*
+
  * This system call let's a process ignore non fatal signals
+ * sigmask is the bitmask containing which signals the userspace
+ * program is lookling to either mask or enable
+ *
+ * If 0, unmask specified signal bits
+ *
+ * if 1, mask specified signals when they come in
+ *
  */
-void sigignore(int flag) {
+void sigignore(int sigmask, int action) {
     struct proc *p = myproc();
+    acquire(&ptable.lock);
     if (flag == 0) {
-        p->p_ign = 0;
-        cprintf("PID %d has turned signal interrupts on\n", p->pid);
+        //enable the specified signal bits
+        p->p_ign &= ~sigmask;
     } else {
-        p->p_ign = 1;
-        cprintf("PID %d has turned signal interrupts off\n", p->pid);
+        //mask on the specified signal bits
+        p->p_ign |= sigmask;
+        cprintf("PID %d has turned some signal interrupts off\n", p->pid);
     }
+    release(&ptable.lock);
     return;
 
 }

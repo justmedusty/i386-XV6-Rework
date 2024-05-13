@@ -31,7 +31,7 @@ int uptime(void);
 int freemem(void);
 int sig(int, int);
 void sighandler(void (*));
-void sigignore(int);
+void sigignore(int,int);
 void changeconsmode(int);
 
 

@@ -22,8 +22,6 @@ main(void)
   dup(0);  // stderr
 
   for(;;){
-
-      printf(1,"Final stage of boot\n");
     printf(1, "init: starting login shell\n");
     pid = fork();
     if(pid < 0){

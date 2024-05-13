@@ -37,8 +37,9 @@ struct context {
 enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE, WAIT};
 
 #define TOP_PRIORITY             10
-#define DEFAULT_KERNEL_PRIORITY  2  //default pri for kernel proc
-#define DEFAULT_USER_PRIORITY    1  //default pri for user proc
+#define DEFAULT_KERNEL_PRIORITY  5  //default pri for kernel proc
+#define DEFAULT_USER_PRIORITY    3  //default pri for user proc
+#define DEFAULT_TIME_QUANTUM    750000 //default time quantum (clock cycles permitted for execution before pri drops and shceduler permits another proc to run)
 
 #define SLOAD                  1     // process is in core
 #define SSYS                   2     //scheduling process

@@ -55,6 +55,13 @@ trap(struct trapframe *tf)
     if(cpuid() == 0){
       acquire(&tickslock);
       ticks++;
+      /*
+       * This will likely need a ptable lock and wont work
+       */
+      myproc()->p_time_taken++;
+      if(myproc()->p_time_quantum < myproc() -> p_time_taken){
+          yield();
+      }
       wakeup(&ticks);
       release(&tickslock);
     }
