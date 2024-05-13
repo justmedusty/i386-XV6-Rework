@@ -825,7 +825,7 @@ procdump(void) {
  */
 void inc_time_quantum(struct proc *p){
     acquire(&ptable.lock);
-    p->p_time_taken += 10000;
+    p->p_time_taken += 1000;
 
     if(p->p_time_taken < p->p_time_quantum){
         p->p_sig |= SIGCPU;

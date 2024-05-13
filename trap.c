@@ -57,7 +57,7 @@ trap(struct trapframe *tf)
       ticks++;
       wakeup(&ticks);
       release(&tickslock);
-      if(ticks % 10000 == 0){
+      if(ticks % 1000 == 0){
           inc_time_quantum(myproc());
       }
     }
