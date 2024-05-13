@@ -441,6 +441,14 @@ scheduler(void) {
                     p->killed = 1;
                     sched();
                 }
+                /*
+                 * If the time quantum has been exceeded, goto sched and let another process run.
+                 * This is handled here with kill seg pipe etc because it cannot be ignored.
+                 */
+                if((p->p_sig & SIGCPU) != 0){
+                    p->p_sig = 0;
+                    sched();
+                }
                 if (p->signal_handler != (void *) 0) {
 
 
