@@ -100,9 +100,10 @@ trap(struct trapframe *tf) {
 
     // Force process to give up CPU on exceeding time quantum.
     // If interrupts were on while locks held, would need to check nlock.
+    //inc_time_quantum will turn off interrupts until it is incremented
 
     if (myproc() && myproc()->state == RUNNING && tf->trapno == T_IRQ0 + IRQ_TIMER) {
-        if((ticks % 10) == 0){
+        if(ticks % 2 == 0){
             inc_time_quantum(myproc());
         }
 

@@ -833,8 +833,10 @@ procdump(void) {
  * If the time quantum is exceeded, send a SIGCPU signal to the process and yield for a scheduling round.
  */
 void inc_time_quantum(struct proc *p){
+    pushcli();
     acquire(&ptable.lock);
-    p->p_time_taken += 10;
+    p->p_time_taken +=2;
+    cprintf("\npid %d with time quantum %d has taken %d clock cycles\n",p->pid,p->p_time_quantum,p->p_time_taken);
 
     if(p->p_time_taken < p->p_time_quantum){
         p->p_sig |= SIGCPU;
@@ -845,6 +847,7 @@ void inc_time_quantum(struct proc *p){
     }
 
     release(&ptable.lock);
+    popcli();
     return;
 }
 
