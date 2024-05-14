@@ -440,6 +440,11 @@ scheduler(void) {
 
             if (p->p_sig != 0) {
                 cprintf("sig %d\n", p->p_sig);
+
+                /*
+                 * If the signal is one of the fatal signals, terminate no matter what
+                 * and print to console that the process received a fatal signal
+                 */
                 if (((p->p_sig & SIGKILL) != 0) || ((p->p_sig & SIGSEG) != 0) || ((p->p_sig & SIGPIPE) != 0)) {
                     cprintf("pid %d received fatal signal\n", p->pid);
                     p->killed = 1;
@@ -453,25 +458,27 @@ scheduler(void) {
                     release(&ptable.lock);
                     yield();
                 }
-                cprintf("ign mask  %d -> signal mask %d\n", p->p_ign, p->p_sig);
+
+                /*
+                 * If there no ignore mask, terminate
+                 */
                 if (p->p_ign == 0) {
 
                     p->killed = 1;
-
+                    /*
+                     * If the ignore is masking the non fatal signal, ignore it
+                     */
                 } else if ((p->p_ign & p->p_sig) != 0) {
 
                     p->p_sig = 0;
 
+                    /*
+                     * else if the signals being ignored do not cover the signal received, terminate the process.
+                     */
                 } else {
                     p->killed = 1;
 
                 }
-                if ((p->p_ign & p->p_sig) != 0) {
-                    p->killed = 1;
-                } else {
-                    p->p_sig = 0;
-                }
-
 
             }
             if (p->state != RUNNABLE) {
