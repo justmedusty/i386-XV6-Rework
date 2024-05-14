@@ -440,11 +440,10 @@ scheduler(void) {
 
             if (p->p_sig != 0) {
                 cprintf("sig %d\n", p->p_sig);
-                if (((p->p_sig &= SIGKILL)) || ((p->p_sig &= SIGSEG)) || ((p->p_sig &= SIGPIPE))) {
+                if (((p->p_sig & SIGKILL) != 0) || ((p->p_sig & SIGSEG) != 0) || ((p->p_sig & SIGPIPE) != 0)) {
                     cprintf("pid %d received fatal signal\n", p->pid);
                     p->killed = 1;
                 }
-
                 /*
                  * If the time quantum has been exceeded, goto sched and let another process run.
                  * This is handled here with kill seg pipe etc because it cannot be ignored.
