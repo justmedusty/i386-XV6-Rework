@@ -75,9 +75,8 @@ runcmd(struct cmd *cmd)
     printf(1,"addr of sig handler is %d\n",&sig_handler);
 
 
-
-    //turn interrupts off for sh
-    //sigignore(1);
+    //1 indicates mask these signals, seg and pipe should not be ignorable so we will test it
+    sigignore(SIGPIPE | SIGSEG | SIGINT | SIGSYS, 1);
 
   int p[2];
   struct backcmd *bcmd;

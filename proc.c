@@ -439,33 +439,41 @@ scheduler(void) {
 
 
             if (p->p_sig != 0) {
-                if (((p->p_sig & SIGKILL) != 0) || ((p->p_sig & SIGSEG) != 0) || ((p->p_sig & SIGPIPE) != 0)) {
-                    cprintf("pid %d received fatal signal %d\n",p->pid,p->p_sig & SIGKILL & SIGSEG & SIGPIPE);
+                cprintf("sig %d\n", p->p_sig);
+                if (((p->p_sig &= SIGKILL)) || ((p->p_sig &= SIGSEG)) || ((p->p_sig &= SIGPIPE))) {
+                    cprintf("pid %d received fatal signal\n", p->pid);
                     p->killed = 1;
-                    sched();
                 }
 
                 /*
                  * If the time quantum has been exceeded, goto sched and let another process run.
                  * This is handled here with kill seg pipe etc because it cannot be ignored.
                  */
-                if((p->p_sig & SIGCPU) != 0){
+                if ((p->p_sig & SIGCPU) != 0) {
                     p->p_sig &= ~SIGCPU;
-                    sched();
+                    release(&ptable.lock);
+                    yield();
                 }
-                if (p->signal_handler != (void *) 0) {
+                cprintf("ign mask  %d -> signal mask %d\n", p->p_ign, p->p_sig);
+                if (p->p_ign == 0) {
 
+                    p->killed = 1;
 
-                    if ((p->p_ign & p->p_sig) == 0) {
-                        p->p_sig = 0;
-                        continue;
-                    } else {
-                        p->killed = 1;
-                        p->p_sig = 0;
-                    }
+                } else if ((p->p_ign & p->p_sig) != 0) {
 
+                    p->p_sig = 0;
+
+                } else {
+                    p->killed = 1;
 
                 }
+                if ((p->p_ign & p->p_sig) != 0) {
+                    p->killed = 1;
+                } else {
+                    p->p_sig = 0;
+                }
+
+
             }
             if (p->state != RUNNABLE) {
                 continue;
@@ -507,7 +515,8 @@ scheduler(void) {
              * A user process will need to wait 2 iterations to be scheduled again and a kernel process with the
              * default kernel priority will need to wait 1 iteration to be scheduled again
              */
-            if (p->p_time_taken >= p->p_time_quantum && p->p_pri <= DEFAULT_KERNEL_PRIORITY && p->space_flag != KERNEL_PROC) {
+            if (p->p_time_taken >= p->p_time_quantum && p->p_pri <= DEFAULT_KERNEL_PRIORITY &&
+                p->space_flag != KERNEL_PROC) {
                 p->state = RUNNABLE;
                 p->p_pri++;
                 continue;
@@ -565,13 +574,16 @@ sched(void) {
     }
 
     //Is the current running process out of its time quantum? if it is swap it out
-    if ((mycpu()->proc->p_time_taken <= mycpu()->proc->p_time_quantum) && (mycpu()->proc->p_pri <= DEFAULT_KERNEL_PRIORITY)) {
+    if ((mycpu()->proc->p_time_taken <= mycpu()->proc->p_time_quantum) &&
+        (mycpu()->proc->p_pri <= DEFAULT_KERNEL_PRIORITY)) {
         p->p_flag = URGENT;
     }
 
     //If this process is low pri and flag is not status swap, increment priority to avoid an infinite loop
     if (p->p_flag == LOW || p->p_pri < DEFAULT_USER_PRIORITY) {
+        p->p_flag = 0;
         p->p_pri++;
+        release(&ptable.lock);
         yield();
     }
     //Put this process into the scheduler
@@ -672,16 +684,6 @@ wakeup2(void *chan) {
             p->state = RUNNABLE;
 }
 
-// Wake up all processes sleeping on chan.
-// The ptable lock must be held.
-static void
-creatZombie(void *chan) {
-    struct proc *p;
-
-    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-        if (p->state == SLEEPING && p->chan == chan)
-            p->state = ZOMBIE;
-}
 
 // Wake up all processes sleeping on chan.
 void
@@ -729,6 +731,8 @@ int sig(int sigmask, int pid) {
     if (sigmask > (SIGKILL + SIGSEG + SIGINT + SIGPIPE + SIGHUP + SIGSYS + SIGCPU)) {
         return ESIG;
     }
+
+
     acquire(&ptable.lock);
     for (proc = ptable.proc; proc < &ptable.proc[NPROC]; proc++) {
         if (proc->pid == pid && proc->state != UNUSED) {
@@ -778,10 +782,9 @@ void sigignore(int sigmask, int action) {
     struct proc *p = myproc();
     acquire(&ptable.lock);
     if (action == 0) {
-        //enable the specified signal bits
-        p->p_ign &= ~sigmask;
+        p->p_ign &= sigmask;
     } else {
-        //mask on the specified signal bits
+        //enable the specified signal bits
         p->p_ign |= sigmask;
         cprintf("PID %d has turned some signal interrupts off\n", p->pid);
     }
@@ -833,14 +836,16 @@ procdump(void) {
  *
  * If the time quantum is exceeded, send a SIGCPU signal to the process and yield for a scheduling round.
  */
-void inc_time_quantum(struct proc *p){
+void inc_time_quantum(struct proc *p) {
     pushcli();
-    p->p_time_taken ++;
-    cprintf("\npid %d with time quantum %d has taken %d clock cycles\n",p->pid,p->p_time_quantum,p->p_time_taken);
+    p->p_time_taken++;
 
-    if(p->p_time_taken > p->p_time_quantum){
+
+    if (p->p_time_taken > p->p_time_quantum) {
+        cprintf("\npid %d with time quantum %d has taken %d clock cycles\n", p->pid, p->p_time_quantum,
+                p->p_time_taken);
         p->p_sig |= SIGCPU;
-        if(p->space_flag == USER_PROC){
+        if (p->space_flag == USER_PROC) {
             popcli();
             yield();
         }
@@ -853,11 +858,11 @@ void inc_time_quantum(struct proc *p){
  * Changes the space flag in the process table to indicate this process is running in ring 0 , probably from a system
  * call context switch
  */
-void change_process_space(int state_flag){
-     if(state_flag == 1) {
-         myproc()->space_flag = KERNEL_PROC;
-     } else{
-         myproc()->space_flag = USER_PROC;
-     }
+void change_process_space(int state_flag) {
+    if (state_flag == 1) {
+        myproc()->space_flag = KERNEL_PROC;
+    } else {
+        myproc()->space_flag = USER_PROC;
+    }
     return;
 }

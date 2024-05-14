@@ -20,12 +20,13 @@ void *sig_handler() {
 
 int main(int argc, char **argv) {
 
-    if (argc == 2 && ((strcmp(argv[1],"list")) == 0) ){
+    if (argc == 2 && ((strcmp(argv[1],"--list")) == 0) ){
         printf(1,"SIGUP   : %d\n",SIGHUP);
         printf(1,"SIGINT  : %d\n",SIGINT);
         printf(1,"SIGSEG  : %d\n",SIGSEG);
         printf(1,"SIGKILL : %d\n",SIGKILL);
         printf(1,"SIGPIPE : %d\n",SIGPIPE);
+        printf(1,"SIGSYS : %d\n",SIGSYS);
         printf(1,"SIGCPU  : %d\n",SIGCPU);
         exit();
 
