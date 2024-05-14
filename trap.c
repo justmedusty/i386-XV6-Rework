@@ -49,7 +49,6 @@ trap(struct trapframe *tf) {
                 ticks++;
                 wakeup(&ticks);
                 release(&tickslock);
-
             }
             lapiceoi();
             break;
@@ -103,12 +102,10 @@ trap(struct trapframe *tf) {
     //inc_time_quantum will turn off interrupts until it is incremented
 
     if (myproc() && myproc()->state == RUNNING && tf->trapno == T_IRQ0 + IRQ_TIMER) {
-        if(ticks % 2 == 0){
             inc_time_quantum(myproc());
-        }
-
     }
-    if (myproc() && myproc()->p_time_taken > myproc()->p_time_quantum) {
+
+    if (myproc() && myproc()->state == RUNNING && myproc()->p_time_taken > myproc()->p_time_quantum) {
         yield();
     }
 

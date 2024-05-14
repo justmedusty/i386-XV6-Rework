@@ -164,11 +164,12 @@ userinit(void) {
     p->tf->eflags = FL_IF;
     p->tf->esp = PGSIZE;
     p->tf->eip = 0;  // beginning of initcode.S
+    p->space_flag = SCHED;
 
     /*
      * Setting our new scheduling fields
      */
-    p->p_time_quantum = 2;
+    p->p_time_quantum = 75;
     p->child_pri = CHILD_SAME_PRI;
     p->p_pri = DEFAULT_USER_PRIORITY;
     p->space_flag = USER_PROC;
@@ -834,19 +835,16 @@ procdump(void) {
  */
 void inc_time_quantum(struct proc *p){
     pushcli();
-    acquire(&ptable.lock);
-    p->p_time_taken +=2;
+    p->p_time_taken ++;
     cprintf("\npid %d with time quantum %d has taken %d clock cycles\n",p->pid,p->p_time_quantum,p->p_time_taken);
 
-    if(p->p_time_taken < p->p_time_quantum){
+    if(p->p_time_taken > p->p_time_quantum){
         p->p_sig |= SIGCPU;
         if(p->space_flag == USER_PROC){
-            release(&ptable.lock);
+            popcli();
             yield();
         }
     }
-
-    release(&ptable.lock);
     popcli();
     return;
 }
@@ -856,12 +854,10 @@ void inc_time_quantum(struct proc *p){
  * call context switch
  */
 void change_process_space(int state_flag){
-    acquire(&ptable.lock);
      if(state_flag == 1) {
          myproc()->space_flag = KERNEL_PROC;
      } else{
          myproc()->space_flag = USER_PROC;
      }
-    release(&ptable.lock);
     return;
 }
