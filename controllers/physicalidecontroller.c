@@ -11,7 +11,8 @@
  * for a system such as xv6
  */
 #include "x86.h"
-
+#include "defs.h"
+#include "buf.h"
 
 #include "physicalidecontroller.h"
 #include "../drivers/physicalidedriver.h"
@@ -29,7 +30,7 @@ void ide_init(struct ide_controller *ide) {
     ide->control_port = IDE_CONTROL_PORT_PRIMARY;
 }
 
-void ide_read_sector(struct ide_controller *ide, unsigned lba, unsigned char *buffer) {
+void ide_read_sector(struct ide_controller *ide, unsigned lba, struct buf *buffer) {
     // Select the drive (master/slave)
     ide_write_register(ide->device_port, 0xE0 | ((lba >> 24) & 0xF));
 
@@ -48,10 +49,10 @@ void ide_read_sector(struct ide_controller *ide, unsigned lba, unsigned char *bu
     while (ide_read_register(ide->command_port) & (1 << 7)) {}
 
     // Read data from disk
-    insl(ide->data_port, buffer, 512 / 4);
+    insl(ide->data_port, buffer->data, 512 / 4);
 }
 
-void ide_write_sector(struct ide_controller *ide, unsigned int lba, unsigned char *buffer) {
+void ide_write_sector(struct ide_controller *ide, unsigned int lba, struct buf *buffer) {
     // Select the drive (master/slave)
     ide_write_register(ide->device_port, 0xE0 | ((lba >> 24) & 0xF));
 
@@ -70,5 +71,5 @@ void ide_write_sector(struct ide_controller *ide, unsigned int lba, unsigned cha
     while (ide_read_register(ide->command_port) & (1 << 7)) {}
 
     // Write data to disk
-    outsl(ide->data_port, buffer, 512 / 4);
+    outsl(ide->data_port, buffer->data, 512 / 4);
 }

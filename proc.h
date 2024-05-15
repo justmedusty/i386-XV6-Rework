@@ -33,13 +33,21 @@ struct context {
 };
 /*
  * Added WAIT which will be a low priority sleep
+ *
+ * added PREEMPTED so we know a proc ran out of its time quantum
  */
-enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE, WAIT};
+enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE, WAIT, PREEMPTED};
 
 #define TOP_PRIORITY             10
-#define DEFAULT_KERNEL_PRIORITY  5  //default pri for kernel proc
-#define DEFAULT_USER_PRIORITY    3  //default pri for user proc
-#define DEFAULT_TIME_QUANTUM    750000 //default time quantum (clock cycles permitted for execution before pri drops and shceduler permits another proc to run)
+#define HIGH_KERNEL_PRIORITY     9
+#define MED_KERNEL_PRIORITY      8 //default pri for kernel proc
+#define LOW_KERNEL_PRIORITY      7
+#define HIGH_USER_PRIORITY       5
+#define MED_USER_PRIORITY        3  //default pri for user proc
+#define LOW_USER_PRIORITY        1
+
+#define DEFAULT_USER_TIME_QUANTUM    15 //default user time quantum (clock cycles permitted for execution before pri drops and shceduler permits another proc to run)
+#define DEFAULT_KERNEL_TIME_QUANTUM  50 // default kernel time quantum
 
 #define URGENT                  1   //A way to suddenly indicate a process is high pri and just for this round
 #define LOW                     2   //low pri just for this round

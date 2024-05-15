@@ -169,9 +169,9 @@ userinit(void) {
     /*
      * Setting our new scheduling fields
      */
-    p->p_time_quantum = 75;
+    p->p_time_quantum = DEFAULT_USER_TIME_QUANTUM;
     p->child_pri = CHILD_SAME_PRI;
-    p->p_pri = DEFAULT_USER_PRIORITY;
+    p->p_pri = MED_KERNEL_PRIORITY;
     p->space_flag = USER_PROC;
 
     /*
@@ -179,7 +179,9 @@ userinit(void) {
      */
 
     p->signal_handler = (void *) 0;
+    //ignore no signals
     p->p_ign = 0;
+    //start without any signals obviously
     p->p_sig = 0;
 
 
@@ -480,7 +482,7 @@ scheduler(void) {
             * Is the flag set to urgent?
              * If it is go right ahead and swap it in
              *
-            * immediately reset the flag because this will be a temp pri
+            * immediately reset the flag because this will be a temp pri, only for 1 round and then the flag will be reset
             */
             if (p->p_flag == URGENT) {
                 p->p_flag = 0;
@@ -513,7 +515,7 @@ scheduler(void) {
              * A user process will need to wait 2 iterations to be scheduled again and a kernel process with the
              * default kernel priority will need to wait 1 iteration to be scheduled again
              */
-            if (p->p_cpu_usage >= p->p_time_quantum && p->p_pri <= DEFAULT_KERNEL_PRIORITY &&
+            if (p->p_cpu_usage >= p->p_time_quantum && p->p_pri <= LOW_KERNEL_PRIORITY &&
                 p->space_flag != KERNEL_PROC) {
                 p->state = RUNNABLE;
                 p->p_pri++;
@@ -565,20 +567,19 @@ sched(void) {
     intena = mycpu()->intena;
 
 
-
     //Is this a higher priority than the current process? if so, set it to SSWAP so that it will be swapped in immediately
     if (mycpu()->proc->p_pri < p->p_pri || mycpu()->proc->space_flag < p->space_flag) {
         p->p_flag = URGENT;
     }
 
     //Is the current running process out of its time quantum? if it is swap it out
-    if ((mycpu()->proc->p_cpu_usage <= mycpu()->proc->p_time_quantum) &&
-        (mycpu()->proc->p_pri <= DEFAULT_KERNEL_PRIORITY)) {
+    if ((mycpu()->proc->p_cpu_usage >= mycpu()->proc->p_time_quantum) &&
+        (mycpu()->proc->p_pri <= HIGH_USER_PRIORITY)) {
         p->p_flag = URGENT;
     }
 
     //If this process is low pri and flag is not status swap, increment priority to avoid an infinite loop
-    if (p->p_flag == LOW || p->p_pri < DEFAULT_USER_PRIORITY) {
+    if (p->p_flag == LOW || p->p_pri < MED_USER_PRIORITY) {
         p->p_flag = 0;
         p->p_pri++;
         release(&ptable.lock);
@@ -664,9 +665,13 @@ wakeup1(void *chan) {
     struct proc *p;
 
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-        if (p->state == SLEEPING && p->chan == chan)
+        if (p->state == SLEEPING && p->chan == chan) {
             p->state = RUNNABLE;
+            p->p_flag = URGENT;
+            p->p_pri++;
+        }
 }
+
 
 /*
  * This is for waking up higher priority processes

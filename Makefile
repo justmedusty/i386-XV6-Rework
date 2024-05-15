@@ -29,10 +29,10 @@ OBJS = \
 	vm.o \
 
 # Cross-compiling (e.g., on Mac OS X)
-# TOOLPREFIX = i386-jos-elf
+#TOOLPREFIX = i386-jos-elf
 
 # Using native tools (e.g., on X86 Linux)
-#TOOLPREFIX = 
+#TOOLPREFIX = elf32-i386
 
 # Try to infer the correct TOOLPREFIX if not set
 ifndef TOOLPREFIX

@@ -12,10 +12,7 @@ picinit(void)
 {
   // mask all interrupts
 
-  /*
-   * for our ide disk we will be using irq 14 so it would need to be unmasked, for now
-   * we will leave it but we will need to come back to this at a later date when xv6 is hardware ready
-   */
+
   outb(IO_PIC1+1, 0xFF);
   outb(IO_PIC2+1, 0xFF);
 }

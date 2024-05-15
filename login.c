@@ -96,7 +96,7 @@ int main() {
         }
     }
     start:
-        if(attempts > 5){
+        if(attempts > 3){
             printf(1,"Console locked\n");
             for(;;){
                 //lock them out
