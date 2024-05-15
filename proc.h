@@ -88,6 +88,16 @@ struct proc {
   char name[16];               // Process name (debugging)
 };
 
+/*
+ * This will be a doubly linked list where processes of higher or lower priorities will be sorted either at the head or the ass end depending on priority.
+ * This will help me avoid preempting lone processes because, of course, why would you preempt a lone process to spin when there is no process waiting.This will also
+ * help with properly sorting processes depending on the priority factors as opposed to doing checks as you get to the process. My algorithim now works fine but if there were lots of processes running it
+ * could lead to issues. This will help ensure fairness.
+ */
+struct proc_queue {
+    struct proc *next;
+    struct proc *prev;
+};
 // Process memory is laid out contiguously, low addresses first:
 //   text
 //   original data and bss
