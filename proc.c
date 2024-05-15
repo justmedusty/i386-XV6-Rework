@@ -581,12 +581,12 @@ sched(void) {
 
 
     //Is this a higher priority than the current process? if so, set it to SSWAP so that it will be swapped in immediately
-    if (mycpu() && mycpu()->proc->p_pri < p->p_pri || mycpu()->proc->space_flag < p->space_flag) {
+    if (mycpu()->proc->p_pri < p->p_pri || mycpu()->proc->space_flag < p->space_flag) {
         p->p_flag = URGENT;
     }
 
     //Is the current running process out of its time quantum? if it is swap it out
-    if (mycpu() &&(mycpu()->proc->p_cpu_usage >= mycpu()->proc->p_time_quantum) &&
+    if ((mycpu()->proc->p_cpu_usage >= mycpu()->proc->p_time_quantum) &&
         (mycpu()->proc->p_pri <= HIGH_USER_PRIORITY)) {
         p->p_flag = URGENT;
     }
