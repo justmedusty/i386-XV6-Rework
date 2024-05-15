@@ -46,8 +46,8 @@ enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE, WAIT, PREE
 #define MED_USER_PRIORITY        3  //default pri for user proc
 #define LOW_USER_PRIORITY        1
 
-#define DEFAULT_USER_TIME_QUANTUM    15 //default user time quantum (clock cycles permitted for execution before pri drops and shceduler permits another proc to run)
-#define DEFAULT_KERNEL_TIME_QUANTUM  50 // default kernel time quantum
+#define DEFAULT_USER_TIME_QUANTUM    100 //default user time quantum (clock cycles permitted for execution before pri drops and shceduler permits another proc to run)
+#define DEFAULT_KERNEL_TIME_QUANTUM  250 // default kernel time quantum
 
 #define URGENT                  1   //A way to suddenly indicate a process is high pri and just for this round
 #define LOW                     2   //low pri just for this round

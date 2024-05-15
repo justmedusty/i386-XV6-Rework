@@ -599,6 +599,13 @@ yield(void) {
     release(&ptable.lock);
 }
 
+void preempt(void) {
+    acquire(&ptable.lock);  //DOC: yieldlock
+    myproc()->state = PREEMPTED;
+    sched();
+    release(&ptable.lock);
+}
+
 // A fork child's very first scheduling by scheduler()
 // will swtch here.  "Return" to user space.
 void
@@ -845,13 +852,10 @@ void inc_time_quantum(struct proc *p) {
 
 
     if (p->p_cpu_usage > p->p_time_quantum) {
-        cprintf("\npid %d with time quantum %d has taken %d clock cycles\n", p->pid, p->p_time_quantum,
-                p->p_cpu_usage);
+        cprintf("\npid %d with time quantum %d has taken %d clock cycles\n", p->pid, p->p_time_quantum,p->p_cpu_usage);
         p->p_sig |= SIGCPU;
-        if (p->space_flag == USER_PROC) {
-            popcli();
-            yield();
-        }
+        popcli();
+        preempt();
     }
     popcli();
     return;

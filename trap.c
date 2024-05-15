@@ -102,7 +102,7 @@ trap(struct trapframe *tf) {
     //inc_time_quantum will turn off interrupts until it is incremented
 
     if (myproc() && myproc()->state == RUNNING && tf->trapno == T_IRQ0 + IRQ_TIMER) {
-            inc_time_quantum(myproc());
+           inc_time_quantum(myproc());
     }
 
     if (myproc() && myproc()->state == RUNNING && myproc()->p_cpu_usage > myproc()->p_time_quantum) {
