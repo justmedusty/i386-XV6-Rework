@@ -91,7 +91,7 @@ struct proc {
 /*
  * This will be a doubly linked list where processes of higher or lower priorities will be sorted either at the head or the ass end depending on priority.
  * This will help me avoid preempting lone processes because, of course, why would you preempt a lone process to spin when there is no process waiting.This will also
- * help with properly sorting processes depending on the priority factors as opposed to doing checks as you get to the process. My algorithim now works fine but if there were lots of processes running it
+ * help with properly sorting processes depending on the priority factors as opposed to doing checks as you get to the process. My algorithm now works fine, but if there were lots of processes running, it
  * could lead to issues. This will help ensure fairness.
  */
 struct proc_queue {
