@@ -99,16 +99,17 @@ trap(struct trapframe *tf) {
 
     // Force process to give up CPU on exceeding time quantum.
     // If interrupts were on while locks held, would need to check nlock.
-    //inc_time_quantum will turn off interrupts until it is incremented
+
+
+    //Increment the cpu usage counter for the process each clock interrupt and check against its time quantum , preempt it if it exceeds it's given time quantum
 
     if (myproc() && myproc()->state == RUNNING && tf->trapno == T_IRQ0 + IRQ_TIMER) {
-           inc_time_quantum(myproc());
+        myproc()->p_cpu_usage++;
     }
 
     if (myproc() && myproc()->state == RUNNING && myproc()->p_cpu_usage > myproc()->p_time_quantum) {
         preempt();
     }
-
 
 // Check if the process has been killed since we yielded
     if (myproc() && myproc()->killed && (tf->cs & 3) == DPL_USER)

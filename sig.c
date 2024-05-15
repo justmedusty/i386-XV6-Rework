@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
         printf(1,"SIGSEG  : %d\n",SIGSEG);
         printf(1,"SIGKILL : %d\n",SIGKILL);
         printf(1,"SIGPIPE : %d\n",SIGPIPE);
-        printf(1,"SIGSYS : %d\n",SIGSYS);
+        printf(1,"SIGSYS  : %d\n",SIGSYS);
         printf(1,"SIGCPU  : %d\n",SIGCPU);
         exit();
 

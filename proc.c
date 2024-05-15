@@ -475,12 +475,12 @@ scheduler(void) {
                 }
 
             }
-            //prempted procs will need to go round the merry go round a few times before they are reset
+            //prempted procs will need to go round the merry-go-round a few times before they are reset
             if(p->state == PREEMPTED && p->p_pri != TOP_PRIORITY){
                 p->p_pri++;
                 //We will reset the cpu usage when a process is lifted out of preempted state,
                 //this way we can start to implement logic into our algorithim that will
-                //take recent cpu usage into account. Otherwise cpu usage would rise forever and you would
+                //take recent cpu usage into account. Otherwise, cpu usage would rise forever, and you would
                 //not know if it was recent..
             } else if (p->state == PREEMPTED && p->p_pri == TOP_PRIORITY){
                 p->p_cpu_usage = 0;
@@ -849,25 +849,6 @@ procdump(void) {
     }
 }
 
-
-/*
- * Increment time quantum every clock cycle
- *
- * If the time quantum is exceeded, send a SIGCPU signal to the process and yield for a scheduling round.
- */
-void inc_time_quantum(struct proc *p) {
-    pushcli();
-    p->p_cpu_usage++;
-
-    if (p->p_cpu_usage > p->p_time_quantum) {
-        cprintf("\npid %d with time quantum %d has taken %d clock cycles\n", p->pid, p->p_time_quantum,p->p_cpu_usage);
-        p->p_sig |= SIGCPU;
-        popcli();
-        return;
-    }
-    popcli();
-    return;
-}
 
 /*
  * Changes the space flag in the process table to indicate this process is running in ring 0 , probably from a system
