@@ -105,7 +105,7 @@ trap(struct trapframe *tf) {
             inc_time_quantum(myproc());
     }
 
-    if (myproc() && myproc()->state == RUNNING && myproc()->p_time_taken > myproc()->p_time_quantum) {
+    if (myproc() && myproc()->state == RUNNING && myproc()->p_cpu_usage > myproc()->p_time_quantum) {
         yield();
     }
 

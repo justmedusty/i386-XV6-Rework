@@ -262,7 +262,7 @@ fork(void) {
     /*
      * Clear time taken and copy the time quantum from the parent
      */
-    np->p_time_taken = 0;
+    np->p_cpu_usage = 0;
     np->p_time_quantum = curproc->p_time_quantum;
 
     /*
@@ -430,16 +430,8 @@ scheduler(void) {
         acquire(&ptable.lock);
         for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
 
-
-            /*
-             * handle these signals , I will leave a very bare implementation for now that I can build upon later. A handler
-             * may be allowed for this particular function to handle certain non fatal signals. It will be called here if there
-             * is a handler present.
-             */
-
-
+            //If there is an unhandled signal
             if (p->p_sig != 0) {
-                cprintf("sig %d\n", p->p_sig);
 
                 /*
                  * If the signal is one of the fatal signals, terminate no matter what
@@ -521,7 +513,7 @@ scheduler(void) {
              * A user process will need to wait 2 iterations to be scheduled again and a kernel process with the
              * default kernel priority will need to wait 1 iteration to be scheduled again
              */
-            if (p->p_time_taken >= p->p_time_quantum && p->p_pri <= DEFAULT_KERNEL_PRIORITY &&
+            if (p->p_cpu_usage >= p->p_time_quantum && p->p_pri <= DEFAULT_KERNEL_PRIORITY &&
                 p->space_flag != KERNEL_PROC) {
                 p->state = RUNNABLE;
                 p->p_pri++;
@@ -580,7 +572,7 @@ sched(void) {
     }
 
     //Is the current running process out of its time quantum? if it is swap it out
-    if ((mycpu()->proc->p_time_taken <= mycpu()->proc->p_time_quantum) &&
+    if ((mycpu()->proc->p_cpu_usage <= mycpu()->proc->p_time_quantum) &&
         (mycpu()->proc->p_pri <= DEFAULT_KERNEL_PRIORITY)) {
         p->p_flag = URGENT;
     }
@@ -844,12 +836,12 @@ procdump(void) {
  */
 void inc_time_quantum(struct proc *p) {
     pushcli();
-    p->p_time_taken++;
+    p->p_cpu_usage++;
 
 
-    if (p->p_time_taken > p->p_time_quantum) {
+    if (p->p_cpu_usage > p->p_time_quantum) {
         cprintf("\npid %d with time quantum %d has taken %d clock cycles\n", p->pid, p->p_time_quantum,
-                p->p_time_taken);
+                p->p_cpu_usage);
         p->p_sig |= SIGCPU;
         if (p->space_flag == USER_PROC) {
             popcli();

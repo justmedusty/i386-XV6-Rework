@@ -62,7 +62,7 @@ struct proc {
   int p_ign;                   //flag to ignore signals (other than a kill, seg fault)
   char p_pri;                  // The priority of this process, for scheduling
   int p_time_quantum;          //The resident time for scheduling
-  int p_time_taken;            //The amount of loops taken on this proc
+  int p_cpu_usage;            //The amount of loops taken on this proc
   char p_flag;                 //Flag indicating the schedule status of this proc
   int space_flag;              //flag to mark a process as either kernel space or user space
   int child_pri;               //A binary flag that will just indicate whether any children on fork should retain the same scheduling priority.
