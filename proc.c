@@ -580,18 +580,19 @@ sched(void) {
     intena = mycpu()->intena;
 
 
-
-
     //Is this a higher priority than the current process? if so, set it to SSWAP so that it will be swapped in immediately
-    if (mycpu()->proc->p_pri < p->p_pri || mycpu()->proc->space_flag < p->space_flag) {
+    if (mycpu() && mycpu()->proc->p_pri < p->p_pri || mycpu()->proc->space_flag < p->space_flag) {
         p->p_flag = URGENT;
     }
 
     //Is the current running process out of its time quantum? if it is swap it out
-    if ((mycpu()->proc->p_cpu_usage >= mycpu()->proc->p_time_quantum) &&
+    if (mycpu() &&(mycpu()->proc->p_cpu_usage >= mycpu()->proc->p_time_quantum) &&
         (mycpu()->proc->p_pri <= HIGH_USER_PRIORITY)) {
         p->p_flag = URGENT;
     }
+
+
+
 
     //If this process is low pri and flag is not status swap, increment priority to avoid an infinite loop
     if (p->p_flag == LOW || p->p_pri < MED_USER_PRIORITY) {
@@ -600,7 +601,9 @@ sched(void) {
         release(&ptable.lock);
         yield();
     }
+
     //Put this process into the scheduler
+    //TODO after preempt, traps out on the context switch here
     swtch(&p->context, mycpu()->scheduler);
     mycpu()->intena = intena;
 }
