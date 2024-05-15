@@ -256,7 +256,7 @@ fork(void) {
 
     } else {
 
-        int new_pri = (curproc->p_pri == 0) ? 0 : (curproc->p_pri - 1);
+        int new_pri = (curproc->p_pri == 0) ? LOW_USER_PRIORITY : (curproc->p_pri - 1);
 
         np->p_pri = new_pri;
 
@@ -475,10 +475,15 @@ scheduler(void) {
                 }
 
             }
-
+            //prempted procs will need to go round the merry go round a few times before they are reset
             if(p->state == PREEMPTED && p->p_pri != TOP_PRIORITY){
                 p->p_pri++;
+                //We will reset the cpu usage when a process is lifted out of preempted state,
+                //this way we can start to implement logic into our algorithim that will
+                //take recent cpu usage into account. Otherwise cpu usage would rise forever and you would
+                //not know if it was recent..
             } else if (p->state == PREEMPTED && p->p_pri == TOP_PRIORITY){
+                p->p_cpu_usage = 0;
                 p->state = RUNNABLE;
                 p->p_pri = MED_USER_PRIORITY;
             }
