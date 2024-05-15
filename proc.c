@@ -475,9 +475,17 @@ scheduler(void) {
                 }
 
             }
+
+            if(p->state == PREEMPTED && p->p_pri != TOP_PRIORITY){
+                p->p_pri++;
+            } else if (p->state == PREEMPTED && p->p_pri == TOP_PRIORITY){
+                p->state = RUNNABLE;
+                p->p_pri = MED_USER_PRIORITY;
+            }
             if (p->state != RUNNABLE) {
                 continue;
             }
+
             /*
             * Is the flag set to urgent?
              * If it is go right ahead and swap it in
@@ -565,6 +573,8 @@ sched(void) {
     if (readeflags() & FL_IF)
         panic("sched interruptible");
     intena = mycpu()->intena;
+
+
 
 
     //Is this a higher priority than the current process? if so, set it to SSWAP so that it will be swapped in immediately
@@ -850,12 +860,11 @@ void inc_time_quantum(struct proc *p) {
     pushcli();
     p->p_cpu_usage++;
 
-
     if (p->p_cpu_usage > p->p_time_quantum) {
         cprintf("\npid %d with time quantum %d has taken %d clock cycles\n", p->pid, p->p_time_quantum,p->p_cpu_usage);
         p->p_sig |= SIGCPU;
         popcli();
-        preempt();
+        return;
     }
     popcli();
     return;

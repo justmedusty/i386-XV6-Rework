@@ -106,7 +106,7 @@ trap(struct trapframe *tf) {
     }
 
     if (myproc() && myproc()->state == RUNNING && myproc()->p_cpu_usage > myproc()->p_time_quantum) {
-        yield();
+        preempt();
     }
 
 

@@ -100,4 +100,5 @@ struct proc {
 uint tally_allocated_memory_for_all_procs(void);
 void inc_time_quantum(struct proc *p);
 void change_process_space(int state_flag);
+void preempt(void);
 
