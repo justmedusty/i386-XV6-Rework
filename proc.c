@@ -31,8 +31,10 @@ struct {
 /*
  * I think I will do live calculations of average cpu usage in clock cycles, update this obj-wide variable and let
  * that be a basis for preempting..
+ *
+ * I'll start it with a dummy value
  */
-static int avg_cpu_usage;
+static int avg_cpu_usage = 25;
 
 static struct proc_queue procqueue[NPROC + 2];
 
@@ -67,12 +69,12 @@ static void initprocqueue(){
 }
 /*
  * This will traverse the queue , comparing priority, cpu usage against time quantum, and insert
- * the new process in an appropriate place in the queue. If there is nothing in the queue it will be placed between head and tail.
+ * the new process in an appropriate place in the queue. If there is nothing in the queue, it will be placed between head and tail.
  */
 static void insert_proc_into_queue(struct proc* new){
     acquire(&procqueue.qloc);
     for(struct proc *this = procqueue.head->next;this != tail; this = this.next){
-         if(this->state != SLEEPING && (new->p_pri > this.p_pri || new->p_flag == URGENT || (new->p_cpu_usage - this->p_cpu_usage) < -500)){
+         if(this->state != SLEEPING && (new->p_pri > this.p_pri || new->p_flag == URGENT || this->p_cpu_usage < avg_cpu_usage)){
              this.next = new->next;
              this.prev = new->prev;
              new->prev->next = new;
@@ -564,7 +566,6 @@ scheduler(void) {
                 //take recent cpu usage into account. Otherwise, cpu usage would rise forever, and you would
                 //not know if it was recent..
             } else if (p->state == PREEMPTED && p->p_pri == TOP_PRIORITY){
-                p->p_cpu_usage = 0;
                 p->state = RUNNABLE;
                 p->p_pri = MED_USER_PRIORITY;
             }
@@ -599,6 +600,7 @@ scheduler(void) {
             //Is this procs pri higher than the highest run candidate? if so set it accordingly
             if (p->p_pri > highest_run_candidate->p_pri) {
                 highest_run_candidate = p;
+                insert_proc_into_queue(highest_run_candidate);
             }
 
 
@@ -664,6 +666,7 @@ sched(void) {
     //Is this a higher priority than the current process? if so, set it to URGENT so that it will be swapped in immediately
     if (mycpu()->proc->p_pri < p->p_pri || mycpu()->proc->space_flag < p->space_flag) {
         p->p_flag = URGENT;
+        insert_proc_into_queue(p);
     }
 
     //If this process is low pri and flag is not status swap, increment priority to avoid an infinite loop
