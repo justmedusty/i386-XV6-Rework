@@ -14,7 +14,24 @@ struct {
     struct proc proc[NPROC];
 } ptable;
 
+
+/*
+ * This will be a doubly linked list where processes of higher or lower priorities will be sorted either at the head or the ass end depending on priority.
+ * This will help me avoid preempting lone processes because, of course, why would you preempt a lone process to spin when there is no process waiting.This will also
+ * help with properly sorting processes depending on the priority factors as opposed to doing checks as you get to the process. My algorithm now works fine, but if there were lots of processes running, it
+ * could lead to issues. This will help ensure fairness.
+ *
+ */
+struct {
+    struct proc *head;
+    struct proc *tail;
+}procqueue;
+
+static struct proc_queue procqueue[NPROC + 2];
+
 static struct proc *initproc;
+
+static struct proc head,tail;
 
 int nextpid = 1;
 
@@ -27,6 +44,20 @@ static void wakeup1(void *chan);
 void
 pinit(void) {
     initlock(&ptable.lock, "ptable");
+}
+
+
+static void initprocqueue(){
+    procqueue.head->next = &tail;
+    procqueue.head->prev = NULL;
+    procqueue.tail->prev = &head;
+    procqueue.tail->next = NULL;p
+
+
+}
+
+static void insert_proc_into_queue(struct proc*){
+    for()
 }
 
 // Must be called with interrupts disabled
@@ -594,7 +625,6 @@ sched(void) {
     }
 
     //Put this process into the scheduler
-    //TODO after preempt, traps out on the context switch here
     swtch(&p->context, mycpu()->scheduler);
     mycpu()->intena = intena;
 }

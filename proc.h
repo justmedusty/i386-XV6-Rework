@@ -86,18 +86,10 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+  struct proc *next;           // Will work this doubly linked list for scheduling right into the process table, like what was done with the buffer cache
+  struct proc *prev;           // Will work this doubly linked list for scheduling right into the process table, like what was done with the buffer cache
 };
 
-/*
- * This will be a doubly linked list where processes of higher or lower priorities will be sorted either at the head or the ass end depending on priority.
- * This will help me avoid preempting lone processes because, of course, why would you preempt a lone process to spin when there is no process waiting.This will also
- * help with properly sorting processes depending on the priority factors as opposed to doing checks as you get to the process. My algorithm now works fine, but if there were lots of processes running, it
- * could lead to issues. This will help ensure fairness.
- */
-struct proc_queue {
-    struct proc *next;
-    struct proc *prev;
-};
 // Process memory is laid out contiguously, low addresses first:
 //   text
 //   original data and bss
