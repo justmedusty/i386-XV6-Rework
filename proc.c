@@ -23,6 +23,7 @@ struct {
  *
  */
 struct {
+    struct spinlock qloc;
     struct proc *head;
     struct proc *tail;
 }procqueue;
@@ -46,18 +47,60 @@ pinit(void) {
     initlock(&ptable.lock, "ptable");
 }
 
-
+/*
+ * Init our proc queue by linking the head and tail and initing the spinlock
+ */
 static void initprocqueue(){
-    procqueue.head->next = &tail;
+    initlock(&procqueue.qloc);
+    procqueue.head->next = tail;
     procqueue.head->prev = NULL;
-    procqueue.tail->prev = &head;
-    procqueue.tail->next = NULL;p
+    procqueue.tail->prev = head;
+    procqueue.tail->next = NULL;
 
 
 }
+/*
+ * This will traverse the queue , comparing priority, cpu usage against time quantum, and insert
+ * the new process in an appropriate place in the queue. If there is nothing in the queue it will be placed between head and tail.
+ */
+static void insert_proc_into_queue(struct proc* new){
+    acquire(&procqueue.qloc);
+    for(struct proc *this = procqueue.head->next;this != tail; this = this.next){
+         if((this->state != SLEEPING && new->p_pri > this.p_pri || new->p_flag == URGENT) ){
+             this.next = new->next;
+             this.prev = new->prev;
+             new->prev->next = new;
+             new->next->prev = new;
+             release(&procqueue.qloc);
+             return;
+         }
 
-static void insert_proc_into_queue(struct proc*){
-    for()
+         if(this->p_cpu_usage > new->p_cpu_usage && )
+    }
+    if(head.next == tail){
+        head.next = new;
+        tail.prev = new;
+        new->next = tail;
+        new->prev = head;
+    }
+    release(&procqueue.qloc);
+    return;
+}
+/*
+ * Remove this process from the queue
+ */
+static void remove_proc_from_queue(struct proc* old){
+    acquire(&procqueue.qloc);
+    for(struct proc *this = procqueue.head->next;this != tail; this = this.next){
+        if(this == old){
+            this->next->prev = this->prev;
+            this->prev->next = this->next;
+        }
+
+    }
+    if(head.next == tail){
+        panic("proc not in queue");
+    }
 }
 
 // Must be called with interrupts disabled
