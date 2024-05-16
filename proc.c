@@ -28,6 +28,12 @@ struct {
     struct proc *tail;
 }procqueue;
 
+/*
+ * I think I will do live calculations of average cpu usage in clock cycles, update this obj-wide variable and let
+ * that be a basis for preempting..
+ */
+static int avg_cpu_usage;
+
 static struct proc_queue procqueue[NPROC + 2];
 
 static struct proc *initproc;
@@ -66,7 +72,7 @@ static void initprocqueue(){
 static void insert_proc_into_queue(struct proc* new){
     acquire(&procqueue.qloc);
     for(struct proc *this = procqueue.head->next;this != tail; this = this.next){
-         if((this->state != SLEEPING && new->p_pri > this.p_pri || new->p_flag == URGENT) ){
+         if(this->state != SLEEPING && (new->p_pri > this.p_pri || new->p_flag == URGENT || (new->p_cpu_usage - this->p_cpu_usage) < -500)){
              this.next = new->next;
              this.prev = new->prev;
              new->prev->next = new;
@@ -74,8 +80,6 @@ static void insert_proc_into_queue(struct proc* new){
              release(&procqueue.qloc);
              return;
          }
-
-         if(this->p_cpu_usage > new->p_cpu_usage && )
     }
     if(head.next == tail){
         head.next = new;
@@ -95,10 +99,13 @@ static void remove_proc_from_queue(struct proc* old){
         if(this == old){
             this->next->prev = this->prev;
             this->prev->next = this->next;
+            release(&procqueue.qloc);
+            return;
         }
 
     }
     if(head.next == tail){
+        release(&procqueue.qloc);
         panic("proc not in queue");
     }
 }
