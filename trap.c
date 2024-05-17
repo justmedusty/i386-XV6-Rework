@@ -108,7 +108,7 @@ trap(struct trapframe *tf) {
     }
 
     if (myproc() && myproc()->state == RUNNING && myproc()->p_cpu_usage > myproc()->p_time_quantum) {
-       preempt();
+        preempt();
     }
 
 // Check if the process has been killed since we yielded

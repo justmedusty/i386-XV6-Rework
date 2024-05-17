@@ -67,7 +67,6 @@ int is_queue_empty(){
  * the new process in an appropriate place in the queue. If there is nothing in the queue, it will be placed between head and tail.
  */
 void insert_proc_into_queue(struct proc *new) {
-
     acquire(&procqueue.qloc);
 
     if (procqueue.head == 0 ) {
@@ -83,6 +82,8 @@ void insert_proc_into_queue(struct proc *new) {
         procqueue.tail = new;
         new->next = 0;
         new->prev = procqueue.head;
+        release(&procqueue.qloc);
+        return;
     }
 
     for (struct proc *this = procqueue.head->next; this->next != 0; this = this->next) {
@@ -260,7 +261,7 @@ void initprocqueue() {
 // Set up first user process.
 void
 userinit(void) {
-
+    initprocqueue();
     struct proc *p;
     extern char _binary_initcode_start[], _binary_initcode_size[];
 
@@ -397,7 +398,7 @@ fork(void) {
 
 
     // Clear %eax so that fork returns 0 in the child.
-    np->tf->eax = 0;
+
 
     for (i = 0; i < NOFILE; i++)
         if (curproc->ofile[i])
@@ -405,9 +406,10 @@ fork(void) {
     np->cwd = idup(curproc->cwd);
 
     safestrcpy(np->name, curproc->name, sizeof(curproc->name));
-
+    np->tf->eax = 0;
     pid = np->pid;
-    cprintf("pid is %d\n",pid);
+    cprintf("ppid is %d\n",np->parent->pid);
+    cprintf("pid is %d\n",np->pid);
 
     acquire(&ptable.lock);
 
@@ -550,11 +552,6 @@ scheduler(void) {
         main:
         for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
 
-            if(queueinit != 1){
-                initprocqueue();
-                queueinit = 1;
-            }
-
             //If there is an unhandled signal
             if (p->p_sig != 0) {
 
@@ -621,9 +618,6 @@ scheduler(void) {
 
             insert_proc_into_queue(p);
 
-            if(is_queue_empty()){
-                continue;
-            }
 
             goto sched;
 
@@ -683,7 +677,7 @@ sched(void) {
         p->p_flag = URGENT;
     }
     //Put this process into the scheduler
-
+    insert_proc_into_queue(p);
     swtch(&p->context, mycpu()->scheduler);
     mycpu()->intena = intena;
 }
@@ -749,7 +743,9 @@ sleep(void *chan, struct spinlock *lk) {
     }
     // Go to sleep.
     p->chan = chan;
+    remove_proc_from_queue(p);
     p->state = SLEEPING;
+
 
     sched();
     // Tidy up.

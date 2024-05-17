@@ -29,14 +29,13 @@ main(void)
       printf(1, "init: fork failed\n");
       exit();
     }
-      printf(1, "pid is %d\n",pid);
+
     if(pid == 0){
       exec("login", argv);
       printf(1, "init: exec sh failed\n");
       exit();
     }
     while((wpid=wait()) >= 0 && wpid != pid)
-        printf(1, "init: starting login shell\n");
       printf(1, "zombie!\n");
   }
 }
