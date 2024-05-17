@@ -82,13 +82,15 @@ void insert_proc_into_queue(struct proc *new) {
         procqueue.tail = new;
         new->next = 0;
         new->prev = procqueue.head;
+        procqueue.head->next = new;
         release(&procqueue.qloc);
         return;
     }
 
+
     for (struct proc *this = procqueue.head->next; this->next != 0; this = this->next) {
 
-        if (this->state == RUNNABLE && (new->p_pri > this->p_pri || new->p_flag == URGENT || this->p_cpu_usage < avg_cpu_usage)) {
+        if (this->state == RUNNABLE && (new->p_pri > this->p_pri || new->p_flag == URGENT)) {
 
             this->next = new->next;
             this->prev = new->prev;
@@ -101,6 +103,33 @@ void insert_proc_into_queue(struct proc *new) {
     }
 
 
+}
+void shift_queue() {
+    acquire(&procqueue.qloc);
+
+    if (procqueue.head == 0 || procqueue.head->next == 0) {
+        release(&procqueue.qloc);
+        return;
+    }
+
+    struct proc *old_head = procqueue.head;
+    struct proc *new_head = procqueue.head->next;
+
+    // Move head to tail
+    procqueue.head = new_head;
+    new_head->prev = 0;
+    procqueue.tail->next = old_head;
+    old_head->prev = procqueue.tail;
+    old_head->next = 0;
+    procqueue.tail = old_head;
+
+    release(&procqueue.qloc);
+
+    if (procqueue.head != 0 && procqueue.head == procqueue.tail){
+        panic("head eq tail");
+    }
+
+    cprintf("new tail pid %d new head pid %d",procqueue.head->next->pid,procqueue.head->pid);
 }
 
 /*
@@ -125,7 +154,6 @@ void insert_proc_into_queue(struct proc *new) {
     if (procqueue.head == 0) {
         release(&procqueue.qloc);
         panic("proc not in queue");
-
     }
 }
 
@@ -248,12 +276,9 @@ allocproc(void) {
  *
  */
 void initprocqueue() {
-
     initlock(&procqueue.qloc, "procqueue");
     procqueue.head = 0;
     procqueue.tail = 0;
-
-
 }
 
 
@@ -408,15 +433,15 @@ fork(void) {
     safestrcpy(np->name, curproc->name, sizeof(curproc->name));
     np->tf->eax = 0;
     pid = np->pid;
-    cprintf("ppid is %d\n",np->parent->pid);
-    cprintf("pid is %d\n",np->pid);
 
     acquire(&ptable.lock);
 
     np->state = RUNNABLE;
 
-    release(&ptable.lock);
 
+
+    release(&ptable.lock);
+   insert_proc_into_queue(np);
 
     return pid;
 }
@@ -541,7 +566,7 @@ scheduler(void) {
     struct cpu *c = mycpu();
     //Init to a null pointer so we can assign the first proc to it and then from there keep checking.
     c->proc = 0;
-
+    main:
     for (;;) {
         // Enable interrupts on this processor.
         sti();
@@ -549,8 +574,9 @@ scheduler(void) {
 
         // Loop over process table looking for process to run.
         acquire(&ptable.lock);
-        main:
+
         for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+
 
             //If there is an unhandled signal
             if (p->p_sig != 0) {
@@ -615,8 +641,8 @@ scheduler(void) {
             if (p->state != RUNNABLE) {
                 continue;
             }
-
             insert_proc_into_queue(p);
+
 
 
             goto sched;
@@ -630,21 +656,26 @@ scheduler(void) {
                 goto main;
             }
 
+
+
             c->proc = procqueue.head;
             switchuvm(procqueue.head);
             procqueue.head->state = RUNNING;
 
-
-
             swtch(&(c->scheduler), procqueue.head->context);
             switchkvm();
+            shift_queue();
 
             // Process is done running for now.
             // It should have changed its p->state before coming back.
             c->proc = 0;
 
+
         }
+
+
         release(&ptable.lock);
+
 
     }
 
@@ -677,7 +708,10 @@ sched(void) {
         p->p_flag = URGENT;
     }
     //Put this process into the scheduler
-    insert_proc_into_queue(p);
+    if(p->state == RUNNABLE){
+        insert_proc_into_queue(p);
+    }
+
     swtch(&p->context, mycpu()->scheduler);
     mycpu()->intena = intena;
 }
@@ -687,7 +721,6 @@ void
 yield(void) {
     acquire(&ptable.lock);  //DOC: yieldlock
     myproc()->state = RUNNABLE;
-
     sched();
     release(&ptable.lock);
 }

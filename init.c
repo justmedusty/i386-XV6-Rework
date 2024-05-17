@@ -29,7 +29,6 @@ main(void)
       printf(1, "init: fork failed\n");
       exit();
     }
-
     if(pid == 0){
       exec("login", argv);
       printf(1, "init: exec sh failed\n");
