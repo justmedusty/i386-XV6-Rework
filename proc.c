@@ -24,23 +24,24 @@ struct {
  */
 struct {
     struct spinlock qloc;
-    struct proc *head;
-    struct proc *tail;
-}procqueue;
+    struct proc head;
+    struct proc tail;
+} procqueue;
+
+int queueinit = 0;
 
 /*
  * I think I will do live calculations of average cpu usage in clock cycles, update this obj-wide variable and let
  * that be a basis for preempting..
  *
  * I'll start it with a dummy value
+ *
+ * todo implement live calculation of avg cpu usage
  */
 static int avg_cpu_usage = 25;
 
-static struct proc_queue procqueue[NPROC + 2];
-
 static struct proc *initproc;
 
-static struct proc head,tail;
 
 int nextpid = 1;
 
@@ -55,60 +56,71 @@ pinit(void) {
     initlock(&ptable.lock, "ptable");
 }
 
-/*
- * Init our proc queue by linking the head and tail and initing the spinlock
- */
-static void initprocqueue(){
-    initlock(&procqueue.qloc);
-    procqueue.head->next = tail;
-    procqueue.head->prev = NULL;
-    procqueue.tail->prev = head;
-    procqueue.tail->next = NULL;
-
-
+int is_queue_empty(){
+    int result = (procqueue.head.next == &procqueue.tail);
+    return result;
 }
+
+
 /*
  * This will traverse the queue , comparing priority, cpu usage against time quantum, and insert
  * the new process in an appropriate place in the queue. If there is nothing in the queue, it will be placed between head and tail.
  */
-static void insert_proc_into_queue(struct proc* new){
+void insert_proc_into_queue(struct proc *new) {
+
     acquire(&procqueue.qloc);
-    for(struct proc *this = procqueue.head->next;this != tail; this = this.next){
-         if(this->state != SLEEPING && (new->p_pri > this.p_pri || new->p_flag == URGENT || this->p_cpu_usage < avg_cpu_usage)){
-             this.next = new->next;
-             this.prev = new->prev;
-             new->prev->next = new;
-             new->next->prev = new;
-             release(&procqueue.qloc);
-             return;
-         }
+
+    if (procqueue.head.next == &procqueue.tail) {
+
+        procqueue.head.next = new;
+        procqueue.tail.prev = new;
+        new->next = &procqueue.tail;
+        new->prev = &procqueue.head;
+        release(&procqueue.qloc);
+        return;
+
     }
-    if(head.next == tail){
-        head.next = new;
-        tail.prev = new;
-        new->next = tail;
-        new->prev = head;
+
+    for (struct proc *this = procqueue.head.next; this != &procqueue.tail; this = this->next) {
+
+        if (this->state == RUNNABLE && (new->p_pri > this->p_pri || new->p_flag == URGENT || this->p_cpu_usage < avg_cpu_usage)) {
+
+            this->next = new->next;
+            this->prev = new->prev;
+            new->prev->next = new;
+            new->next->prev = new;
+            release(&procqueue.qloc);
+            return;
+
+        }
     }
-    release(&procqueue.qloc);
-    return;
+
+
 }
+
 /*
  * Remove this process from the queue
  */
-static void remove_proc_from_queue(struct proc* old){
+ void remove_proc_from_queue(struct proc *old) {
+
     acquire(&procqueue.qloc);
-    for(struct proc *this = procqueue.head->next;this != tail; this = this.next){
-        if(this == old){
+
+    for (struct proc *this = procqueue.head.next; this != &procqueue.tail; this = this->next) {
+
+        if (this == old) {
+
             this->next->prev = this->prev;
             this->prev->next = this->next;
             release(&procqueue.qloc);
             return;
+
         }
 
     }
-    if(head.next == tail){
+    if (procqueue.head.next == &procqueue.tail) {
         release(&procqueue.qloc);
         panic("proc not in queue");
+
     }
 }
 
@@ -225,10 +237,28 @@ allocproc(void) {
     return p;
 }
 
+/*
+ * Init our proc queue by linking the head and tail and initing the spinlock
+ *
+ *
+ */
+void initprocqueue() {
+
+    initlock(&procqueue.qloc, "procqueue");
+    procqueue.head.next = &procqueue.tail;
+    procqueue.head.prev = 0;
+    procqueue.tail.prev = &procqueue.head;
+    procqueue.tail.next = 0;
+
+
+}
+
+
 //PAGEBREAK: 32
 // Set up first user process.
 void
 userinit(void) {
+
     struct proc *p;
     extern char _binary_initcode_start[], _binary_initcode_size[];
 
@@ -247,21 +277,21 @@ userinit(void) {
     p->tf->eflags = FL_IF;
     p->tf->esp = PGSIZE;
     p->tf->eip = 0;  // beginning of initcode.S
-    p->space_flag = SCHED;
+    p->space_flag = USER_PROC;
 
     /*
      * Setting our new scheduling fields
      */
     p->p_time_quantum = DEFAULT_USER_TIME_QUANTUM;
     p->child_pri = CHILD_SAME_PRI;
-    p->p_pri = MED_KERNEL_PRIORITY;
+    p->p_pri = MED_USER_PRIORITY;
     p->space_flag = USER_PROC;
 
     /*
      * Setting up intr/ signal fields
      */
 
-    p->signal_handler = (void *) 0;
+    p->signal_handler = NULL;
     //ignore no signals
     p->p_ign = 0;
     //start without any signals obviously
@@ -279,6 +309,7 @@ userinit(void) {
     acquire(&ptable.lock);
 
     p->state = RUNNABLE;
+
 
     release(&ptable.lock);
 }
@@ -381,6 +412,7 @@ fork(void) {
 
     release(&ptable.lock);
 
+
     return pid;
 }
 
@@ -420,10 +452,6 @@ exit(void) {
     acquire(&ptable.lock);
 
     // Parent might be sleeping in wait().
-    /*
-     * Wait is unecessary now that zombies are not created so we
-     * will comment his out
-     */
     wakeup1(curproc->parent);
 
     // Pass abandoned children to init.
@@ -433,7 +461,7 @@ exit(void) {
             wakeup1(initproc);
         }
     }
-
+    remove_proc_from_queue(curproc);
     // curproc->name[0] = 0;
     // curproc->killed = 0;
     curproc->state = ZOMBIE;
@@ -443,6 +471,7 @@ exit(void) {
     //kfree(curproc->kstack);
 
     // Jump into the scheduler, never to return.
+
     sched();
     panic("zombie exit");
 }
@@ -485,8 +514,11 @@ wait(void) {
             return -1;
         }
 
+
         // Wait for children to exit.  (See wakeup1 call in proc_exit.)
         sleep(curproc, &ptable.lock);  //DOC: wait-sleep
+
+
     }
 }
 
@@ -500,13 +532,11 @@ wait(void) {
 //      via swtch back to the scheduler.
 void
 scheduler(void) {
-    struct proc *null = 0;
     struct proc *p;
     struct cpu *c = mycpu();
     //Init to a null pointer so we can assign the first proc to it and then from there keep checking.
-    struct proc *highest_run_candidate = null;
     c->proc = 0;
-
+    main:
     for (;;) {
         // Enable interrupts on this processor.
         sti();
@@ -514,6 +544,11 @@ scheduler(void) {
         // Loop over process table looking for process to run.
         acquire(&ptable.lock);
         for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+
+            if(queueinit != 1){
+                initprocqueue();
+                queueinit = 1;
+            }
 
             //If there is an unhandled signal
             if (p->p_sig != 0) {
@@ -558,20 +593,27 @@ scheduler(void) {
                 }
 
             }
+
             //prempted procs will need to go round the merry-go-round a few times before they are reset
-            if(p->state == PREEMPTED && p->p_pri != TOP_PRIORITY){
+            if(is_queue_empty() && p->state == PREEMPTED){
+                p->state = RUNNABLE;
+                insert_proc_into_queue(p);
+                goto sched;
+            }
+            if (p->state == PREEMPTED && p->p_pri != TOP_PRIORITY) {
                 p->p_pri++;
                 //We will reset the cpu usage when a process is lifted out of preempted state,
                 //this way we can start to implement logic into our algorithim that will
                 //take recent cpu usage into account. Otherwise, cpu usage would rise forever, and you would
                 //not know if it was recent..
-            } else if (p->state == PREEMPTED && p->p_pri == TOP_PRIORITY){
+            } else if (p->state == PREEMPTED && p->p_pri == TOP_PRIORITY) {
                 p->state = RUNNABLE;
                 p->p_pri = MED_USER_PRIORITY;
             }
             if (p->state != RUNNABLE) {
                 continue;
             }
+
 
             /*
             * Is the flag set to urgent?
@@ -591,21 +633,6 @@ scheduler(void) {
             }
 
             /*
-             * Is the highest run candidate null? if yes assign this proc to it
-             */
-            if (highest_run_candidate == null || highest_run_candidate->state == UNUSED ||
-                highest_run_candidate->state == ZOMBIE || highest_run_candidate->state == SLEEPING) {
-                highest_run_candidate = p;
-            }
-            //Is this procs pri higher than the highest run candidate? if so set it accordingly
-            if (p->p_pri > highest_run_candidate->p_pri) {
-                highest_run_candidate = p;
-                insert_proc_into_queue(highest_run_candidate);
-            }
-
-
-
-            /*
              * If this process has taken it's full time quantum and is a user process, switch it out
              * We will increment it's priority as a well to have it not be stuck here forever, only for a cycle or two.
              * A user process will need to wait 2 iterations to be scheduled again and a kernel process with the
@@ -617,17 +644,25 @@ scheduler(void) {
                 p->p_pri++;
                 continue;
             }
+            insert_proc_into_queue(p);
+
+
 
             goto sched;
 
             sched:    // Switch to chosen process.  It is the process's job
             // to release ptable.lock and then reacquire it
             // before jumping back to us.
-            c->proc = p;
-            switchuvm(p);
+
+            if(is_queue_empty()){
+                goto main;
+            }
+
+            c->proc = procqueue.head.next;
+            switchuvm(procqueue.head.next);
             p->state = RUNNING;
 
-            swtch(&(c->scheduler), p->context);
+            swtch(&(c->scheduler), procqueue.head.next->context);
             switchkvm();
 
             // Process is done running for now.
@@ -654,29 +689,20 @@ sched(void) {
     struct proc *p = myproc();
     if (!holding(&ptable.lock))
         panic("sched ptable.lock");
-    if (mycpu()->ncli != 1)
+    if (mycpu()->ncli != 1){
         panic("sched locks");
+    }
     if (p->state == RUNNING)
         panic("sched running");
     if (readeflags() & FL_IF)
         panic("sched interruptible");
     intena = mycpu()->intena;
 
-
     //Is this a higher priority than the current process? if so, set it to URGENT so that it will be swapped in immediately
     if (mycpu()->proc->p_pri < p->p_pri || mycpu()->proc->space_flag < p->space_flag) {
         p->p_flag = URGENT;
         insert_proc_into_queue(p);
     }
-
-    //If this process is low pri and flag is not status swap, increment priority to avoid an infinite loop
-    if (p->p_flag == LOW || p->p_pri < MED_USER_PRIORITY) {
-        p->p_flag = 0;
-        p->p_pri++;
-        release(&ptable.lock);
-        yield();
-    }
-
     //Put this process into the scheduler
     swtch(&p->context, mycpu()->scheduler);
     mycpu()->intena = intena;
