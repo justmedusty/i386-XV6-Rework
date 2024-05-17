@@ -24,8 +24,8 @@ struct {
  */
 struct {
     struct spinlock qloc;
-    struct proc head;
-    struct proc tail;
+    struct proc *head;
+    struct proc *tail;
 } procqueue;
 
 int queueinit = 0;
@@ -57,7 +57,7 @@ pinit(void) {
 }
 
 int is_queue_empty(){
-    int result = (procqueue.head.next == &procqueue.tail);
+    int result = (procqueue.head == 0);
     return result;
 }
 
@@ -70,18 +70,22 @@ void insert_proc_into_queue(struct proc *new) {
 
     acquire(&procqueue.qloc);
 
-    if (procqueue.head.next == &procqueue.tail) {
+    if (procqueue.head == 0 ) {
 
-        procqueue.head.next = new;
-        procqueue.tail.prev = new;
-        new->next = &procqueue.tail;
-        new->prev = &procqueue.head;
+        procqueue.head = new;
+        new->next = 0;
+        new->prev = 0;
         release(&procqueue.qloc);
         return;
 
     }
+    if(procqueue.head->next == 0){
+        procqueue.tail = new;
+        new->next = 0;
+        new->prev = procqueue.head;
+    }
 
-    for (struct proc *this = procqueue.head.next; this != &procqueue.tail; this = this->next) {
+    for (struct proc *this = procqueue.head->next; this->next != 0; this = this->next) {
 
         if (this->state == RUNNABLE && (new->p_pri > this->p_pri || new->p_flag == URGENT || this->p_cpu_usage < avg_cpu_usage)) {
 
@@ -105,7 +109,7 @@ void insert_proc_into_queue(struct proc *new) {
 
     acquire(&procqueue.qloc);
 
-    for (struct proc *this = procqueue.head.next; this != &procqueue.tail; this = this->next) {
+    for (struct proc *this = procqueue.head; this != 0; this = this->next) {
 
         if (this == old) {
 
@@ -117,7 +121,7 @@ void insert_proc_into_queue(struct proc *new) {
         }
 
     }
-    if (procqueue.head.next == &procqueue.tail) {
+    if (procqueue.head == 0) {
         release(&procqueue.qloc);
         panic("proc not in queue");
 
@@ -245,10 +249,8 @@ allocproc(void) {
 void initprocqueue() {
 
     initlock(&procqueue.qloc, "procqueue");
-    procqueue.head.next = &procqueue.tail;
-    procqueue.head.prev = 0;
-    procqueue.tail.prev = &procqueue.head;
-    procqueue.tail.next = 0;
+    procqueue.head = 0;
+    procqueue.tail = 0;
 
 
 }
@@ -405,6 +407,7 @@ fork(void) {
     safestrcpy(np->name, curproc->name, sizeof(curproc->name));
 
     pid = np->pid;
+    cprintf("pid is %d\n",pid);
 
     acquire(&ptable.lock);
 
@@ -471,7 +474,6 @@ exit(void) {
     //kfree(curproc->kstack);
 
     // Jump into the scheduler, never to return.
-
     sched();
     panic("zombie exit");
 }
@@ -519,6 +521,7 @@ wait(void) {
         sleep(curproc, &ptable.lock);  //DOC: wait-sleep
 
 
+
     }
 }
 
@@ -536,13 +539,15 @@ scheduler(void) {
     struct cpu *c = mycpu();
     //Init to a null pointer so we can assign the first proc to it and then from there keep checking.
     c->proc = 0;
-    main:
+
     for (;;) {
         // Enable interrupts on this processor.
         sti();
 
+
         // Loop over process table looking for process to run.
         acquire(&ptable.lock);
+        main:
         for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
 
             if(queueinit != 1){
@@ -614,39 +619,11 @@ scheduler(void) {
                 continue;
             }
 
-
-            /*
-            * Is the flag set to urgent?
-             * If it is go right ahead and swap it in
-             *
-            * immediately reset the flag because this will be a temp pri, only for 1 round and then the flag will be reset
-            */
-            if (p->p_flag == URGENT) {
-                p->p_flag = 0;
-                goto sched;
-            }
-
-            // again this is a temp pri flag so we will reset it after passing over this process
-            if (p->p_flag == LOW) {
-                p->p_flag = 0;
-                continue;
-            }
-
-            /*
-             * If this process has taken it's full time quantum and is a user process, switch it out
-             * We will increment it's priority as a well to have it not be stuck here forever, only for a cycle or two.
-             * A user process will need to wait 2 iterations to be scheduled again and a kernel process with the
-             * default kernel priority will need to wait 1 iteration to be scheduled again
-             */
-            if (p->p_cpu_usage >= p->p_time_quantum && p->p_pri <= LOW_KERNEL_PRIORITY &&
-                p->space_flag != KERNEL_PROC) {
-                p->state = RUNNABLE;
-                p->p_pri++;
-                continue;
-            }
             insert_proc_into_queue(p);
 
-
+            if(is_queue_empty()){
+                continue;
+            }
 
             goto sched;
 
@@ -654,15 +631,18 @@ scheduler(void) {
             // to release ptable.lock and then reacquire it
             // before jumping back to us.
 
+
             if(is_queue_empty()){
                 goto main;
             }
 
-            c->proc = procqueue.head.next;
-            switchuvm(procqueue.head.next);
-            p->state = RUNNING;
+            c->proc = procqueue.head;
+            switchuvm(procqueue.head);
+            procqueue.head->state = RUNNING;
 
-            swtch(&(c->scheduler), procqueue.head.next->context);
+
+
+            swtch(&(c->scheduler), procqueue.head->context);
             switchkvm();
 
             // Process is done running for now.
@@ -701,9 +681,9 @@ sched(void) {
     //Is this a higher priority than the current process? if so, set it to URGENT so that it will be swapped in immediately
     if (mycpu()->proc->p_pri < p->p_pri || mycpu()->proc->space_flag < p->space_flag) {
         p->p_flag = URGENT;
-        insert_proc_into_queue(p);
     }
     //Put this process into the scheduler
+
     swtch(&p->context, mycpu()->scheduler);
     mycpu()->intena = intena;
 }
@@ -713,6 +693,7 @@ void
 yield(void) {
     acquire(&ptable.lock);  //DOC: yieldlock
     myproc()->state = RUNNABLE;
+
     sched();
     release(&ptable.lock);
 }
@@ -771,7 +752,6 @@ sleep(void *chan, struct spinlock *lk) {
     p->state = SLEEPING;
 
     sched();
-
     // Tidy up.
     p->chan = 0;
 
@@ -779,6 +759,7 @@ sleep(void *chan, struct spinlock *lk) {
     if (lk != &ptable.lock) {  //DOC: sleeplock2
         release(&ptable.lock);
         acquire(lk);
+
     }
 }
 
