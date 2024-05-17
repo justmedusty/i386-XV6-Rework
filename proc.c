@@ -777,7 +777,7 @@ sched(void) {
     if (mycpu()->proc->p_pri < p->p_pri || mycpu()->proc->space_flag < p->space_flag) {
         p->p_flag = URGENT;
     }
-    //Put this process into the scheduler
+    //Put this process into the queue if it was not already there
     if (p->state == RUNNABLE && !is_proc_queued(p)) {
         insert_proc_into_queue(p);
     }
@@ -791,6 +791,7 @@ void
 yield(void) {
     acquire(&ptable.lock);  //DOC: yieldlock
     myproc()->state = RUNNABLE;
+    purge_queue();
     sched();
     release(&ptable.lock);
 }
@@ -798,6 +799,7 @@ yield(void) {
 void preempt(void) {
     acquire(&ptable.lock);  //DOC: yieldlock
     myproc()->state = PREEMPTED;
+    purge_queue();
     sched();
     release(&ptable.lock);
 }
