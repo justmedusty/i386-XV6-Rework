@@ -56,7 +56,7 @@ pinit(void) {
     initlock(&ptable.lock, "ptable");
 }
 
-int is_queue_empty(){
+int is_queue_empty() {
     int result = (procqueue.head == 0);
     return result;
 }
@@ -69,7 +69,7 @@ int is_queue_empty(){
 void insert_proc_into_queue(struct proc *new) {
     acquire(&procqueue.qloc);
 
-    if (procqueue.head == 0 ) {
+    if (procqueue.head == 0) {
 
         procqueue.head = new;
         new->next = 0;
@@ -78,7 +78,7 @@ void insert_proc_into_queue(struct proc *new) {
         return;
 
     }
-    if(procqueue.head->next == 0){
+    if (procqueue.head->next == 0) {
         procqueue.tail = new;
         new->next = 0;
         new->prev = procqueue.head;
@@ -87,24 +87,115 @@ void insert_proc_into_queue(struct proc *new) {
         return;
     }
 
-
     for (struct proc *this = procqueue.head->next; this->next != 0; this = this->next) {
-
         if (this->state == RUNNABLE && (new->p_pri > this->p_pri || new->p_flag == URGENT)) {
+            // Update pointers for the new process
+            new->prev = this->prev;
+            new->next = this;
 
-            this->next = new->next;
-            this->prev = new->prev;
-            new->prev->next = new;
-            new->next->prev = new;
+            if (this->prev != 0) {
+                this->prev->next = new;
+            } else {
+                procqueue.head = new;
+            }
+
+            this->prev = new;
+
             release(&procqueue.qloc);
             return;
-
         }
     }
 
+    procqueue.tail->next = new;
+    new->prev = procqueue.tail;
+    new->next = 0;
+    procqueue.tail = new;
+    release(&procqueue.qloc);
+    return;
 
 }
+
+/*
+ * Check if proc is queued
+ */
+int is_proc_queued(struct proc *p) {
+
+    struct proc *pointer = procqueue.head;
+    while (pointer != 0) {
+        if (p == pointer) {
+            return 1;
+        }
+        pointer = pointer->next;
+    }
+    return 0;
+}
+
+
+/*
+ * Remove this process from the queue
+ */
+void remove_proc_from_queue(struct proc *old) {
+
+    acquire(&procqueue.qloc);
+
+// Handle the case when the process to remove is at the head of the queue
+    if (procqueue.head == old) {
+        procqueue.head = old->next;
+        if (procqueue.head) {
+            procqueue.head->prev = 0;
+        } else {
+            procqueue.tail = 0; // Queue becomes empty
+        }
+
+        release(&procqueue.qloc);
+        return;
+    }
+
+// Loop through the queue to find the process to remove
+    for (struct proc *this = procqueue.head; this != 0; this = this->next) {
+        if (this == old) {
+            // Update pointers to remove the process
+            if (this->prev) {
+                this->prev->next = this->next;
+            }
+            if (this->next) {
+                this->next->prev = this->prev;
+            } else {
+                procqueue.tail = this->prev; // Update tail if the process is at the tail
+            }
+
+            release(&procqueue.qloc);
+            return;
+        }
+    }
+    if (procqueue.head == 0) {
+        release(&procqueue.qloc);
+        panic("proc not in queue");
+    }
+}
+
+/*
+ * Purge all invalid states from the run queue. Only runnable procs should be in the queue.
+ */
+void purge_queue() {
+
+    struct proc *pointer = procqueue.head;
+
+    while (pointer != 0) {
+
+        if (pointer->state != RUNNABLE) {
+
+            remove_proc_from_queue(pointer);
+
+        }
+
+        pointer = pointer->next;
+    }
+
+}
+
 void shift_queue() {
+
     acquire(&procqueue.qloc);
 
     if (procqueue.head == 0 || procqueue.head->next == 0) {
@@ -115,46 +206,20 @@ void shift_queue() {
     struct proc *old_head = procqueue.head;
     struct proc *new_head = procqueue.head->next;
 
-    // Move head to tail
-    procqueue.head = new_head;
+
     new_head->prev = 0;
-    procqueue.tail->next = old_head;
-    old_head->prev = procqueue.tail;
+    procqueue.head = new_head;
     old_head->next = 0;
+    old_head->prev = procqueue.tail;
+    procqueue.tail->next = old_head;
     procqueue.tail = old_head;
 
     release(&procqueue.qloc);
 
-    if (procqueue.head != 0 && procqueue.head == procqueue.tail){
+    if (procqueue.head != 0 && procqueue.head == procqueue.tail) {
         panic("head eq tail");
     }
 
-    cprintf("new tail pid %d new head pid %d",procqueue.head->next->pid,procqueue.head->pid);
-}
-
-/*
- * Remove this process from the queue
- */
- void remove_proc_from_queue(struct proc *old) {
-
-    acquire(&procqueue.qloc);
-
-    for (struct proc *this = procqueue.head; this != 0; this = this->next) {
-
-        if (this == old) {
-
-            this->next->prev = this->prev;
-            this->prev->next = this->next;
-            release(&procqueue.qloc);
-            return;
-
-        }
-
-    }
-    if (procqueue.head == 0) {
-        release(&procqueue.qloc);
-        panic("proc not in queue");
-    }
 }
 
 // Must be called with interrupts disabled
@@ -439,9 +504,11 @@ fork(void) {
     np->state = RUNNABLE;
 
 
-
     release(&ptable.lock);
-   insert_proc_into_queue(np);
+
+    if (!is_proc_queued(np)) {
+        insert_proc_into_queue(np);
+    }
 
     return pid;
 }
@@ -623,7 +690,7 @@ scheduler(void) {
             }
 
             //prempted procs will need to go round the merry-go-round a few times before they are reset
-            if(is_queue_empty() && p->state == PREEMPTED){
+            if (is_queue_empty() && p->state == PREEMPTED && !is_proc_queued(p)) {
                 p->state = RUNNABLE;
                 insert_proc_into_queue(p);
                 goto sched;
@@ -641,8 +708,10 @@ scheduler(void) {
             if (p->state != RUNNABLE) {
                 continue;
             }
-            insert_proc_into_queue(p);
 
+            if (!is_proc_queued(p)) {
+                insert_proc_into_queue(p);
+            }
 
 
             goto sched;
@@ -652,19 +721,21 @@ scheduler(void) {
             // before jumping back to us.
 
 
-            if(is_queue_empty()){
+            if (is_queue_empty()) {
                 goto main;
             }
 
 
-
+            shift_queue();
             c->proc = procqueue.head;
             switchuvm(procqueue.head);
             procqueue.head->state = RUNNING;
 
             swtch(&(c->scheduler), procqueue.head->context);
             switchkvm();
-            shift_queue();
+
+            purge_queue();
+
 
             // Process is done running for now.
             // It should have changed its p->state before coming back.
@@ -672,7 +743,6 @@ scheduler(void) {
 
 
         }
-
 
         release(&ptable.lock);
 
@@ -694,7 +764,7 @@ sched(void) {
     struct proc *p = myproc();
     if (!holding(&ptable.lock))
         panic("sched ptable.lock");
-    if (mycpu()->ncli != 1){
+    if (mycpu()->ncli != 1) {
         panic("sched locks");
     }
     if (p->state == RUNNING)
@@ -708,7 +778,7 @@ sched(void) {
         p->p_flag = URGENT;
     }
     //Put this process into the scheduler
-    if(p->state == RUNNABLE){
+    if (p->state == RUNNABLE && !is_proc_queued(p)) {
         insert_proc_into_queue(p);
     }
 
