@@ -22,6 +22,7 @@ struct inode {
   short minor;
   short nlink;
   uint size;
+  int is_mount_point; // 0 for no 1 for yes
   uint addrs[NDIRECT+1];
 };
 

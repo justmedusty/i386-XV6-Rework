@@ -9,7 +9,7 @@ struct spinlock;
 struct sleeplock;
 struct stat;
 struct superblock;
-
+struct nonblockinglock;
 // bio.c
 void            binit(void);
 struct buf*     bread(uint, uint);
@@ -143,6 +143,11 @@ void            acquiresleep(struct sleeplock*);
 void            releasesleep(struct sleeplock*);
 int             holdingsleep(struct sleeplock*);
 void            initsleeplock(struct sleeplock*, char*);
+void            initnonblockinglock(struct nonblockinglock *lk, char *name);
+int             acquirenonblockinglock(struct nonblockinglock *lk);
+void            releasenonblocking(struct nonblockinglock *lk);
+// nonblockinglock.c
+
 
 // string.c
 int             memcmp(const void*, const void*, uint);
