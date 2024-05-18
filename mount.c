@@ -9,8 +9,6 @@ struct superblock sb;
 
 struct devsw devsw[NDEV];
 
-struct {
-    struct spinlock lock;
-    struct inode mount_point;
-    struct inode mount_root;
-} mounttable;
+
+struct inode* mount(int dev, struct inode *mountpoint){
+}

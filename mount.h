@@ -12,4 +12,13 @@
 #include "spinlock.h"
 #include "sleeplock.h"
 #include "file.h"
+
+/*
+ * Will only allow 1 mount point for now
+ */
+struct {
+    struct spinlock lock;
+    struct inode *mount_point;
+    struct inode *mount_root;
+} mounttable;
 #endif //XV6I386_MOUNT_H
