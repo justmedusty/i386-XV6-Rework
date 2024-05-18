@@ -8,10 +8,10 @@
 #include "types.h"
 #include "defs.h"
 #include "param.h"
-#include "fs.h"
 #include "spinlock.h"
 #include "sleeplock.h"
 #include "file.h"
+#include "nonblockinglock.h"
 
 /*
  * Will only allow 1 mount point for now

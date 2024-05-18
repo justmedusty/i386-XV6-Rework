@@ -8,7 +8,9 @@ struct superblock sb;
 
 
 struct devsw devsw[NDEV];
+struct nonblockinglock mountlock;
 
 
 struct inode* mount(int dev, struct inode *mountpoint){
+
 }
