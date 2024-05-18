@@ -14,7 +14,6 @@ struct {
     struct proc proc[NPROC];
 } ptable;
 
-
 /*
  * This will be a doubly linked list where processes of higher or lower priorities will be sorted either at the head or the ass end depending on priority.
  * This will help me avoid preempting lone processes because, of course, why would you preempt a lone process to spin when there is no process waiting.This will also
@@ -27,7 +26,6 @@ struct {
     struct proc *head;
     struct proc *tail;
 } procqueue;
-
 int queueinit = 0;
 
 /*
@@ -38,17 +36,13 @@ int queueinit = 0;
  *
  * todo implement live calculation of avg cpu usage
  */
+
 static int avg_cpu_usage = 25;
 
 static struct proc *initproc;
-
-
 int nextpid = 1;
-
 extern void forkret(void);
-
 extern void trapret(void);
-
 static void wakeup1(void *chan);
 
 void
@@ -61,6 +55,9 @@ int is_queue_empty() {
     return result;
 }
 
+int is_proc_alone_in_queue(struct proc *p){
+    return (procqueue.head == p && procqueue.head->next == 0);
+}
 
 /*
  * This will traverse the queue , comparing priority, cpu usage against time quantum, and insert
@@ -194,6 +191,9 @@ void purge_queue() {
 
 }
 
+/*
+ * This shifts the head to the tail , for after a scheduling round has completed
+ */
 void shift_queue() {
 
     acquire(&procqueue.qloc);

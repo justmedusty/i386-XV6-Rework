@@ -46,8 +46,8 @@ enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE, WAIT, PREE
 #define MED_USER_PRIORITY        3  //default pri for user proc
 #define LOW_USER_PRIORITY        1
 
-#define DEFAULT_USER_TIME_QUANTUM    100 //default user time quantum (clock cycles permitted for execution before pri drops and shceduler permits another proc to run)
-#define DEFAULT_KERNEL_TIME_QUANTUM  250 // default kernel time quantum
+#define DEFAULT_USER_TIME_QUANTUM    45//default user time quantum (clock cycles permitted for execution before pri drops and shceduler permits another proc to run)
+#define DEFAULT_KERNEL_TIME_QUANTUM  100 // default kernel time quantum
 
 #define URGENT                  1   //A way to suddenly indicate a process is high pri and just for this round
 #define LOW                     2   //low pri just for this round
@@ -103,4 +103,5 @@ uint tally_allocated_memory_for_all_procs(void);
 void inc_time_quantum(struct proc *p);
 void change_process_space(int state_flag);
 void preempt(void);
+int is_proc_alone_in_queue(struct proc *p);
 
