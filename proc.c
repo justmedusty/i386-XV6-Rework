@@ -880,21 +880,6 @@ wakeup1(void *chan) {
 }
 
 
-/*
- * This is for waking up higher priority processes
- *
- * unimplemented right now
- */
-static void
-wakeup2(void *chan) {
-    struct proc *p;
-
-    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-        if (p->state == WAIT && p->chan == chan)
-            p->state = RUNNABLE;
-}
-
-
 // Wake up all processes sleeping on chan.
 void
 wakeup(void *chan) {

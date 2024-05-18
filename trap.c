@@ -109,7 +109,7 @@ trap(struct trapframe *tf) {
 
     if (myproc() && myproc()->state == RUNNING && myproc()->p_cpu_usage > myproc()->p_time_quantum) {
         /*
-         * We will ensure the the process that is exceeding it's time quantum is not preempted if no other process is queued
+         * We will ensure the process that is exceeding its time quantum is not preempted if no other process is queued
          */
         if(!is_proc_alone_in_queue(myproc())){
             preempt();
