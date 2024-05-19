@@ -7,7 +7,6 @@
 struct superblock sb;
 
 
-struct devsw devsw[NDEV];
 struct nonblockinglock mountlock;
 
 
@@ -15,7 +14,7 @@ void init_mount_lock(){
     initnonblockinglock(mountlock,"mountlock");
 }
 
-struct inode* mount(int dev, struct inode *mountpoint){
+struct inode* mount(int dev, struct inode *mountpoint,int dev *mountroot){
 
     if(!acquirenonblockinglock(&mountlock)){
         //Dont spin or sleep just return if the lock is takenb
@@ -23,9 +22,12 @@ struct inode* mount(int dev, struct inode *mountpoint){
     }
 
     mountpoint->is_mount_point = 1;
-
     mounttable->lock = &mountlock;
     mounttable->mount_point = &mountpoint;
+
+    readsb(dev,&sb2);
+    struct inode *mountroot =
+    mounttable->mount_root = &mountroot;
 
 
 }

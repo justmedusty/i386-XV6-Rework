@@ -28,6 +28,8 @@ static void itrunc(struct inode *);
 // there should be one superblock per disk device, but we run with
 // only one device
 struct superblock sb;
+//will be for our second virtual device for testing the mounting / unmounting features I am adding
+struct superblock sb2;
 
 // Read the super block.
 void
@@ -167,19 +169,25 @@ struct {
 } icache;
 
 void
-iinit(int dev) {
+iinit(int dev,int sbnum) {
     int i = 0;
+
 
     initlock(&icache.lock, "icache");
     for (i = 0; i < NINODE; i++) {
         initsleeplock(&icache.inode[i].lock, "inode");
     }
-
-    readsb(dev, &sb);
-    cprintf("sb: size %d nblocks %d ninodes %d nlog %d logstart %d\
+    if(sbnum == 1){
+        readsb(dev, &sb);
+        cprintf("sb: size %d nblocks %d ninodes %d nlog %d logstart %d\
  inodestart %d bmap start %d\n", sb.size, sb.nblocks,
-            sb.ninodes, sb.nlog, sb.logstart, sb.inodestart,
-            sb.bmapstart);
+                sb.ninodes, sb.nlog, sb.logstart, sb.inodestart,
+                sb.bmapstart);
+    } else{
+        readsb(dev &sb2);
+    }
+
+
 }
 
 static struct inode *iget(uint dev, uint inum);
