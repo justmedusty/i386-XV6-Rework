@@ -133,8 +133,8 @@ kernel: $(OBJS) entry.o entryother initcode kernel.ld
 # great for testing the kernel on real hardware without
 # needing a scratch disk.
 MEMFSOBJS = $(filter-out ide.o,$(OBJS)) memide.o
-kernelmemfs: $(MEMFSOBJS) entry.o entryother initcode kernel.ld fs.img
-	$(LD) $(LDFLAGS) -T kernel.ld -o kernelmemfs entry.o  $(MEMFSOBJS) -b binary initcode entryother fs.img
+kernelmemfs: $(MEMFSOBJS) entry.o entryother initcode kernel.ld fs.img secondaryfs.img
+	$(LD) $(LDFLAGS) -T kernel.ld -o kernelmemfs entry.o  $(MEMFSOBJS) -b binary initcode entryother fs.img secondaryfs.img
 	$(OBJDUMP) -S kernelmemfs > kernelmemfs.asm
 	$(OBJDUMP) -t kernelmemfs | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > kernelmemfs.sym
 
@@ -190,13 +190,16 @@ UPROGS=\
 fs.img: mkfs README passwd largefile $(UPROGS)
 	./mkfs fs.img README passwd largefile $(UPROGS)
 
+secondaryfs.img: mkfs README largefile
+	./mkfs secondaryfs.img README passwd largefile
+
 -include *.d
 
 clean:
 	rm -f *.tex *.dvi *.idx *.aux *.log *.ind *.ilg \
 	*.o *.d *.asm *.sym vectors.S bootblock entryother \
 	initcode initcode.out kernel xv6.img fs.img kernelmemfs \
-	xv6memfs.img mkfs .gdbinit \
+	xv6memfs.img mkfs .gdbinit secondaryfs.img\
 	$(UPROGS)
 
 # make a printout
@@ -211,7 +214,7 @@ print: xv6.pdf
 
 # run in emulators
 
-bochs : fs.img xv6.img
+bochs : fs.img xv6.img secondaryfs.img
 	if [ ! -e .bochsrc ]; then ln -s dot-bochsrc .bochsrc; fi
 	bochs -q
 
@@ -226,23 +229,23 @@ CPUS := 1
 endif
 QEMUOPTS = -drive file=fs.img,index=1,media=disk,format=raw -drive file=xv6.img,index=0,media=disk,format=raw -smp $(CPUS) -m 512 $(QEMUEXTRA)
 
-qemu: fs.img xv6.img
+qemu: fs.img secondaryfs.img xv6.img
 	$(QEMU) -serial mon:stdio $(QEMUOPTS)
 
 qemu-memfs: xv6memfs.img
 	$(QEMU) -drive file=xv6memfs.img,index=0,media=disk,format=raw -smp $(CPUS) -m 256
 
-qemu-nox: fs.img xv6.img
+qemu-nox: fs.img secondaryfs.img xv6.img
 	$(QEMU) -nographic $(QEMUOPTS)
 
 .gdbinit: .gdbinit.tmpl
 	sed "s/localhost:1234/localhost:$(GDBPORT)/" < $^ > $@
 
-qemu-gdb: fs.img xv6.img .gdbinit
+qemu-gdb: fs.img secondaryfs.img xv6.img .gdbinit
 	@echo "*** Now run 'gdb'." 1>&2
 	$(QEMU) -serial mon:stdio $(QEMUOPTS) -S $(QEMUGDB)
 
-qemu-nox-gdb: fs.img xv6.img .gdbinit
+qemu-nox-gdb: fs.img secondaryfs.img xv6.img .gdbinit
 	@echo "*** Now run 'gdb'." 1>&2
 	$(QEMU) -nographic $(QEMUOPTS) -S $(QEMUGDB)
 

@@ -32,6 +32,7 @@ static struct spinlock idelock;
 static struct buf *idequeue;
 
 static int havedisk1;
+static int havedisk2;
 static void idestart(struct buf*);
 
 // Wait for IDE disk to become ready.
@@ -135,7 +136,7 @@ ideintr(void)
 // If B_DIRTY is set, write buf to disk, clear B_DIRTY, set B_VALID.
 // Else if B_VALID is not set, read buf from disk, set B_VALID.
 void
-iderw(struct buf *b)
+iderw(struct buf *b,int dev)
 {
   struct buf **pp;
 
@@ -143,8 +144,8 @@ iderw(struct buf *b)
     panic("iderw: buf not locked");
   if((b->flags & (B_VALID|B_DIRTY)) == B_VALID)
     panic("iderw: nothing to do");
-  if(b->dev != 0 && !havedisk1)
-    panic("iderw: ide disk 1 not present");
+  if(b->dev != 0 && (!havedisk1 && !havedisk2))
+    panic("iderw: ide disk 1 and 2 not present");
 
   acquire(&idelock);  //DOC:acquire-lock
 

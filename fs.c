@@ -172,7 +172,6 @@ void
 iinit(int dev,int sbnum) {
     int i = 0;
 
-
     initlock(&icache.lock, "icache");
     for (i = 0; i < NINODE; i++) {
         initsleeplock(&icache.inode[i].lock, "inode");
@@ -184,7 +183,7 @@ iinit(int dev,int sbnum) {
                 sb.ninodes, sb.nlog, sb.logstart, sb.inodestart,
                 sb.bmapstart);
     } else{
-        readsb(dev &sb2);
+        readsb(dev, &sb2);
     }
 
 
