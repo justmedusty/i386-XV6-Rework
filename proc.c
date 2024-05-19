@@ -817,7 +817,7 @@ forkret(void) {
         // of a regular process (e.g., they call sleep), and thus cannot
         // be run from main().
         first = 0;
-        iinit(ROOTDEV);
+        iinit(ROOTDEV,1);
         initlog(ROOTDEV);
     }
 
