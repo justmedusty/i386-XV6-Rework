@@ -70,6 +70,27 @@ ideinit(void)
   outb(0x1f6, 0xe0 | (0<<4));
 }
 
+void
+secondaryideinit(void)
+{
+    int i;
+
+    initlock(&idelock, "ide");
+    ioapicenable(IRQ_IDE, ncpu - 1);
+    idewait(0);
+
+    // Check if disk 2 is present
+    outb(0x1f6, 0xe0 | (2<<4));
+    for(i=0; i<1000; i++){
+        if(inb(0x1f7) != 0){
+            havedisk2 = 1;
+            break;
+        }
+    }
+
+    // Switch back to disk 0.
+    outb(0x1f6, 0xe0 | (0<<4));
+}
 // Start the request for b.  Caller must hold idelock.
 static void
 idestart(struct buf *b)
