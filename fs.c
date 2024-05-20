@@ -634,11 +634,11 @@ skipelem(char *path, char *name) {
 // path element into name, which must have room for DIRSIZ bytes.
 // Must be called inside a transaction since it calls iput().
 static struct inode *
-namex(char *path, int nameiparent, char *name) {
+namex(uint dev,char *path, int nameiparent, char *name) {
     struct inode *ip, *next;
 
     if (*path == '/')
-        ip = iget(ROOTDEV, ROOTINO);
+        ip = iget(dev, ROOTINO);
     else
         ip = idup(myproc()->cwd);
 
@@ -668,12 +668,12 @@ namex(char *path, int nameiparent, char *name) {
 }
 
 struct inode *
-namei(char *path) {
+namei(uint dev,char *path) {
     char name[DIRSIZ];
-    return namex(path, 0, name);
+    return namex(dev,path, 0, name);
 }
 
 struct inode *
-nameiparent(char *path, char *name) {
-    return namex(path, 1, name);
+nameiparent(uint dev,char *path, char *name) {
+    return namex(dev, path, 1, name);
 }

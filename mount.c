@@ -3,7 +3,6 @@
 //
 
 #include "mount.h"
-
 struct superblock sb;
 
 
@@ -13,20 +12,24 @@ struct nonblockinglock mountlock;
 void init_mount_lock(){
     initnonblockinglock(mountlock,"mountlock");
 }
-
-struct inode* mount(int dev, struct inode *mountpoint,int dev *mountroot){
+/*
+ * The mount function for our mounting functionality. It will take an inode moinpoint
+ */
+struct inode* mount(int dev, struct inode *mountpoint){
 
     if(!acquirenonblockinglock(&mountlock)){
-        //Dont spin or sleep just return if the lock is takenb
+        //Dont spin or sleep just return if the lock is taken
         return 0;
     }
+
+    ilock(mountpoint);
 
     mountpoint->is_mount_point = 1;
     mounttable->lock = &mountlock;
     mounttable->mount_point = &mountpoint;
 
-    readsb(dev,&sb2);
-    struct inode *mountroot =
+    readsb(dev,&sb);
+    struct inode *mountroot = namei(dev,'/');
     mounttable->mount_root = &mountroot;
 
 

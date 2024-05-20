@@ -6,6 +6,7 @@
  * inodes from root no matter where you are in the file system.
  */
 #define ROOTINO 1  // root i-number
+
 #define BSIZE 512  // block size
 
 // Disk layout:
