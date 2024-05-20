@@ -21,7 +21,7 @@ struct inode* mount(int dev, struct inode *mountpoint){
         //Dont spin or sleep just return if the lock is taken
         return 0;
     }
-
+    begin_op();
     ilock(mountpoint);
 
     mountpoint->is_mount_point = 1;
@@ -31,6 +31,6 @@ struct inode* mount(int dev, struct inode *mountpoint){
     readsb(dev,&sb);
     struct inode *mountroot = namei(dev,'/');
     mounttable->mount_root = &mountroot;
-
+    end_op();
 
 }

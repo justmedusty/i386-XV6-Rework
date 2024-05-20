@@ -125,7 +125,7 @@ sys_link(void)
     return -1;
 
   begin_op();
-  if((ip = namei(old)) == 0){
+  if((ip = namei(0,old)) == 0){
     end_op();
     return -1;
   }
@@ -141,7 +141,7 @@ sys_link(void)
   iupdate(ip);
   iunlock(ip);
 
-  if((dp = nameiparent(new, name)) == 0)
+  if((dp = nameiparent(0,new, name)) == 0)
     goto bad;
   ilock(dp);
   if(dp->dev != ip->dev || dirlink(dp, name, ip->inum) < 0){
@@ -194,7 +194,7 @@ sys_unlink(void)
     return -1;
 
   begin_op();
-  if((dp = nameiparent(path, name)) == 0){
+  if((dp = nameiparent(0,path, name)) == 0){
     end_op();
     return -1;
   }
@@ -245,7 +245,7 @@ create(char *path, short type, short major, short minor)
   struct inode *ip, *dp;
   char name[DIRSIZ];
 
-  if((dp = nameiparent(path, name)) == 0)
+  if((dp = nameiparent(0,path, name)) == 0)
     return 0;
   ilock(dp);
 
@@ -303,7 +303,7 @@ sys_open(void)
       return -1;
     }
   } else {
-    if((ip = namei(path)) == 0){
+    if((ip = namei(0,path)) == 0){
       end_op();
       return -1;
     }
@@ -377,7 +377,7 @@ sys_chdir(void)
   struct proc *curproc = myproc();
   
   begin_op();
-  if(argstr(0, &path) < 0 || (ip = namei(path)) == 0){
+  if(argstr(0, &path) < 0 || (ip = namei(0,path)) == 0){
     end_op();
     return -1;
   }

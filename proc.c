@@ -393,7 +393,7 @@ userinit(void) {
 
     safestrcpy(p->name, "initcode", sizeof(p->name));
     //The init process' current working directory will be the root dir inode
-    p->cwd = namei("/");
+    p->cwd = namei(1,"/");
 
     // this assignment to p->state lets other cores
     // run this process. the acquire forces the above

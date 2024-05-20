@@ -669,6 +669,9 @@ namex(uint dev,char *path, int nameiparent, char *name) {
 
 struct inode *
 namei(uint dev,char *path) {
+    if(dev == 0){
+        dev = myproc()->cwd->dev;
+    }
     char name[DIRSIZ];
     return namex(dev,path, 0, name);
 }
