@@ -354,6 +354,19 @@ iunlockput(struct inode *ip) {
     iunlock(ip);
     iput(ip);
 }
+/*
+ * Custom mount iunlockput it will just make sure there are no references when an unmount operation occurs.\
+ * There should only be 1 reference when unmounting a filesystem for obvious reasons.
+ */
+int
+iunlockputmount(struct inode *ip){
+    if(ip->ref != 1){
+        return -1;
+    }
+    iunlock(ip);
+    iput(ip);
+    return 0;
+}
 
 //PAGEBREAK!
 // Inode content

@@ -53,6 +53,7 @@ struct inode*   nameiparent(uint dev,char*, char*);
 int             readi(struct inode*, char*, uint, uint);
 void            stati(struct inode*, struct stat*);
 int             writei(struct inode*, char*, uint, uint);
+int             iunlockputmount(struct inode *ip);
 
 // ide.c
 void            ideinit(void);

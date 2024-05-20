@@ -9,7 +9,8 @@ struct rtcdate;
 #define ENOMOUNT                2
 #define EMOUNTNTDIR             3
 #define EMNTPNTNOTFOUND         4
-#define MOUNTPNTLOCKED          5
+#define EMOUNTPNTLOCKED         5
+#define EMOUNTPOINTBUSY         6
 
 // system calls
 int fork(void);

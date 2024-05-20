@@ -35,7 +35,7 @@ struct inode* mount(uint dev, char path*){
     }
     if(!acquirenonblockinglock(&mountlock)){
         //Dont spin or sleep just return if the lock is taken
-        return -MOUNTPNTLOCKED;
+        return -EMOUNTPNTLOCKED;
     }
     ilock(mountpoint);
     mountpoint->is_mount_point = 1;
@@ -62,10 +62,11 @@ int unmount(char *mountpoint){
     if(!acquirenonblockinglock(&mountlock)){
         return -ENOMOUNT;
     }
+    if(iunlockputmount(mounttable.mount_root) != 0){
+        return -EMOUNTPOINTBUSY
+    }
 
     mounttable.mount_point->is_mount_point = 0;
-    iunlock(mounttable.mount_point);
-    iput(mounttable.mount_root);
     releasenonblocking(&mountlock);
     return 0;
 
