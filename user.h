@@ -7,6 +7,9 @@ struct rtcdate;
 #define ENOPROC                 1000000001    // No proc of this pid found
 
 #define ENOMOUNT                2
+#define EMOUNTNTDIR             3
+#define EMNTPNTNOTFOUND         4
+#define MOUNTPNTLOCKED          5
 
 // system calls
 int fork(void);

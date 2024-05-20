@@ -27,12 +27,15 @@ struct inode* mount(uint dev, char path*){
 
     begin_op();
     struct inode *mountpoint = namei(dev,path);
-    if(mountpoint == 0 || mountpoint->type != T_DIR){
-        return 0;
+    if(mountpoint->type != T_DIR){
+        return -EMOUNTNTDIR;
+    }
+    if(mountpoint == 0){
+        return -EMNTPNTNOTFOUND;
     }
     if(!acquirenonblockinglock(&mountlock)){
         //Dont spin or sleep just return if the lock is taken
-        return 0;
+        return -MOUNTPNTLOCKED;
     }
     ilock(mountpoint);
     mountpoint->is_mount_point = 1;
@@ -60,12 +63,10 @@ int unmount(char *mountpoint){
         return -ENOMOUNT;
     }
 
-    struct inode *mountp = mounttable->mount_point;
-    memmove(mounttable->mount_root,0,sizeof (struct *inode));
-    memmove(mounttable->mount_point,0,sizeof (struct *inode));
+    mounttable.mount_point->is_mount_point = 0;
+    iunlock(mounttable.mount_point);
+    iput(mounttable.mount_root);
     releasenonblocking(&mountlock);
-    mountp->is_mount_point = 0;
-
-
+    return 0;
 
 }
