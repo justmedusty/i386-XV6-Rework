@@ -13,6 +13,7 @@
 #include "file.h"
 #include "nonblockinglock.h"
 #include "stat.h"
+#include "user.h"
 
 /*
  * Will only allow 1 mount point for now

@@ -6,6 +6,8 @@ struct rtcdate;
 #define ESIG                    1000000000    //Bad signal || no such signal
 #define ENOPROC                 1000000001    // No proc of this pid found
 
+#define ENOMOUNT                2
+
 // system calls
 int fork(void);
 int exit(void) __attribute__((noreturn));
