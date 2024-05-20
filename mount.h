@@ -12,6 +12,7 @@
 #include "sleeplock.h"
 #include "file.h"
 #include "nonblockinglock.h"
+#include "stat.h"
 
 /*
  * Will only allow 1 mount point for now

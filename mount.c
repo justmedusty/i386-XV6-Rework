@@ -15,13 +15,22 @@ void init_mount_lock(){
 /*
  * The mount function for our mounting functionality. It will take an inode moinpoint
  */
-struct inode* mount(int dev, struct inode *mountpoint){
+struct inode* mount(uint dev, char path*){
+
+    begin_op();
+
+    struct inode *mountpoint = namei(dev,path);
+
+    if(mountpoint == 0 || mountpoint->type != T_DIR){
+        return 0;
+    }
+
 
     if(!acquirenonblockinglock(&mountlock)){
         //Dont spin or sleep just return if the lock is taken
         return 0;
     }
-    begin_op();
+
     ilock(mountpoint);
 
     mountpoint->is_mount_point = 1;
@@ -30,7 +39,25 @@ struct inode* mount(int dev, struct inode *mountpoint){
 
     readsb(dev,&sb);
     struct inode *mountroot = namei(dev,'/');
+
+    if(mountroot == 0){
+        return 0;
+    }
     mounttable->mount_root = &mountroot;
     end_op();
+
+}
+
+int unmount(char *mountpoint){
+    begin_op();
+
+    if(mounttable.mount_point == 0){
+        end_op();
+        return -1;
+    }
+
+    struct inode *mountp = mounttable->mount_point;
+    mountp->is_mount_point = 0;
+
 
 }
