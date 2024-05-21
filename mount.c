@@ -1,7 +1,7 @@
 //
 // Created by dustyn on 5/18/24.
 //
-\
+
 
 /*
  * I am adding mounting of secondary file systems. I am creating a non blocking lock
@@ -23,21 +23,30 @@ void init_mount_lock(){
 /*
  * The mount function for our mounting functionality. It will take a path mountpoint
  */
-struct inode* mount(uint dev, char path*){
+int mount(uint dev, char path*){
 
     begin_op();
     struct inode *mountpoint = namei(dev,path);
+    //must be a directory, cannot mount on a file or device
     if(mountpoint->type != T_DIR){
+    iput(mountpoint);
         return -EMOUNTNTDIR;
     }
     if(mountpoint == 0){
+        iput(mountpoint);
         return -EMNTPNTNOTFOUND;
+    }
+    if(mountpoint->inum == ROOTINO){
+        iput(mountpoint);
+        return -ECANNOTMOUNTONROOT;
+
     }
     if(!acquirenonblockinglock(&mountlock)){
         //Dont spin or sleep just return if the lock is taken
         return -EMOUNTPNTLOCKED;
     }
     ilock(mountpoint);
+
     mountpoint->is_mount_point = 1;
     mounttable->lock = &mountlock;
     mounttable->mount_point = &mountpoint;
@@ -46,11 +55,16 @@ struct inode* mount(uint dev, char path*){
     if(mountroot == 0){
         return 0;
     }
+    ilock(mountroot);
     mounttable->mount_root = &mountroot;
     end_op();
+    return 0;
 
 }
 
+/*
+ * Unmount a filesystem, ensure is it actually mounted and that there is a lock present
+ */
 int unmount(char *mountpoint){
 
     begin_op();

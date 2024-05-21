@@ -11,6 +11,7 @@ struct rtcdate;
 #define EMNTPNTNOTFOUND         4
 #define EMOUNTPNTLOCKED         5
 #define EMOUNTPOINTBUSY         6
+#define ECANNOTMOUNTONROOT      7
 
 // system calls
 int fork(void);
