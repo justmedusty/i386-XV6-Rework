@@ -20,6 +20,7 @@
 #include "fs.h"
 #include "buf.h"
 #include "file.h"
+#include "mount.h"
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
@@ -669,6 +670,9 @@ namex(uint dev,char *path, int nameiparent, char *name) {
         if ((next = dirlookup(ip, name, 0)) == 0) {
             iunlockput(ip);
             return 0;
+        }
+        if(next->is_mount_point == 1){
+            next = mounttable.mount_root;
         }
         iunlockput(ip);
         ip = next;

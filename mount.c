@@ -6,7 +6,7 @@
 /*
  * I am adding mounting of secondary file systems. I am creating a non blocking lock
  * for this. I do not want any spinning or sleeping as with the sleeplock provided with XV6.
- * Reason being : If a mount point is busy, it is likely to be busy for a while, possibly until the system shuts down.
+ * Reason being: If a mount point is busy, it is likely to be busy for a while, possibly until the system shuts down.
  * It does not make sense to have a sleeping or spinning process for an indeterminate amount of time. Just return and let
  * the process know it is busy. It can try again later, after all.
  */
@@ -79,8 +79,9 @@ int unmount(char *mountpoint){
     if(iunlockputmount(mounttable.mount_root) != 0){
         return -EMOUNTPOINTBUSY
     }
-
     mounttable.mount_point->is_mount_point = 0;
+    mounttable.mount_point = 0;
+    mounttable.mount_root = 0;
     releasenonblocking(&mountlock);
     return 0;
 
