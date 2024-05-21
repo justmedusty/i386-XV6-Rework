@@ -90,6 +90,10 @@ void            log_write(struct buf*);
 void            begin_op();
 void            end_op();
 
+//mount.c
+int             mount(uint dev, char *path);
+int             unmount(char *mountpoint);
+
 // mp.c
 extern int      ismp;
 void            mpinit(void);

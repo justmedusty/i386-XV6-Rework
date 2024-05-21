@@ -20,7 +20,7 @@
 #include "nonblockinglock.h"
 #include "stat.h"
 #include "user.h"
-
+#include "mount.h"
 
 struct superblock sb;
 

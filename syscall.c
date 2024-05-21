@@ -109,6 +109,8 @@ extern int sys_sig(void);
 extern int sys_sighandler(void);
 extern int sys_sigignore(void);
 extern int sys_changeconsmode(void);
+extern int sys_mount(void);
+extern int sys_umount(void);
 
 
 static int (*syscalls[])(void) = {
@@ -138,6 +140,8 @@ static int (*syscalls[])(void) = {
 [SYS_sighandler] sys_sighandler,
 [SYS_sigignore] sys_sigignore,
 [SYS_changeconsmode] sys_changeconsmode,
+[SYS_mount] sys_mount,
+[SYS_umount] sys_umount,
 };
 
 void

@@ -453,3 +453,29 @@ int sys_changeconsmode(void){
     else change_mode(mode);
     return 0;
 }
+
+int sys_mount(void){
+
+    int result;
+    int dev;
+    char path*;
+    if(argint(0, &dev) < 0 || argstr(1, path) < 0 ){
+        return -1;
+    }
+
+    if((result = mount(dev,path)) != 0){
+        return result;
+    }
+    return 0;
+
+
+}
+
+int sys_umount(void){
+    int result;
+    char path*;
+    if(argstr(1, path) < 0){
+        return -1;
+    }
+
+}

@@ -25,3 +25,5 @@
 #define SYS_sighandler 24
 #define SYS_sigignore 25
 #define SYS_changeconsmode 26
+#define SYS_mount          27
+#define SYS_umount         28

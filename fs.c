@@ -179,10 +179,7 @@ iinit(int dev,int sbnum) {
     }
     if(sbnum == 1){
         readsb(dev, &sb);
-        cprintf("sb: size %d nblocks %d ninodes %d nlog %d logstart %d\
- inodestart %d bmap start %d\n", sb.size, sb.nblocks,
-                sb.ninodes, sb.nlog, sb.logstart, sb.inodestart,
-                sb.bmapstart);
+        cprintf("sb: size %d nblocks %d ninodes %d nlog %d logstart %d inodestart %d bmap start %d\n", sb.size, sb.nblocks,sb.ninodes, sb.nlog, sb.logstart, sb.inodestart,sb.bmapstart);
     } else{
         readsb(dev, &sb2);
     }
@@ -223,6 +220,10 @@ ialloc(uint dev, short type) {
 // Caller must hold ip->lock.
 void
 iupdate(struct inode *ip) {
+    //don't update mount points
+    if(ip->is_mount_point == 1){
+        return;
+    }
     struct buf *bp;
     struct dinode *dip;
 
