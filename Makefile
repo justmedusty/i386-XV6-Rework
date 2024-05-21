@@ -11,7 +11,9 @@ OBJS = \
 	lapic.o\
 	log.o\
 	main.o\
+	mount.o\
 	mp.o\
+	nonblockinglock.o\
 	picirq.o\
 	pipe.o\
 	proc.o\

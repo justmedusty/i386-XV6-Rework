@@ -10,8 +10,8 @@
  * It does not make sense to have a sleeping or spinning process for an indeterminate amount of time. Just return and let
  * the process know it is busy. It can try again later, after all.
  */
-#include "fs.h"
 #include "types.h"
+#include "fs.h"
 #include "defs.h"
 #include "param.h"
 #include "spinlock.h"
@@ -19,22 +19,22 @@
 #include "file.h"
 #include "nonblockinglock.h"
 #include "stat.h"
-#include "user.h"
 #include "mount.h"
 
-struct superblock sb;
+struct superblock superblock;
 
 
 struct nonblockinglock mountlock;
 
+struct mounttable mounttable = {NULL, NULL, NULL};
 
 void init_mount_lock(){
-    initnonblockinglock(mountlock,"mountlock");
+    initnonblockinglock(&mountlock,"mountlock");
 }
 /*
  * The mount function for our mounting functionality. It will take a path mountpoint
  */
-int mount(uint dev, char path*){
+int mount(uint dev, char *path){
 
     begin_op();
     struct inode *mountpoint = namei(dev,path);
@@ -59,15 +59,15 @@ int mount(uint dev, char path*){
     ilock(mountpoint);
 
     mountpoint->is_mount_point = 1;
-    mounttable->lock = &mountlock;
-    mounttable->mount_point = &mountpoint;
-    readsb(dev,&sb);
+    mounttable.lock = &mountlock.lk;
+    mounttable.mount_point = mountpoint;
+    readsb(dev,&superblock);
     struct inode *mountroot = namei(dev,'/');
     if(mountroot == 0){
         return 0;
     }
     ilock(mountroot);
-    mounttable->mount_root = &mountroot;
+    mounttable.mount_root = mountroot;
     end_op();
     return 0;
 
@@ -88,7 +88,7 @@ int unmount(char *mountpoint){
         return -ENOMOUNT;
     }
     if(iunlockputmount(mounttable.mount_root) != 0){
-        return -EMOUNTPOINTBUSY
+        return -EMOUNTPOINTBUSY;
     }
     mounttable.mount_point->is_mount_point = 0;
     mounttable.mount_point = 0;

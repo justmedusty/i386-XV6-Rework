@@ -4,14 +4,23 @@
 
 #ifndef XV6I386_MOUNT_H
 #define XV6I386_MOUNT_H
+#define ENOMOUNT                2
+#define EMOUNTNTDIR             3
+#define EMNTPNTNOTFOUND         4
+#define EMOUNTPNTLOCKED         5
+#define EMOUNTPOINTBUSY         6
+#define ECANNOTMOUNTONROOT      7
 
 
 /*
  * Will only allow 1 mount point for now
  */
-struct {
-    struct spinlock lock;
+struct mounttable{
+    struct spinlock *lock;
     struct inode *mount_point;
     struct inode *mount_root;
-} mounttable;
+};
+
+extern struct mounttable mounttable;
+
 #endif //XV6I386_MOUNT_H

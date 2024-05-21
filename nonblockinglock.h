@@ -7,8 +7,8 @@
 //This will be used initially for mount point locking, it will just return if the lock is held since spinning or sleeping
 // waiting for a mount point to be free is silly. It will likely be held for a while.
 struct nonblockinglock {
-    uint locked;       // Is the lock held?
-    struct spinlock lk; // spinlock protecting this sleep lock
+    int locked;       // Is the lock held?
+    struct spinlock lk; // spinlock protecting this nonblocking lock
     char *name;        // Name of lock.
 };
 

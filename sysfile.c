@@ -16,6 +16,7 @@
 #include "file.h"
 #include "fcntl.h"
 
+
 // Fetch the nth word-sized system call argument as a file descriptor
 // and return both the descriptor and the corresponding struct file.
 static int
@@ -458,8 +459,8 @@ int sys_mount(void){
 
     int result;
     int dev;
-    char path*;
-    if(argint(0, &dev) < 0 || argstr(1, path) < 0 ){
+    char *path;
+    if(argint(0, &dev) < 0 || argstr(1, &path) < 0 ){
         return -1;
     }
 
@@ -473,8 +474,8 @@ int sys_mount(void){
 
 int sys_umount(void){
     int result;
-    char path*;
-    if(argstr(1, path) < 0){
+    char *path;
+    if(argstr(1, &path) < 0){
         return -1;
     }
 
