@@ -478,4 +478,9 @@ int sys_umount(void){
         return -1;
     }
 
+    if((result = unmount(path)) != 0){
+        return result;
+    }
+    return 0;
+
 }

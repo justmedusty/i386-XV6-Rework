@@ -47,6 +47,7 @@ ideintr(void) {
 void
 iderw(struct buf *b, int dev) {
     uchar * p;
+    //main device
     if (dev == 1) {
         if (!holdingsleep(&b->lock))
             panic("iderw: buf not locked");
@@ -67,7 +68,7 @@ iderw(struct buf *b, int dev) {
         b->flags |= B_VALID;
         return;
     }
-
+    //secondary device
     if (!holdingsleep(&b->lock))
         panic("iderw: buf not locked");
     if ((b->flags & (B_VALID | B_DIRTY)) == B_VALID)
