@@ -10,7 +10,18 @@
  * It does not make sense to have a sleeping or spinning process for an indeterminate amount of time. Just return and let
  * the process know it is busy. It can try again later, after all.
  */
-#include "mount.h"
+#include "fs.h"
+#include "types.h"
+#include "defs.h"
+#include "param.h"
+#include "spinlock.h"
+#include "sleeplock.h"
+#include "file.h"
+#include "nonblockinglock.h"
+#include "stat.h"
+#include "user.h"
+
+
 struct superblock sb;
 
 
