@@ -16,7 +16,6 @@ int main(int argc, char *argv[]){
     int dev = atoi(argv[1]);
     char *path = argv[2];
 
-
     int result = mount(dev,path);
 
     if(result != 0){

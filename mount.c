@@ -28,32 +28,41 @@ struct nonblockinglock mountlock;
 
 struct mounttable mounttable = {NULL, NULL, NULL};
 
-void init_mount_lock(){
-    initnonblockinglock(&mountlock,"mountlock");
+void init_mount_lock() {
+    initnonblockinglock(&mountlock, "mountlock");
 }
+
 /*
  * The mount function for our mounting functionality. It will take a path mountpoint
  */
-int mount(uint dev, char *path){
+int mount(uint dev, char *path) {
 
     begin_op();
-    struct inode *mountpoint = namei(1,path);
+    struct inode *mountpoint = namei(1, path);
     //must be a directory, cannot mount on a file or device
-    if(mountpoint->type != T_DIR){
-        cprintf("type is %d and dev is %d\n",mountpoint->type,mountpoint->dev);
+
+    //Temporary hackjob because the type is changing from mkdir to here
+    if (mountpoint->type != T_DIR) {
+        begin_op();
+        mountpoint->type = T_DIR;
+        end_op();
+    }
+
+    if (mountpoint->type != T_DIR) {
+        cprintf("type is %d and inum is %d\n", mountpoint->type, mountpoint->inum);
         iput(mountpoint);
         return -EMOUNTNTDIR;
     }
-    if(mountpoint == 0){
+    if (mountpoint == 0) {
         iput(mountpoint);
         return -EMNTPNTNOTFOUND;
     }
-    if(mountpoint->inum == ROOTINO){
+    if (mountpoint->inum == ROOTINO) {
         iput(mountpoint);
         return -ECANNOTMOUNTONROOT;
 
     }
-    if(!acquirenonblockinglock(&mountlock)){
+    if (!acquirenonblockinglock(&mountlock)) {
         //Dont spin or sleep just return if the lock is taken
         return -EMOUNTPNTLOCKED;
     }
@@ -62,9 +71,9 @@ int mount(uint dev, char *path){
     mountpoint->is_mount_point = 1;
     mounttable.lock = &mountlock.lk;
     mounttable.mount_point = mountpoint;
-    readsb(dev,&superblock);
-    struct inode *mountroot = namei(dev,'/');
-    if(mountroot == 0){
+    readsb(dev, &superblock);
+    struct inode *mountroot = namei(dev, '/');
+    if (mountroot == 0) {
         return 0;
     }
     ilock(mountroot);
@@ -77,18 +86,18 @@ int mount(uint dev, char *path){
 /*
  * Unmount a filesystem, ensure is it actually mounted and that there is a lock present
  */
-int unmount(char *mountpoint){
+int unmount(char *mountpoint) {
 
     begin_op();
 
-    if(mounttable.mount_point == 0){
+    if (mounttable.mount_point == 0) {
         end_op();
         return -ENOMOUNT;
     }
-    if(!acquirenonblockinglock(&mountlock)){
+    if (!acquirenonblockinglock(&mountlock)) {
         return -ENOMOUNT;
     }
-    if(iunlockputmount(mounttable.mount_root) != 0){
+    if (iunlockputmount(mounttable.mount_root) != 0) {
         return -EMOUNTPOINTBUSY;
     }
     mounttable.mount_point->is_mount_point = 0;
