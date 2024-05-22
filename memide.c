@@ -27,12 +27,8 @@ void
 ideinit(void) {
     memdisk = _binary_fs_img_start;
     disksize = (uint) _binary_fs_img_size / BSIZE;
-}
-
-void
-secondaryideinit(void) {
     secondarymemdisk = _binary_fs_secondary_img_start;
-    secondarydisksize = _binary_fs_secondary_img_size / BSIZE;
+    secondarydisksize = (uint) _binary_fs_secondary_img_size / BSIZE;
 }
 
 // Interrupt handler.

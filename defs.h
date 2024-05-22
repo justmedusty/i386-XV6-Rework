@@ -59,7 +59,7 @@ int             iunlockputmount(struct inode *ip);
 void            ideinit(void);
 void            secondaryideinit(void);
 void            ideintr(void);
-void            iderw(struct buf*,int dev);
+void            iderw(struct buf*,uint dev);
 
 // ioapic.c
 void            ioapicenable(int irq, int cpu);

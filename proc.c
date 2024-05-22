@@ -818,7 +818,7 @@ forkret(void) {
         // be run from main().
         first = 0;
         iinit(ROOTDEV,1);
-        iinit(SECONDARYDEV,1);
+        iinit(SECONDARYDEV,2);
         initlog(ROOTDEV);
         initlog(SECONDARYDEV);
     }
