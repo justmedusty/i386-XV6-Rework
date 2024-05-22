@@ -40,6 +40,8 @@ int sig(int, int);
 void sighandler(void (*));
 void sigignore(int,int);
 void changeconsmode(int);
+int mount(int,char*);
+int umount(char*);
 
 
 // ulib.c

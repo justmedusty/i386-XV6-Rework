@@ -193,7 +193,7 @@ fs.img: mkfs README passwd largefile $(UPROGS)
 	./mkfs fs.img README passwd largefile $(UPROGS)
 
 secondaryfs.img: mkfs README largefile
-	./mkfs secondaryfs.img README passwd largefile
+	./mkfs secondaryfs.img README passwd largefile /mountdir
 
 -include *.d
 

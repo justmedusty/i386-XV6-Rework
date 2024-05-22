@@ -452,7 +452,7 @@ int sys_changeconsmode(void){
         return -1;
     }
     else change_mode(mode);
-    return 0;
+    return -1;
 }
 
 int sys_mount(void){
@@ -467,7 +467,7 @@ int sys_mount(void){
     if((result = mount(dev,path)) != 0){
         return result;
     }
-    return 0;
+    return -1;
 
 
 }

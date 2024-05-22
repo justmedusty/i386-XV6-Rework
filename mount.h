@@ -22,5 +22,5 @@ struct mounttable{
 };
 
 extern struct mounttable mounttable;
-
+void init_mount_lock();
 #endif //XV6I386_MOUNT_H
