@@ -66,7 +66,6 @@ int mount(uint dev, char *path) {
         //Dont spin or sleep just return if the lock is taken
         return -EMOUNTPNTLOCKED;
     }
-    ilock(mountpoint);
 
     mountpoint->is_mount_point = 1;
     mounttable.lock = &mountlock.lk;
@@ -76,9 +75,10 @@ int mount(uint dev, char *path) {
     if (mountroot == 0) {
         return 0;
     }
-    ilock(mountroot);
     mounttable.mount_root = mountroot;
     end_op();
+
+    cprintf("Mounted on %d to new root dev %d %d %d",mountpoint->inum,mountroot->inum,mountroot->size,mountroot->dev);
     return 0;
 
 }

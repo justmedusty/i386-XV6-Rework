@@ -447,6 +447,13 @@ itrunc(struct inode *ip) {
 // Caller must hold ip->lock.
 void
 stati(struct inode *ip, struct stat *st) {
+    if(ip->is_mount_point){
+        st->dev = mounttable.mount_root->dev;
+        st->ino = mounttable.mount_root->inum;
+        st->type = mounttable.mount_root->type;
+        st->nlink = mounttable.mount_root->nlink;
+        st->size = mounttable.mount_root->size;
+    }
     st->dev = ip->dev;
     st->ino = ip->inum;
     st->type = ip->type;
@@ -553,6 +560,9 @@ namecmp(const char *s, const char *t) {
 // If found, set *poff to byte offset of entry.
 struct inode *
 dirlookup(struct inode *dp, char *name, uint *poff) {
+    if(dp->is_mount_point){
+        dp = mounttable.mount_root;
+    }
     uint off, inum;
     struct dirent de;
 
@@ -579,6 +589,9 @@ dirlookup(struct inode *dp, char *name, uint *poff) {
 // Write a new directory entry (name, inum) into the directory dp.
 int
 dirlink(struct inode *dp, char *name, uint inum) {
+    if(dp->is_mount_point){
+        dp = mounttable.mount_root;
+    }
     int off;
     struct dirent de;
     struct inode *ip;
