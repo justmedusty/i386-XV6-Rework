@@ -10,6 +10,7 @@
 #define EMOUNTPNTLOCKED         5
 #define EMOUNTPOINTBUSY         6
 #define ECANNOTMOUNTONROOT      7
+#define EMOUNTROOTNOTFOUND      8
 
 
 /*

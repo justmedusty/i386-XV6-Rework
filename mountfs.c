@@ -35,6 +35,12 @@ int main(int argc, char *argv[]){
                 exit();
 
 
+            case -EMOUNTROOTNOTFOUND:
+                printf(1,"Mount root not found\n");
+                exit();
+
+
+
         }
 
 

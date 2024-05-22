@@ -67,18 +67,20 @@ int mount(uint dev, char *path) {
         return -EMOUNTPNTLOCKED;
     }
 
+    struct inode *mountroot = namei(dev, '/');
+    if (mountroot == 0) {
+        return -EMOUNTROOTNOTFOUND;
+    }
+
     mountpoint->is_mount_point = 1;
     mounttable.lock = &mountlock.lk;
     mounttable.mount_point = mountpoint;
     readsb(dev, &superblock);
-    struct inode *mountroot = namei(dev, '/');
-    if (mountroot == 0) {
-        return 0;
-    }
+
     mounttable.mount_root = mountroot;
     end_op();
 
-    cprintf("Mounted on %d to new root dev %d %d %d",mountpoint->inum,mountroot->inum,mountroot->size,mountroot->dev);
+
     return 0;
 
 }
