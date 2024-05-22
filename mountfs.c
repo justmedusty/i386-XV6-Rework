@@ -16,7 +16,33 @@ int main(int argc, char *argv[]){
     int dev = atoi(argv[1]);
     char *path = argv[2];
 
-    moun
+
+    int result = mount(dev,path);
+
+    if(result != 0){
+
+        switch (result) {
+            case -EMOUNTPNTLOCKED:
+                printf(1,"Mount point locked\n");
+                exit();
+
+            case -EMOUNTNTDIR:
+                printf(1,"Mount point not a directory\n");
+                exit();
+
+
+            case -EMNTPNTNOTFOUND:
+                printf(1,"No inode at pathname was found\n");
+                exit();
+
+
+        }
+
+
+    }
+
+    printf(1,"Mount point now on %s\n",argv[2]);
+    exit();
 
 
 }

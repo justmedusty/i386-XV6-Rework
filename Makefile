@@ -188,6 +188,7 @@ UPROGS=\
 	_freemem\
 	_sig\
 	_login\
+	_mountfs\
 
 fs.img: mkfs README passwd largefile $(UPROGS)
 	./mkfs fs.img README passwd largefile $(UPROGS)

@@ -345,6 +345,7 @@ sys_mkdir(void)
     end_op();
     return -1;
   }
+  cprintf("new dir inmum is %d and type %d\n",ip->inum , ip->type);
   iunlockput(ip);
   end_op();
   return 0;

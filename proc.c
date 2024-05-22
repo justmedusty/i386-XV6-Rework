@@ -956,7 +956,6 @@ int sig(int sigmask, int pid) {
 void sighandler(void (*func)(int)) {
     acquire(&ptable.lock);
     myproc()->signal_handler = V2P(func);
-    cprintf("func = %d\n", func);
     release(&ptable.lock);
     return;
 
@@ -981,7 +980,6 @@ void sigignore(int sigmask, int action) {
     } else {
         //enable the specified signal bits
         p->p_ign |= sigmask;
-        cprintf("PID %d has turned some signal interrupts off\n", p->pid);
     }
     release(&ptable.lock);
     return;

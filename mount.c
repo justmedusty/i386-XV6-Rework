@@ -37,10 +37,11 @@ void init_mount_lock(){
 int mount(uint dev, char *path){
 
     begin_op();
-    struct inode *mountpoint = namei(dev,path);
+    struct inode *mountpoint = namei(1,path);
     //must be a directory, cannot mount on a file or device
     if(mountpoint->type != T_DIR){
-    iput(mountpoint);
+        cprintf("type is %d and dev is %d\n",mountpoint->type,mountpoint->dev);
+        iput(mountpoint);
         return -EMOUNTNTDIR;
     }
     if(mountpoint == 0){
