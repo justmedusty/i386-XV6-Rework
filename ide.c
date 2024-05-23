@@ -43,10 +43,11 @@ static void idestart(uint dev, struct buf *);
 
 // Wait for IDE disk to become ready.
 static int
-idewait(int checkerr) {
+idewait(int dev, int checkerr) {
     int r;
+    int base_port = (dev == 1) ? 0x1f7 : 0x177; // Base port for disk 0 or disk 1
 
-    while (((r = inb(0x1f7)) & (IDE_BSY | IDE_DRDY)) != IDE_DRDY);
+    while (((r = inb(base_port)) & (IDE_BSY | IDE_DRDY)) != IDE_DRDY);
     if (checkerr && (r & (IDE_DF | IDE_ERR)) != 0)
         return -1;
     return 0;
@@ -59,7 +60,10 @@ ideinit(void) {
     initlock(&idelock, "ide");
     initlock(&idelock2, "ide2");
     ioapicenable(IRQ_IDE, ncpu - 1);
-    idewait(0);
+    idewait(1,0);
+    idewait(2,0);
+
+
 
     // Check if disk 1 is present
     outb(0x1f6, 0xe0 | (1 << 4));
@@ -71,7 +75,7 @@ ideinit(void) {
     }
 
     // Check if disk 2 is present
-    outb(0x1f6, 0xe0 | (2 << 3)); // Select disk 2
+    outb(0x1f6, 0xe0 | (2 << 4)); // Select disk 2
     for (i = 0; i < 1000; i++) {
         if (inb(0x1f7) != 0) {
             havedisk2 = 1;
@@ -105,14 +109,13 @@ idestart(uint dev, struct buf *b) {
 
     if (sector_per_block > 7) panic("idestart");
 
-    idewait(0);
+    idewait(dev,0);
     outb(0x3f6, 0);  // generate interrupt
     outb(0x1f2, sector_per_block);  // number of sectors
     outb(0x1f3, sector & 0xff);
     outb(0x1f4, (sector >> 8) & 0xff);
     outb(0x1f5, (sector >> 16) & 0xff);
-    outb(0x1f6, 0xe0 | (((dev & 0x01  << 4) | ((dev & 0x02) << 3))) | ((sector >> 24) & 0x0f));
-    if (b->flags & B_DIRTY) {
+    outb(0x1f6, 0xe0 | ((dev & 0x01 ? 0x00 : 0x10) | ((dev & 0x02) ? 0x02 : 0x00)) | ((sector >> 24) & 0x0f));    if (b->flags & B_DIRTY) {
         outb(0x1f7, write_cmd);
         outsl(0x1f0, b->data, BSIZE / 4);
     } else {
@@ -141,7 +144,7 @@ ideintr(void) {
     idequeue = b->qnext;
 
     // Read data if needed.
-    if (!(b->flags & B_DIRTY) && idewait(1) >= 0)
+    if (!(b->flags & B_DIRTY) && idewait(b->dev,1) >= 0)
         insl(0x1f0, b->data, BSIZE / 4);
 
     // Wake process waiting for this buf.
