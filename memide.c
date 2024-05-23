@@ -75,6 +75,7 @@ iderw(struct buf *b, int dev) {
         panic("iderw: block out of range");
 
     p = secondarymemdiskmemdisk + b->blockno * BSIZE;
+    panic("here");
 
     if (b->flags & B_DIRTY) {
         b->flags &= ~B_DIRTY;

@@ -21,8 +21,6 @@
 
 #define IDE_CMD_READ  0x20
 #define IDE_CMD_WRITE 0x30
-#define IDE_CMD_READ2  0x21
-#define IDE_CMD_WRITE2 0x31
 #define IDE_CMD_RDMUL 0xc4
 #define IDE_CMD_WRMUL 0xc5
 
@@ -69,7 +67,8 @@ ideinit(void) {
     ioapicenable(IRQ_IDE, ncpu - 1);
     ioapicenable(IRQ_IDE2, ncpu - 1);
     idewait(1, 0);
-    idewait(2, 0);
+   // idewait(2, 0);
+
 
     // Check if disk 1 is present
     outb(BASEPORT1 + 6, 0xe0 | (1 << 4));
@@ -104,27 +103,25 @@ idestart(uint dev, struct buf *b) {
     int sector = b->blockno * sector_per_block;
     int read_cmd, write_cmd;
     int base_port;
+    read_cmd = (sector_per_block == 1) ? IDE_CMD_READ :  IDE_CMD_RDMUL;
+    write_cmd = (sector_per_block == 1) ? IDE_CMD_WRITE : IDE_CMD_WRMUL;
     // Select the appropriate command based on the disk
-    if(dev == 1) {
-        read_cmd = (sector_per_block == 1) ? IDE_CMD_READ :  IDE_CMD_RDMUL;
-        write_cmd = (sector_per_block == 1) ? IDE_CMD_WRITE : IDE_CMD_WRMUL;
+    if(b->dev == 1) {
         base_port = BASEPORT1;
     } else {
-        // Disk 2
-        read_cmd = (sector_per_block == 1) ? IDE_CMD_READ2 :  IDE_CMD_RDMUL;
-        write_cmd = (sector_per_block == 1) ? IDE_CMD_WRITE2 : IDE_CMD_WRMUL;
         base_port = BASEPORT2;
     }
 
     if (sector_per_block > 7) panic("idestart");
 
-    idewait(dev,0);
-    outb(0x3f6, 0);  // generate interrupt
+    idewait(b->dev,0);
+    outb(base_port + 206, 0);  // generate interrupt
     outb(base_port + 2, sector_per_block);  // number of sectors
     outb(base_port + 3, sector & 0xff);
     outb(base_port + 4, (sector >> 8) & 0xff);
     outb(base_port + 5, (sector >> 16) & 0xff);
-    outb(base_port + 6 , 0xe0 | ((dev & 0x01 ? 0x00 : 0x01) | ((dev & 0x02) ? 0x02 : 0x00)) | ((sector >> 24) & 0x0f));    if (b->flags & B_DIRTY) {
+    outb(base_port + 6 , 0xe0 | ((b->dev&1)<<4) | ((sector >> 24) & 0x0f));
+    if (b->flags & B_DIRTY) {
 
         outb(base_port + 7, write_cmd);
         outsl(base_port, b->data, BSIZE / 4);
@@ -155,7 +152,7 @@ ideintr(void) {
 
     // Read data if needed.
     if (!(b->flags & B_DIRTY) && idewait(b->dev,1) >= 0){
-        int baseport = (b->dev == 1) ? 0x1f0 : 0x170;
+        int baseport = (b->dev == 1) ? BASEPORT1 : BASEPORT2;
         insl(baseport + 7, b->data, BSIZE / 4);
 
     }
