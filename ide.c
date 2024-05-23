@@ -47,6 +47,9 @@ idewait(int dev, int checkerr) {
     int r;
     int base_port = (dev == 1) ? 0x1f7 : 0x177; // Base port for disk 0 or disk 1
 
+    if (dev == 2)
+        base_port = 0x177; // Base port for disk 2
+
     while (((r = inb(base_port)) & (IDE_BSY | IDE_DRDY)) != IDE_DRDY);
     if (checkerr && (r & (IDE_DF | IDE_ERR)) != 0)
         return -1;
@@ -61,9 +64,7 @@ ideinit(void) {
     initlock(&idelock2, "ide2");
     ioapicenable(IRQ_IDE, ncpu - 1);
     idewait(1,0);
-    idewait(2,0);
-
-
+   // idewait(2,0);
 
     // Check if disk 1 is present
     outb(0x1f6, 0xe0 | (1 << 4));
@@ -77,7 +78,7 @@ ideinit(void) {
     // Check if disk 2 is present
     outb(0x1f6, 0xe0 | (2 << 4)); // Select disk 2
     for (i = 0; i < 1000; i++) {
-        if (inb(0x1f7) != 0) {
+        if (inb(0x177) != 0) { // Check status register for disk 2
             havedisk2 = 1;
             break;
         }
@@ -97,14 +98,17 @@ idestart(uint dev, struct buf *b) {
     int sector_per_block = BSIZE / SECTOR_SIZE;
     int sector = b->blockno * sector_per_block;
     int read_cmd, write_cmd;
+    int base_port;
     // Select the appropriate command based on the disk
     if(dev == 1) {
         read_cmd = (sector_per_block == 1) ? IDE_CMD_READ :  IDE_CMD_RDMUL;
         write_cmd = (sector_per_block == 1) ? IDE_CMD_WRITE : IDE_CMD_WRMUL;
+        base_port = 0x177;
     } else {
         // Disk 2
         read_cmd = (sector_per_block == 1) ? IDE_CMD_READ2 :  IDE_CMD_RDMUL;
         write_cmd = (sector_per_block == 1) ? IDE_CMD_WRITE2 : IDE_CMD_WRMUL;
+        base_port = 0x1f7;
     }
 
     if (sector_per_block > 7) panic("idestart");
@@ -116,10 +120,10 @@ idestart(uint dev, struct buf *b) {
     outb(0x1f4, (sector >> 8) & 0xff);
     outb(0x1f5, (sector >> 16) & 0xff);
     outb(0x1f6, 0xe0 | ((dev & 0x01 ? 0x00 : 0x10) | ((dev & 0x02) ? 0x02 : 0x00)) | ((sector >> 24) & 0x0f));    if (b->flags & B_DIRTY) {
-        outb(0x1f7, write_cmd);
+        outb(base_port, write_cmd);
         outsl(0x1f0, b->data, BSIZE / 4);
     } else {
-        outb(0x1f7, read_cmd);
+        outb(base_port, read_cmd);
     }
 }
 
