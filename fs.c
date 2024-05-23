@@ -58,6 +58,10 @@ bzero(int dev, int bno) {
 // Allocate a zeroed disk block.
 static uint
 balloc(uint dev) {
+    struct superblock *superb;
+    if(dev == 2){
+
+    }
     int b, bi, m;
     struct buf *bp;
 

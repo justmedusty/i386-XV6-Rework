@@ -34,12 +34,9 @@ int main(int argc, char *argv[]){
                 printf(1,"No inode at pathname was found\n");
                 exit();
 
-
             case -EMOUNTROOTNOTFOUND:
                 printf(1,"Mount root not found\n");
                 exit();
-
-
 
         }
 

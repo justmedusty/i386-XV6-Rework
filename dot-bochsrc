@@ -128,7 +128,7 @@ megs: 1024
 # read-only area, typically between C8000 and EFFFF. These optional
 # ROM images should not overwrite the rombios (located at
 # F0000-FFFFF) and the videobios (located at C0000-C7FFF).
-# Those ROM images will be initialized by the bios if they contain 
+# Those ROM images will be initialized by the bios if they contain
 # the right signature (0x55AA) and a valid checksum.
 # It can also be a convenient way to upload some arbitrary code/data
 # in the simulation, that can be retrieved by the boot loader
@@ -271,7 +271,7 @@ ata3: enabled=0, ioaddr1=0x168, ioaddr2=0x360, irq=9
 #=======================================================================
 ata0-master: type=disk, mode=flat, path="xv6.img", cylinders=100, heads=10, spt=10
 ata0-slave: type=disk, mode=flat, path="fs.img", cylinders=1024, heads=1, spt=1
-ata1-slave: type=disk, mode=flat, path="secondaryfs.img", cylinders=1024, heads=1, spt=1
+ata0-slave: type=disk, mode=flat, path="secondaryfs.img", cylinders=1024, heads=1, spt=1
 #ata0-slave: type=cdrom, path=D:, status=inserted
 #ata0-slave: type=cdrom, path=/dev/cdrom, status=inserted
 #ata0-slave: type=cdrom, path="drive", status=inserted

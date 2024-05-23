@@ -57,6 +57,7 @@ ideinit(void) {
     int i;
 
     initlock(&idelock, "ide");
+    initlock(&idelock2, "ide2");
     ioapicenable(IRQ_IDE, ncpu - 1);
     idewait(0);
 
@@ -70,7 +71,7 @@ ideinit(void) {
     }
 
     // Check if disk 2 is present
-    outb(0x1f6, 0xe0 | (2 << 4)); // Select disk 2
+    outb(0x1f6, 0xe0 | (2 << 3)); // Select disk 2
     for (i = 0; i < 1000; i++) {
         if (inb(0x1f7) != 0) {
             havedisk2 = 1;
@@ -93,7 +94,7 @@ idestart(uint dev, struct buf *b) {
     int sector = b->blockno * sector_per_block;
     int read_cmd, write_cmd;
     // Select the appropriate command based on the disk
-    if(dev == 0) {
+    if(dev == 1) {
         read_cmd = (sector_per_block == 1) ? IDE_CMD_READ :  IDE_CMD_RDMUL;
         write_cmd = (sector_per_block == 1) ? IDE_CMD_WRITE : IDE_CMD_WRMUL;
     } else {
@@ -110,7 +111,7 @@ idestart(uint dev, struct buf *b) {
     outb(0x1f3, sector & 0xff);
     outb(0x1f4, (sector >> 8) & 0xff);
     outb(0x1f5, (sector >> 16) & 0xff);
-    outb(0x1f6, 0xe0 | ((b->dev & 1) << 4) | ((sector >> 24) & 0x0f));
+    outb(0x1f6, 0xe0 | (((dev & 0x01  << 4) | ((dev & 0x02) << 3))) | ((sector >> 24) & 0x0f));
     if (b->flags & B_DIRTY) {
         outb(0x1f7, write_cmd);
         outsl(0x1f0, b->data, BSIZE / 4);
@@ -166,7 +167,7 @@ iderw(struct buf *b, uint dev) {
     struct spinlock *lock;
     struct buf *queue;
 
-    if(dev == 2 ) {
+    if(b->dev == 2 ) {
         lock = &idelock2;
         queue = idequeue2;
     } else{
