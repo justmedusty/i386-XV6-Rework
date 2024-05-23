@@ -26,6 +26,9 @@
 #define IDE_CMD_RDMUL 0xc4
 #define IDE_CMD_WRMUL 0xc5
 
+#define BASEPORT1     0x1f0
+#define BASEPORT2     0x170
+
 // idequeue points to the buf now being read/written to the disk.
 // idequeue->qnext points to the next buf to be processed.
 // You must hold idelock while manipulating queue.
@@ -45,13 +48,13 @@ static void idestart(uint dev, struct buf *);
 static int
 idewait(int dev, int checkerr) {
     int r;
-    int base_port;
+    int port;
     if (dev == 2)
-        base_port = 0x177; // Base port for disk 2
+        port = BASEPORT2 + 7; // Base port for disk 2
     else
-        base_port = (dev == 1) ? 0x1f7 : 0x177; // Base port for disk 0 or disk 1
+        port = BASEPORT1 + 7; // Base port for disk 0 or disk 1
 
-    while (((r = inb(base_port)) & (IDE_BSY | IDE_DRDY)) != IDE_DRDY);
+    while (((r = inb(port)) & (IDE_BSY | IDE_DRDY)) != IDE_DRDY);
     if (checkerr && (r & (IDE_DF | IDE_ERR)) != 0)
         return -1;
     return 0;
@@ -69,18 +72,18 @@ ideinit(void) {
     idewait(2, 0);
 
     // Check if disk 1 is present
-    outb(0x1f6, 0xe0 | (1 << 4));
+    outb(BASEPORT1 + 6, 0xe0 | (1 << 4));
     for (i = 0; i < 1000; i++) {
-        if (inb(0x1f7) != 0) {
+        if (inb(BASEPORT1 + 7) != 0) {
             havedisk1 = 1;
             break;
         }
     }
 
     // Check if disk 2 is present
-    outb(0x1f6, 0xe0 | (1 << 4)); // Select disk 2
+    outb(BASEPORT2 + 6, 0xe0 | (1 << 4)); // Select disk 2
     for (i = 0; i < 1000; i++) {
-        if (inb(0x177 + 6) != 0) { // Check status register for disk 2
+        if (inb(BASEPORT2 + 7) != 0) { // Check status register for disk 2
             havedisk2 = 1;
             break;
         }
@@ -105,25 +108,26 @@ idestart(uint dev, struct buf *b) {
     if(dev == 1) {
         read_cmd = (sector_per_block == 1) ? IDE_CMD_READ :  IDE_CMD_RDMUL;
         write_cmd = (sector_per_block == 1) ? IDE_CMD_WRITE : IDE_CMD_WRMUL;
-        base_port = 0x1f0;
+        base_port = BASEPORT1;
     } else {
         // Disk 2
         read_cmd = (sector_per_block == 1) ? IDE_CMD_READ2 :  IDE_CMD_RDMUL;
         write_cmd = (sector_per_block == 1) ? IDE_CMD_WRITE2 : IDE_CMD_WRMUL;
-        base_port = 0x170;
+        base_port = BASEPORT2;
     }
 
     if (sector_per_block > 7) panic("idestart");
 
     idewait(dev,0);
     outb(0x3f6, 0);  // generate interrupt
-    outb(0x1f2, sector_per_block);  // number of sectors
-    outb(0x1f3, sector & 0xff);
-    outb(0x1f4, (sector >> 8) & 0xff);
-    outb(0x1f5, (sector >> 16) & 0xff);
-    outb(0x1f6, 0xe0 | ((dev & 0x01 ? 0x00 : 0x10) | ((dev & 0x02) ? 0x02 : 0x00)) | ((sector >> 24) & 0x0f));    if (b->flags & B_DIRTY) {
+    outb(base_port + 2, sector_per_block);  // number of sectors
+    outb(base_port + 3, sector & 0xff);
+    outb(base_port + 4, (sector >> 8) & 0xff);
+    outb(base_port + 5, (sector >> 16) & 0xff);
+    outb(base_port + 6 , 0xe0 | ((dev & 0x01 ? 0x00 : 0x01) | ((dev & 0x02) ? 0x02 : 0x00)) | ((sector >> 24) & 0x0f));    if (b->flags & B_DIRTY) {
+
         outb(base_port + 7, write_cmd);
-        outsl(0x1f0, b->data, BSIZE / 4);
+        outsl(base_port, b->data, BSIZE / 4);
     } else {
         outb(base_port + 7, read_cmd);
     }
