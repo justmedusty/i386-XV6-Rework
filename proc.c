@@ -809,15 +809,16 @@ forkret(void) {
     static int first = 1;
     // Still holding ptable.lock from scheduler.
     release(&ptable.lock);
+
     if (first) {
         // Some initialization functions must be run in the context
         // of a regular process (e.g., they call sleep), and thus cannot
         // be run from main().
         first = 0;
         iinit(ROOTDEV,1);
-        iinit(SECONDARYDEV,2);
+      //  iinit(SECONDARYDEV,2);
         initlog(ROOTDEV);
-        initlog(SECONDARYDEV);
+       // initlog(SECONDARYDEV);
 
     }
 
