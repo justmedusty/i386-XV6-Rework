@@ -57,6 +57,8 @@ trap(struct trapframe *tf) {
             ideintr();
             lapiceoi();
             break;
+        case T_IRQ0 + IRQ_IDE + 1:
+            break;
         case T_IRQ0 + IRQ_IDE2: // other ata controller
             // Bochs generates spurious IDE1 interrupts.
             ideintr();
@@ -113,7 +115,7 @@ trap(struct trapframe *tf) {
         /*
          * We will ensure the process that is exceeding its time quantum is not preempted if no other process is queued
          */
-        if(!is_proc_alone_in_queue(myproc())){
+        if (!is_proc_alone_in_queue(myproc())) {
             preempt();
         }
 

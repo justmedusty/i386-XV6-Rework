@@ -56,15 +56,15 @@ idewait(int dev, int checkerr) {
         port = BASEPORT1 + 7; // Base port for disk 0 or disk 1
 
     while (((r = inb(port)) & (IDE_BSY | IDE_DRDY)) != IDE_DRDY){
-        if(dev == 2){
+        if(dev != 2){
             cprintf("r = %d\n",r);
         }
         if (checkerr && (r & (IDE_DF | IDE_ERR)) != 0){
             return -1;
         }
-        return 0;
-    }
 
+    }
+    return 0;
 }
 
 void
