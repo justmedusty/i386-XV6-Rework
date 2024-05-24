@@ -25,7 +25,7 @@
 #define IDE_CMD_WRMUL 0xc5
 
 #define BASEPORT1     0x1f0
-#define BASEPORT2     0x170
+#define BASEPORT2     0x1e8
 
 // idequeue points to the buf now being read/written to the disk.
 // idequeue->qnext points to the next buf to be processed.
@@ -43,7 +43,7 @@ static int havedisk2;
 static void idestart(uint dev, struct buf *);
 
 // Wait for IDE disk to become ready.
-static void idestart(uint dev,struct buf*);
+static void idestart(uint dev, struct buf *);
 
 // Wait for IDE disk to become ready.
 static int
@@ -55,44 +55,57 @@ idewait(int dev, int checkerr) {
     else
         port = BASEPORT1 + 7; // Base port for disk 0 or disk 1
 
-    while (((r = inb(port)) & (IDE_BSY | IDE_DRDY)) != IDE_DRDY);
-    if (checkerr && (r & (IDE_DF | IDE_ERR)) != 0)
-        return -1;
-    return 0;
+    while (((r = inb(port)) & (IDE_BSY | IDE_DRDY)) != IDE_DRDY){
+        if(dev == 2){
+            cprintf("r = %d\n",r);
+        }
+        if (checkerr && (r & (IDE_DF | IDE_ERR)) != 0){
+            return -1;
+        }
+        return 0;
+    }
+
 }
 
 void
 ideinit(void) {
-    int i;
 
-    initlock(&idelock, "ide");
-    initlock(&idelock2, "ide2");
-    ioapicenable(IRQ_IDE, ncpu - 1);
-    ioapicenable(IRQ_IDE2, ncpu - 1);
-    idewait(1, 0);
-    // idewait(2, 0);
+        int i;
 
+        initlock(&idelock, "ide");
+        initlock(&idelock2, "ide2");
+        ioapicenable(IRQ_IDE, ncpu - 1);
+        ioapicenable(IRQ_IDE2 , ncpu - 1);
 
-    // Check if disk 1 is present
-    outb(BASEPORT1 + 6, 0xe0 | (1 << 4));
-    for (i = 0; i < 1000; i++) {
-        if (inb(BASEPORT1 + 7) != 0) {
-            havedisk1 = 1;
-            break;
+        if (idewait(1, 0) == -1) {
+            panic("idewait1");
         }
-    }
 
-    // Check if disk 2 is present
-    outb(BASEPORT2 + 6, 0xe0 | (1 << 4)); // Select disk 2
-    for (i = 0; i < 1000; i++) {
-        if (inb(BASEPORT2 + 7) != 0) { // Check status register for disk 2
-            havedisk2 = 1;
-            break;
+        // Check if disk 1 is present
+        outb(BASEPORT1 + 6, 0xe0 | (1 << 4));
+        for (i = 0; i < 1000; i++) {
+            if (inb(BASEPORT1 + 7) != 0) {
+                havedisk1 = 1;
+                break;
+            }
         }
-    }
 
-    // Switch back to disk 0.
-    outb(0x1f6, 0xe0 | (0 << 4));
+        if (idewait(2, 0) == -1) {
+            panic("idewait2");
+        }
+
+        // Check if disk 2 is present
+        outb(BASEPORT2 + 6, 0xe0 | (1 << 4)); // Select disk 2 (slave on second IDE channel)
+        for (i = 0; i < 1000; i++) {
+            if (inb(BASEPORT2 + 7) != 0) { // Check status register for disk 2
+                havedisk2 = 1;
+                break;
+            }
+        }
+
+        // Switch back to disk 0.
+        outb(BASEPORT1 + 6, 0xe0 | (0 << 4));
+
 }
 
 // Start the request for b.  Caller must hold idelock.
@@ -106,10 +119,10 @@ idestart(uint dev, struct buf *b) {
     int sector = b->blockno * sector_per_block;
     int read_cmd, write_cmd;
     int base_port;
-    read_cmd = (sector_per_block == 1) ? IDE_CMD_READ :  IDE_CMD_RDMUL;
+    read_cmd = (sector_per_block == 1) ? IDE_CMD_READ : IDE_CMD_RDMUL;
     write_cmd = (sector_per_block == 1) ? IDE_CMD_WRITE : IDE_CMD_WRMUL;
     // Select the appropriate command based on the disk
-    if(b->dev == 1) {
+    if (b->dev == 1) {
         base_port = BASEPORT1;
     } else {
         base_port = BASEPORT2;
@@ -117,13 +130,13 @@ idestart(uint dev, struct buf *b) {
 
     if (sector_per_block > 7) panic("idestart");
 
-    idewait(b->dev,0);
+    idewait(b->dev, 0);
     outb(base_port + 206, 0);  // generate interrupt
     outb(base_port + 2, sector_per_block);  // number of sectors
     outb(base_port + 3, sector & 0xff);
     outb(base_port + 4, (sector >> 8) & 0xff);
     outb(base_port + 5, (sector >> 16) & 0xff);
-    outb(base_port + 6 , 0xe0 | ((b->dev&1)<<4) | ((sector >> 24) & 0x0f));
+    outb(base_port + 6, 0xe0 | ((b->dev & 1) << 4) | ((sector >> 24) & 0x0f));
     if (b->flags & B_DIRTY) {
 
         outb(base_port + 7, write_cmd);
@@ -136,13 +149,11 @@ idestart(uint dev, struct buf *b) {
 // Interrupt handler.
 // Interrupt handler.
 void
-ideintr(void)
-{
+ideintr(void) {
     struct buf *b;
 
     // First queued buffer is the active request.
     acquire(&idelock);
-
 
 
     if (((b = idequeue) == 0) && (b = idequeue2) == 0) {
@@ -152,9 +163,9 @@ ideintr(void)
     idequeue = b->qnext;
 
     // Read data if needed.
-    if (!(b->flags & B_DIRTY) && idewait(b->dev,1) >= 0){
+    if (!(b->flags & B_DIRTY) && idewait(b->dev, 1) >= 0) {
         int baseport = (b->dev == 1) ? BASEPORT1 : BASEPORT2;
-        insl(baseport + 7, b->data, BSIZE / 4);
+        insl(baseport, b->data, BSIZE / 4);
 
     }
 
@@ -164,9 +175,9 @@ ideintr(void)
     wakeup(b);
 
 
-    if((b = idequeue) != 0) {
+    if ((b = idequeue) != 0) {
         idestart(b->dev, idequeue);
-    } else if((b = idequeue2) != 0) {
+    } else if ((b = idequeue2) != 0) {
         idestart(b->dev, idequeue2);
     }
     idequeue = b->qnext;
@@ -180,28 +191,27 @@ ideintr(void)
 // If B_DIRTY is set, write buf to disk, clear B_DIRTY, set B_VALID.
 // Else if B_VALID is not set, read buf from disk, set B_VALID.
 void
-iderw(struct buf *b,uint dev)
-{
+iderw(struct buf *b, uint dev) {
     struct buf **pp;
 
     struct spinlock *lock;
     struct buf *queue;
 
-    if(b->dev == 2 ) {
+    if (b->dev == 2) {
         lock = &idelock2;
         queue = idequeue2;
-    } else{
+    } else {
         lock = &idelock;
         queue = idequeue;
     }
 
-    if(!holdingsleep(&b->lock))
+    if (!holdingsleep(&b->lock))
         panic("iderw: buf not locked");
-    if((b->flags & (B_VALID|B_DIRTY)) == B_VALID)
+    if ((b->flags & (B_VALID | B_DIRTY)) == B_VALID)
         panic("iderw: nothing to do");
-    if(b->dev != 0 && !havedisk1)
+    if (b->dev != 0 && !havedisk1)
         panic("iderw: ide disk 1 not present");
-    if(b->dev != 0 && !havedisk2)
+    if (b->dev != 0 && !havedisk2)
         panic("iderw: ide disk 2 not present");
 
     acquire(lock);  //DOC:acquire-lock
