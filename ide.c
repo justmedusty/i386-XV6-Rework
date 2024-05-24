@@ -50,16 +50,19 @@ static int
 idewait(int dev, int checkerr) {
     int r;
     int port;
-    if (dev == 2)
+    if (dev == 2) {
         port = BASEPORT2 + 7; // Base port for disk 2
-    else
+    } else {
         port = BASEPORT1 + 7; // Base port for disk 0 or disk 1
+    }
 
-    while (((r = inb(port)) & (IDE_BSY | IDE_DRDY)) != IDE_DRDY){
-        if(dev != 2){
-            cprintf("r = %d\n",r);
+    cprintf("%d : %d \n", port,dev);
+    while (((r = inb(port)) & (IDE_BSY | IDE_DRDY)) != IDE_DRDY) {
+        cprintf("%d : %d \n", r,dev);
+        if (r & 0xff) {
+            panic("no disk");
         }
-        if (checkerr && (r & (IDE_DF | IDE_ERR)) != 0){
+        if (checkerr && (r & (IDE_DF | IDE_ERR)) != 0) {
             return -1;
         }
 
@@ -70,41 +73,51 @@ idewait(int dev, int checkerr) {
 void
 ideinit(void) {
 
-        int i;
+    int i;
 
-        initlock(&idelock, "ide");
-        initlock(&idelock2, "ide2");
-        ioapicenable(IRQ_IDE, ncpu - 1);
-        ioapicenable(IRQ_IDE2 , ncpu - 1);
+    initlock(&idelock, "ide");
+    initlock(&idelock2, "ide2");
+    ioapicenable(IRQ_IDE, ncpu - 1);
+    ioapicenable(IRQ_IDE2, ncpu - 1);
 
-        if (idewait(1, 0) == -1) {
-            panic("idewait1");
+    if (idewait(1, 0) == -1) {
+        panic("idewait1");
+    }
+
+    // Check if disk 1 is present
+    outb(BASEPORT1 + 6, 0xe0 | (1 << 4));
+    for (i = 0; i < 1000; i++) {
+        if (inb(BASEPORT1 + 7) != 0) {
+            havedisk1 = 1;
+            break;
         }
+    }
 
-        // Check if disk 1 is present
-        outb(BASEPORT1 + 6, 0xe0 | (1 << 4));
-        for (i = 0; i < 1000; i++) {
-            if (inb(BASEPORT1 + 7) != 0) {
-                havedisk1 = 1;
-                break;
-            }
+  //  if (idewait(2, 0) == -1) {
+   //     panic("idewait2");
+  //  }
+
+    // Check if disk 2 is present
+    outb(BASEPORT2 + 6, 0xe0 | (0 << 4)); // Select disk 2 (slave on second IDE channel)
+    for (i = 0; i < 1000; i++) {
+        if (inb(BASEPORT2 + 7) != 0) { // Check status register for disk 2
+            cprintf("%d\n",inb(BASEPORT2 + 7));
+            havedisk2 = 1;
+            break;
         }
+    }
 
-        if (idewait(2, 0) == -1) {
-            panic("idewait2");
-        }
+    if (!havedisk1) {
+        panic("Missing disk 1");
+    }
 
-        // Check if disk 2 is present
-        outb(BASEPORT2 + 6, 0xe0 | (1 << 4)); // Select disk 2 (slave on second IDE channel)
-        for (i = 0; i < 1000; i++) {
-            if (inb(BASEPORT2 + 7) != 0) { // Check status register for disk 2
-                havedisk2 = 1;
-                break;
-            }
-        }
+    if (!havedisk2) {
+        panic("Missing disk 2");
+    }
 
-        // Switch back to disk 0.
-        outb(BASEPORT1 + 6, 0xe0 | (0 << 4));
+
+    // Switch back to disk 0.
+    outb(BASEPORT1 + 6, 0xe0 | (0 << 4));
 
 }
 

@@ -69,8 +69,8 @@ iderw(struct buf *b, int dev) {
         panic("iderw: buf not locked");
     if ((b->flags & (B_VALID | B_DIRTY)) == B_VALID)
         panic("iderw: nothing to do");
-    if (b->dev != 1)
-        panic("iderw: request not for disk 1");
+    if (b->dev != 2)
+        panic("iderw: request not for disk 2");
     if (b->blockno >= secondarydisksizedisksize)
         panic("iderw: block out of range");
 
