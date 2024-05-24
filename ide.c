@@ -45,26 +45,19 @@ static void idestart(uint dev, struct buf *);
 static void idestart(uint dev, struct buf *);
 
 // Wait for IDE disk to become ready.
-static int
-idewait(int dev, int checkerr) {
+static int idewait(int dev, int checkerr) {
     int r;
-    int port;
-    if (dev == 2) {
-        port = BASEPORT2 + 7; // Base port for disk 2
-    } else {
-        port = BASEPORT1 + 7; // Base port for disk 0 or disk 1
-    }
+    int port = (dev == 2) ? BASEPORT2 + 7 : BASEPORT1 + 7;
+    cprintf("Waiting for disk on port: %x\n", port);
 
-    cprintf("%d : %d \n", port,dev);
     while (((r = inb(port)) & (IDE_BSY | IDE_DRDY)) != IDE_DRDY) {
-        cprintf("%d : %d \n", r,dev);
+        cprintf("Status: %x on port: %x\n", r, port);
         if (r & 0xff) {
-            panic("no disk");
+            panic("disk error/no disk");
         }
         if (checkerr && (r & (IDE_DF | IDE_ERR)) != 0) {
             return -1;
         }
-
     }
     return 0;
 }
@@ -93,7 +86,7 @@ ideinit(void) {
 
     if (idewait(2, 0) == -1) {
         panic("idewait2");
-   }
+    }
 
     // Check if disk 2 is present
     outb(BASEPORT2 + 6, 0xe0 | (0 << 4)); // Select disk 2 (slave on second IDE channel)
