@@ -25,7 +25,7 @@
 #define IDE_CMD_WRMUL 0xc5
 
 #define BASEPORT1     0x1f0
-#define BASEPORT2     0x1e8
+#define BASEPORT2     0x170
 
 // idequeue points to the buf now being read/written to the disk.
 // idequeue->qnext points to the next buf to be processed.
