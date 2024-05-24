@@ -32,7 +32,6 @@
 // You must hold idelock while manipulating queue.
 
 static struct spinlock idelock;
-static struct spinlock idelock2;
 static struct buf *idequeue;
 static struct buf *idequeue2;
 
@@ -76,7 +75,6 @@ ideinit(void) {
     int i;
 
     initlock(&idelock, "ide");
-    initlock(&idelock2, "ide2");
     ioapicenable(IRQ_IDE, ncpu - 1);
     ioapicenable(IRQ_IDE2, ncpu - 1);
 
@@ -93,9 +91,9 @@ ideinit(void) {
         }
     }
 
-  //  if (idewait(2, 0) == -1) {
-   //     panic("idewait2");
-  //  }
+    if (idewait(2, 0) == -1) {
+        panic("idewait2");
+   }
 
     // Check if disk 2 is present
     outb(BASEPORT2 + 6, 0xe0 | (0 << 4)); // Select disk 2 (slave on second IDE channel)
@@ -211,7 +209,7 @@ iderw(struct buf *b, uint dev) {
     struct buf *queue;
 
     if (b->dev == 2) {
-        lock = &idelock2;
+        lock = &idelock;
         queue = idequeue2;
     } else {
         lock = &idelock;
