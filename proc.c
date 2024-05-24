@@ -809,7 +809,6 @@ forkret(void) {
     static int first = 1;
     // Still holding ptable.lock from scheduler.
     release(&ptable.lock);
-
     if (first) {
         // Some initialization functions must be run in the context
         // of a regular process (e.g., they call sleep), and thus cannot
@@ -819,6 +818,7 @@ forkret(void) {
         iinit(SECONDARYDEV,2);
         initlog(ROOTDEV);
         initlog(SECONDARYDEV);
+
     }
 
     // Return to "caller", actually trapret (see allocproc).

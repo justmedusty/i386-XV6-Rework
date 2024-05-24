@@ -43,6 +43,9 @@ static int havedisk2;
 static void idestart(uint dev, struct buf *);
 
 // Wait for IDE disk to become ready.
+static void idestart(uint dev,struct buf*);
+
+// Wait for IDE disk to become ready.
 static int
 idewait(int dev, int checkerr) {
     int r;
@@ -67,7 +70,7 @@ ideinit(void) {
     ioapicenable(IRQ_IDE, ncpu - 1);
     ioapicenable(IRQ_IDE2, ncpu - 1);
     idewait(1, 0);
-   // idewait(2, 0);
+    // idewait(2, 0);
 
 
     // Check if disk 1 is present
@@ -131,18 +134,16 @@ idestart(uint dev, struct buf *b) {
 }
 
 // Interrupt handler.
+// Interrupt handler.
 void
-ideintr(void) {
+ideintr(void)
+{
     struct buf *b;
 
     // First queued buffer is the active request.
     acquire(&idelock);
 
-    if((b = idequeue) != 0) {
-        idequeue = b->qnext;
-    } else if((b = idequeue2) != 0) {
-        idequeue2 = b->qnext;
-    }
+
 
     if (((b = idequeue) == 0) && (b = idequeue2) == 0) {
         release(&idelock);
@@ -162,21 +163,27 @@ ideintr(void) {
     b->flags &= ~B_DIRTY;
     wakeup(b);
 
-    // Start disk on next buf in queue.
-    if (idequeue != 0)
+
+    if((b = idequeue) != 0) {
         idestart(b->dev, idequeue);
+    } else if((b = idequeue2) != 0) {
+        idestart(b->dev, idequeue2);
+    }
+    idequeue = b->qnext;
 
     release(&idelock);
+
 }
 
 //PAGEBREAK!
-// Sync buf with disk. pri and flag is not status swap, increment priority to avoid an infinite loop
+// Sync buf with disk.
 // If B_DIRTY is set, write buf to disk, clear B_DIRTY, set B_VALID.
 // Else if B_VALID is not set, read buf from disk, set B_VALID.
 void
-iderw(struct buf *b, uint dev) {
-
+iderw(struct buf *b,uint dev)
+{
     struct buf **pp;
+
     struct spinlock *lock;
     struct buf *queue;
 
@@ -188,13 +195,14 @@ iderw(struct buf *b, uint dev) {
         queue = idequeue;
     }
 
-
-    if (!holdingsleep(&b->lock))
+    if(!holdingsleep(&b->lock))
         panic("iderw: buf not locked");
-    if ((b->flags & (B_VALID | B_DIRTY)) == B_VALID)
+    if((b->flags & (B_VALID|B_DIRTY)) == B_VALID)
         panic("iderw: nothing to do");
-    if (b->dev != 0 && (!havedisk1 && !havedisk2))
-        panic("iderw: ide disk 1 and 2 not present");
+    if(b->dev != 0 && !havedisk1)
+        panic("iderw: ide disk 1 not present");
+    if(b->dev != 0 && !havedisk2)
+        panic("iderw: ide disk 2 not present");
 
     acquire(lock);  //DOC:acquire-lock
 
