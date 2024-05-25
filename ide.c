@@ -86,7 +86,7 @@ ideinit(void)
     }
 
     // Check if disk 1 is present
-    outb(BASEPORT2 + 6, 0xe0 | (2<<4));
+    outb(BASEPORT2 + 6, 0xe0 | (0<<4));
     for(i=0; i<1000; i++){
         if(inb(BASEPORT2 + 7) != 0){
             havedisk2 = 1;
