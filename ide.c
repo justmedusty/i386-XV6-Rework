@@ -32,6 +32,7 @@
 // You must hold idelock while manipulating queue.
 
 static struct spinlock idelock;
+static struct spinlock idelock2;
 static struct buf *idequeue;
 static struct buf *idequeue2;
 
@@ -66,9 +67,11 @@ ideinit(void)
     int i;
 
     initlock(&idelock, "ide");
+
     ioapicenable(IRQ_IDE, ncpu - 1);
     ioapicenable(IRQ_IDE2, ncpu - 1);
     idewait(1,0);
+    idewait(2,0);
 
     // Check if disk 1 is present
     outb(BASEPORT1 + 6, 0xe0 | (1<<4));
@@ -93,8 +96,7 @@ ideinit(void)
     }
 
     if (!havedisk2) {
-      //  panic("Missing disk 2");
-        cprintf("Disk 2 not found!\n");
+        panic("Missing disk 2");
     }
 
     // Switch back to disk 0.
@@ -244,23 +246,48 @@ iderw(struct buf *b,uint dev)
     if(b->dev != 1 && !havedisk2)
         panic("iderw: ide disk 2 not present");
 
-    acquire(&idelock);  //DOC:acquire-lock
+    if(dev == 1){
+        acquire(&idelock);  //DOC:acquire-lock
 
-    // Append b to idequeue.
-    b->qnext = 0;
-    for(pp=&idequeue; *pp; pp=&(*pp)->qnext)  //DOC:insert-queue
-        ;
-    *pp = b;
+        // Append b to idequeue.
+        b->qnext = 0;
+        for(pp=&idequeue; *pp; pp=&(*pp)->qnext)  //DOC:insert-queue
+            ;
+        *pp = b;
 
-    // Start disk if necessary.
-    if(idequeue == b)
-        idestart(1,b);
+        // Start disk if necessary.
+        if(idequeue == b)
+            idestart(1,b);
 
-    // Wait for request to finish.
-    while((b->flags & (B_VALID|B_DIRTY)) != B_VALID){
-        sleep(b, &idelock);
+        // Wait for request to finish.
+        while((b->flags & (B_VALID|B_DIRTY)) != B_VALID){
+            sleep(b, &idelock);
+        }
+
+
+        release(&idelock);
+        return;
+    } else if (dev == 2){
+
+        acquire(&idelock);  //DOC:acquire-lock
+
+        // Append b to idequeue.
+        b->qnext = 0;
+        for(pp=&idequeue2; *pp; pp=&(*pp)->qnext)  //DOC:insert-queue
+            ;
+        *pp = b;
+
+        // Start disk if necessary.
+        if(idequeue2 == b)
+            idestart(1,b);
+
+        // Wait for request to finish.
+        while((b->flags & (B_VALID|B_DIRTY)) != B_VALID){
+            sleep(b, &idelock);
+        }
+
+        release(&idelock);
+        return;
     }
 
-
-    release(&idelock);
 }

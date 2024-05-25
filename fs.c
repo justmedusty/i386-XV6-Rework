@@ -59,7 +59,7 @@ bzero(int dev, int bno) {
 static uint
 balloc(uint dev) {
     struct superblock *superb;
-    if(dev == 2){
+    if (dev == 2) {
 
     }
     int b, bi, m;
@@ -173,20 +173,31 @@ struct {
     struct inode inode[NINODE];
 } icache;
 
+struct {
+    struct spinlock lock;
+    struct inode inode[NINODE];
+} icache2;
+
 void
-iinit(int dev,int sbnum) {
+iinit(int dev, int sbnum) {
     int i = 0;
 
-    initlock(&icache.lock, "icache");
-    for (i = 0; i < NINODE; i++) {
-        initsleeplock(&icache.inode[i].lock, "inode");
-    }
-    if(sbnum == 1){
+    if (dev == 1) {
+        initlock(&icache.lock, "icache");
+        for (i = 0; i < NINODE; i++) {
+            initsleeplock(&icache.inode[i].lock, "inode");
+        }
         readsb(dev, &sb);
-        cprintf("sb: size %d nblocks %d ninodes %d nlog %d logstart %d inodestart %d bmap start %d\n", sb.size, sb.nblocks,sb.ninodes, sb.nlog, sb.logstart, sb.inodestart,sb.bmapstart);
-    } else{
-        readsb(dev, &sb2);
-        cprintf("sb: size %d nblocks %d ninodes %d nlog %d logstart %d inodestart %d bmap start %d\n", sb2.size, sb2.nblocks,sb2.ninodes, sb2.nlog, sb2.logstart, sb2.inodestart,sb2.bmapstart);
+        cprintf("sb: size %d nblocks %d ninodes %d nlog %d logstart %d inodestart %d bmap start %d\n", sb.size,
+                sb.nblocks, sb.ninodes, sb.nlog, sb.logstart, sb.inodestart, sb.bmapstart);
+
+    } else if (dev == 2) {
+        initlock(&icache2.lock, "icache");
+        for (i = 0; i < NINODE; i++) {
+            initsleeplock(&icache2.inode[i].lock, "inode");
+        }
+        readsb(dev,&sb2);
+        cprintf("sb: size %d nblocks %d ninodes %d nlog %d logstart %d inodestart %d bmap start %d\n", sb2.size,sb2.nblocks, sb2.ninodes, sb2.nlog, sb2.logstart, sb2.inodestart, sb2.bmapstart);
 
     }
 
@@ -227,7 +238,7 @@ ialloc(uint dev, short type) {
 void
 iupdate(struct inode *ip) {
     //don't update mount points
-    if(ip->is_mount_point == 1){
+    if (ip->is_mount_point == 1) {
         return;
     }
     struct buf *bp;
@@ -362,13 +373,14 @@ iunlockput(struct inode *ip) {
     iunlock(ip);
     iput(ip);
 }
+
 /*
  * Custom mount iunlockput it will just make sure there are no references when an unmount operation occurs.\
  * There should only be 1 reference when unmounting a filesystem for obvious reasons.
  */
 int
-iunlockputmount(struct inode *ip){
-    if(ip->ref != 1){
+iunlockputmount(struct inode *ip) {
+    if (ip->ref != 1) {
         return -1;
     }
     iunlock(ip);
@@ -453,7 +465,7 @@ itrunc(struct inode *ip) {
 // Caller must hold ip->lock.
 void
 stati(struct inode *ip, struct stat *st) {
-    if(ip->is_mount_point){
+    if (ip->is_mount_point) {
         st->dev = mounttable.mount_root->dev;
         st->ino = mounttable.mount_root->inum;
         st->type = mounttable.mount_root->type;
@@ -566,7 +578,7 @@ namecmp(const char *s, const char *t) {
 // If found, set *poff to byte offset of entry.
 struct inode *
 dirlookup(struct inode *dp, char *name, uint *poff) {
-    if(dp->is_mount_point){
+    if (dp->is_mount_point) {
         dp = mounttable.mount_root;
     }
     uint off, inum;
@@ -595,7 +607,7 @@ dirlookup(struct inode *dp, char *name, uint *poff) {
 // Write a new directory entry (name, inum) into the directory dp.
 int
 dirlink(struct inode *dp, char *name, uint inum) {
-    if(dp->is_mount_point){
+    if (dp->is_mount_point) {
         dp = mounttable.mount_root;
     }
     int off;
@@ -668,7 +680,7 @@ skipelem(char *path, char *name) {
 // path element into name, which must have room for DIRSIZ bytes.
 // Must be called inside a transaction since it calls iput().
 static struct inode *
-namex(uint dev,char *path, int nameiparent, char *name) {
+namex(uint dev, char *path, int nameiparent, char *name) {
     struct inode *ip, *next;
 
     if (*path == '/')
@@ -691,7 +703,7 @@ namex(uint dev,char *path, int nameiparent, char *name) {
             iunlockput(ip);
             return 0;
         }
-        if(next->is_mount_point == 1){
+        if (next->is_mount_point == 1) {
             next = mounttable.mount_root;
         }
         iunlockput(ip);
@@ -705,15 +717,15 @@ namex(uint dev,char *path, int nameiparent, char *name) {
 }
 
 struct inode *
-namei(uint dev,char *path) {
-    if(dev == 0){
+namei(uint dev, char *path) {
+    if (dev == 0) {
         dev = myproc()->cwd->dev;
     }
     char name[DIRSIZ];
-    return namex(dev,path, 0, name);
+    return namex(dev, path, 0, name);
 }
 
 struct inode *
-nameiparent(uint dev,char *path, char *name) {
+nameiparent(uint dev, char *path, char *name) {
     return namex(dev, path, 1, name);
 }
