@@ -196,7 +196,9 @@ iinit(int dev, int sbnum) {
         for (i = 0; i < NINODE; i++) {
             initsleeplock(&icache2.inode[i].lock, "inode");
         }
+
         readsb(dev,&sb2);
+        panic("here");
         cprintf("sb: size %d nblocks %d ninodes %d nlog %d logstart %d inodestart %d bmap start %d\n", sb2.size,sb2.nblocks, sb2.ninodes, sb2.nlog, sb2.logstart, sb2.inodestart, sb2.bmapstart);
 
     }

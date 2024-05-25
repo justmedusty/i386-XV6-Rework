@@ -1,6 +1,6 @@
 // Fake IDE disk; stores blocks in memory.
 // Useful for running kernel without scratch disk.
-
+/*
 #include "types.h"
 #include "defs.h"
 #include "param.h"
@@ -29,6 +29,7 @@ ideinit(void) {
     disksize = (uint) _binary_fs_img_size / BSIZE;
     secondarymemdisk = _binary_fs_secondary_img_start;
     secondarydisksize = (uint) _binary_fs_secondary_img_size / BSIZE;
+    cprintf("IDE initialization complete. Disk size: %d blocks, Secondary disk size: %d blocks\n", disksize, secondarydisksize);
 }
 
 // Interrupt handler.
@@ -43,6 +44,7 @@ ideintr(void) {
 void
 iderw(struct buf *b, int dev) {
     uchar * p;
+    panic("here");
     //main device
     if (dev == 1) {
         if (!holdingsleep(&b->lock))
@@ -87,3 +89,4 @@ iderw(struct buf *b, int dev) {
 
 
 }
+*/

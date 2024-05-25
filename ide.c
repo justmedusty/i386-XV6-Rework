@@ -54,6 +54,9 @@ static int idewait(int dev, int checkerr) {
         if (r & 0xff) {
             panic("disk error");
         }
+        if(r == 0){
+            panic("Disk not found");
+        }
         if (checkerr && (r & (IDE_DF | IDE_ERR)) != 0) {
             return -1;
         }
@@ -71,7 +74,7 @@ ideinit(void)
     ioapicenable(IRQ_IDE, ncpu - 1);
     ioapicenable(IRQ_IDE2, ncpu - 1);
     idewait(1,0);
-    idewait(2,0);
+    //idewait(2,0);
 
     // Check if disk 1 is present
     outb(BASEPORT1 + 6, 0xe0 | (1<<4));
@@ -83,7 +86,7 @@ ideinit(void)
     }
 
     // Check if disk 1 is present
-    outb(BASEPORT2 + 6, 0xe0 | (0<<4));
+    outb(BASEPORT2 + 6, 0xe0 | (2<<4));
     for(i=0; i<1000; i++){
         if(inb(BASEPORT2 + 7) != 0){
             havedisk2 = 1;
@@ -121,7 +124,7 @@ idestart(uint dev,struct buf *b)
 
     if(dev == 1){
         idewait(1,0);
-        outb(0x3f6, 0);  // generate interrupt
+        outb(BASEPORT1 + 518, 0);  // generate interrupt
         outb(BASEPORT1 + 2, sector_per_block);  // number of sectors
         outb(BASEPORT1 + 3, sector & 0xff);
         outb(BASEPORT1 + 4, (sector >> 8) & 0xff);
@@ -135,7 +138,7 @@ idestart(uint dev,struct buf *b)
         }
     } else if(dev == 2){
         idewait(2,0);
-        outb(0x3f6, 0);  // generate interrupt
+        outb(BASEPORT2 + 518, 0);  // generate interrupt
         outb(BASEPORT2 + 2, sector_per_block);  // number of sectors
         outb(BASEPORT2 + 3, sector & 0xff);
         outb(BASEPORT2 + 4, (sector >> 8) & 0xff);
@@ -280,12 +283,10 @@ iderw(struct buf *b,uint dev)
         // Start disk if necessary.
         if(idequeue2 == b)
             idestart(1,b);
-
         // Wait for request to finish.
         while((b->flags & (B_VALID|B_DIRTY)) != B_VALID){
             sleep(b, &idelock);
         }
-
         release(&idelock);
         return;
     }
