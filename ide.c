@@ -71,7 +71,6 @@ ideinit(void)
 {
     int i;
     int r;
-
     initlock(&idelock, "ide");
 
     ioapicenable(IRQ_IDE, ncpu - 1);
@@ -79,7 +78,7 @@ ideinit(void)
     idewait(1,0);
    // idewait(2,0);
 
-    //Check if disk 0 is present
+    //Check if disk 0 (ata0 master) is present
     outb(BASEPORT1 + 6, 0xe0 | (0<<4));
     for(i=0; i<1000; i++){
         if(inb(BASEPORT1 + 7) != 0){
@@ -89,7 +88,7 @@ ideinit(void)
         }
     }
 
-    // Check if disk 1 is present
+    // Check if disk 1 (ata0 slave) is present
     outb(BASEPORT1 + 6, 0xe0 | (1<<4));
     for(i=0; i<1000; i++){
         if(inb(BASEPORT1 + 7) != 0){
@@ -99,7 +98,7 @@ ideinit(void)
         }
     }
 
-    // Check if disk 1 is present
+    // Check if disk 2 (ata0 master) is present
     outb(BASEPORT2 + 6, 0xe0 | (0<<4));
     for(i=0; i<1000; i++){
         if(inb(BASEPORT2 + 7) != 0){

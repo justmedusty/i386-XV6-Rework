@@ -7,15 +7,18 @@
 
 
 int main(int argc, char *argv[]){
-
     if(argc < 3 || argc > 3 ){
         printf(1,"Usage : mount device directory\n");
         exit();
     }
-
     int dev = atoi(argv[1]);
     char *path = argv[2];
 
+    if(*path != '/'){
+        printf(1,"here:%s:\n",*path);
+        printf(1,"Must start from root '/'\n");
+        exit();
+    }
     int result = mount(dev,path);
 
     if(result != 0){

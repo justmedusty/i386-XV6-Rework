@@ -195,8 +195,7 @@ fs.img: mkfs README passwd largefile $(UPROGS)
 	./mkfs fs.img README passwd largefile $(UPROGS)
 
 secondaryfs.img: mkfs README largefile
-	./mkfs secondaryfs.img README largefile $(UPROGS)
-
+	./mkfs secondaryfs.img README largefile _ls
 -include *.d
 
 clean:
@@ -222,6 +221,8 @@ ifndef CPUS
 CPUS := 1
 endif
 QEMUOPTS = -drive file=secondaryfs.img,index=2,media=disk,format=raw -drive file=fs.img,index=1,media=disk,format=raw -drive file=xv6.img,index=0,media=disk,format=raw -smp  $(CPUS) -m 512 $(QEMUEXTRA)
+
+drives: fs.img secondaryfs.img
 
 qemu: xv6.img
 	$(QEMU) -serial mon:stdio $(QEMUOPTS)
