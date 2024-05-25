@@ -5,3 +5,12 @@ sh:
 	can't always runcmd in child -- breaks cd.
 	maybe should hard-code PATH=/ ?
 
+
+mountfs : WIP does not yet work
+
+
+sighandler : Sig handling doesn't work yet, I need to use copyin/copyout or something similar to get this working
+
+
+secondary ide disk : Still broken figuring out how to get the ATA 2 master accessible via its ports in idewait()
+
