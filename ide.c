@@ -25,7 +25,9 @@
 #define IDE_CMD_WRMUL 0xc5
 
 #define BASEPORT1     0x1f0
-#define BASEPORT2     0x1e8
+#define BASEPORT2     0x170
+#define CONTROLBASE1  0x3F6
+#define CONTROLBASE2  0x376
 
 // idequeue points to the buf now being read/written to the disk.
 // idequeue->qnext points to the next buf to be processed.
@@ -70,13 +72,12 @@ void
 ideinit(void)
 {
     int i;
-    int r;
     initlock(&idelock, "ide");
 
     ioapicenable(IRQ_IDE, ncpu - 1);
     ioapicenable(IRQ_IDE2, ncpu - 1);
     idewait(1,0);
-   // idewait(2,0);
+    idewait(2,0);
 
     //Check if disk 0 (ata0 master) is present
     outb(BASEPORT1 + 6, 0xe0 | (0<<4));
@@ -98,7 +99,7 @@ ideinit(void)
         }
     }
 
-    // Check if disk 2 (ata0 master) is present
+    // Check if disk 2 (ata1 master) is present
     outb(BASEPORT2 + 6, 0xe0 | (0<<4));
     for(i=0; i<1000; i++){
         if(inb(BASEPORT2 + 7) != 0){
@@ -141,7 +142,7 @@ idestart(uint dev,struct buf *b)
 
     if(dev == 1){
         idewait(1,0);
-        outb(BASEPORT1 + 518, 0);  // generate interrupt
+        outb(CONTROLBASE1, 0);  // generate interrupt
         outb(BASEPORT1 + 2, sector_per_block);  // number of sectors
         outb(BASEPORT1 + 3, sector & 0xff);
         outb(BASEPORT1 + 4, (sector >> 8) & 0xff);
@@ -156,7 +157,7 @@ idestart(uint dev,struct buf *b)
 
     } else if(dev == 2){
         idewait(2,0);
-        outb(BASEPORT2 + 518, 0);  // generate interrupt
+        outb(CONTROLBASE2, 0);  // generate interrupt
         outb(BASEPORT2 + 2, sector_per_block);  // number of sectors
         outb(BASEPORT2 + 3, sector & 0xff);
         outb(BASEPORT2 + 4, (sector >> 8) & 0xff);

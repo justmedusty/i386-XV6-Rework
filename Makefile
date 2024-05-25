@@ -220,12 +220,16 @@ QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
 ifndef CPUS
 CPUS := 1
 endif
-QEMUOPTS = -drive file=secondaryfs.img,index=2,media=disk,format=raw -drive file=fs.img,index=1,media=disk,format=raw -drive file=xv6.img,index=0,media=disk,format=raw -smp  $(CPUS) -m 512 $(QEMUEXTRA)
+QEMUOPTS =     -drive file=xv6.img,media=disk,format=raw,bus=0,unit=0 \
+               -drive file=fs.img,media=disk,format=raw,bus=0,unit=1 \
+               -drive file=secondaryfs.img,media=disk,format=raw,bus=1,unit=0 \
+               -smp $(CPUS) -m 512 $(QEMUEXTRA) \
+               -monitor stdio
 
 drives: fs.img secondaryfs.img
 
 qemu: xv6.img
-	$(QEMU) -serial mon:stdio $(QEMUOPTS)
+	$(QEMU) -serial mon:vc $(QEMUOPTS)
 
 #qemu-memfs: xv6memfs.img
 #	$(QEMU) -drive file=xv6memfs.img,index=0,media=disk,format=raw -smp $(CPUS) -m 256
@@ -236,7 +240,7 @@ qemu-nox: fs.img secondaryfs.img xv6.img
 .gdbinit: .gdbinit.tmpl
 	sed "s/localhost:1234/localhost:$(GDBPORT)/" < $^ > $@
 
-qemu-gdb: fs.img secondaryfs.img xv6.img .gdbinit
+qemu-gdb: xv6.img .gdbinit
 	@echo "*** Now run 'gdb'." 1>&2
 	$(QEMU) -serial mon:stdio $(QEMUOPTS) -S $(QEMUGDB)
 
