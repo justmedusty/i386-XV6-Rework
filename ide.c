@@ -39,6 +39,7 @@ static struct buf *idequeue2;
 
 static int havedisk1;
 static int havedisk2;
+static int havedisk3;
 
 static void idestart(uint dev, struct buf *);
 
@@ -52,6 +53,7 @@ static int idewait(int dev, int checkerr) {
     while (((r = inb(port)) & (IDE_BSY | IDE_DRDY)) != IDE_DRDY) {
         cprintf("Status: %x on port: %x\n", r, port);
         if (r & 0xff) {
+            cprintf("ERROR ON DISK %d\n",dev);
             panic("disk error");
         }
         if(r == 0){
@@ -68,19 +70,31 @@ void
 ideinit(void)
 {
     int i;
+    int r;
 
     initlock(&idelock, "ide");
 
     ioapicenable(IRQ_IDE, ncpu - 1);
     ioapicenable(IRQ_IDE2, ncpu - 1);
     idewait(1,0);
-    //idewait(2,0);
+   // idewait(2,0);
+
+    //Check if disk 0 is present
+    outb(BASEPORT1 + 6, 0xe0 | (0<<4));
+    for(i=0; i<1000; i++){
+        if(inb(BASEPORT1 + 7) != 0){
+            havedisk1 = 1;
+            cprintf("FOUND DISK 1 after i : %x\n",i);
+            break;
+        }
+    }
 
     // Check if disk 1 is present
     outb(BASEPORT1 + 6, 0xe0 | (1<<4));
     for(i=0; i<1000; i++){
         if(inb(BASEPORT1 + 7) != 0){
-            havedisk1 = 1;
+            havedisk2 = 1;
+            cprintf("FOUND DISK 2 after i : %x\n",i);
             break;
         }
     }
@@ -89,7 +103,8 @@ ideinit(void)
     outb(BASEPORT2 + 6, 0xe0 | (0<<4));
     for(i=0; i<1000; i++){
         if(inb(BASEPORT2 + 7) != 0){
-            havedisk2 = 1;
+            havedisk3 = 1;
+            cprintf("FOUND DISK 2 after i : %x\n",i);
             break;
         }
     }
@@ -100,6 +115,9 @@ ideinit(void)
 
     if (!havedisk2) {
         panic("Missing disk 2");
+    }
+    if (!havedisk3) {
+        panic("Missing disk 3");
     }
 
     // Switch back to disk 0.
@@ -136,6 +154,7 @@ idestart(uint dev,struct buf *b)
         } else {
             outb(BASEPORT1 + 7, read_cmd);
         }
+
     } else if(dev == 2){
         idewait(2,0);
         outb(BASEPORT2 + 518, 0);  // generate interrupt
