@@ -1,0 +1,9 @@
+Signals     sending signals , ignoring signals via sigignore mak
+
+Signal catchers (do not work yet i need to circle back to these later)
+
+Scheduling pri, time quantums, preemption, doubly linked sched queue with prioritized placement in queue
+
+support for second ide disk in ide driver
+
+mounting of secondary file systems via mount.c and the userspace entrypoint the mountfs system call

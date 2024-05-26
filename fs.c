@@ -810,9 +810,6 @@ namex(uint dev, char *path, int nameiparent, char *name) {
         iput(ip);
         return 0;
     }
-    if(dev == 2){
-        cprintf("dev: %d path %s nameiparent %d name %s inodenum %d\n",dev,path,nameiparent,name,ip->inum);
-    }
 
     return ip;
 }

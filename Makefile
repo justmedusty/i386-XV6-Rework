@@ -195,7 +195,7 @@ fs.img: mkfs README passwd largefile $(UPROGS)
 	./mkfs fs.img README passwd largefile $(UPROGS)
 
 secondaryfs.img: mkfs README largefile
-	./mkfs secondaryfs.img README largefile _ls
+	./mkfs secondaryfs.img README largefile _ls _cat
 -include *.d
 
 clean:

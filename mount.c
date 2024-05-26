@@ -81,8 +81,6 @@ int mount(uint dev, char *path) {
     mounttable.lock = &mountlock.lk;
     mounttable.mount_point = mountpoint;
     mounttable.mount_root = mountroot;
-    mounttable.mount_point->ref++;
-    mounttable.mount_root->ref++;
     end_op();
 
 
