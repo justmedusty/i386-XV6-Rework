@@ -83,7 +83,6 @@ ideinit(void) {
     int i;
     initlock(&idelock, "ide");
 
-
     ioapicenable(IRQ_IDE, ncpu - 1);
     ioapicenable(IRQ_IDE2, ncpu - 1);
     idewait(1, 0);
@@ -108,8 +107,7 @@ ideinit(void) {
             break;
         }
     }
-    // Switch back to disk 0.
-    outb(BASEPORT1 + 7, 0xe0 | (0 << 4));
+
 
     // Check if disk 2 (ata1 master) is present
     outb(BASEPORT2 + 6, 0xe0 | (0 << 4));
@@ -120,6 +118,9 @@ ideinit(void) {
             break;
         }
     }
+
+    // Switch back to disk 0.
+    outb(BASEPORT1 + 7, 0xe0 | (0 << 4));
 
     if (!havedisk1) {
         panic("Missing disk 1");
@@ -151,7 +152,7 @@ idestart(uint dev, struct buf *b) {
 
     if (dev == 1) {
         idewait(1, 0);
-        outb(CONTROLBASE2, 0);  // generate interrupt
+        outb(CONTROLBASE1, 0);  // generate interrupt
         outb(BASEPORT1 + 2, sector_per_block);  // number of sectors
         outb(BASEPORT1 + 3, sector & 0xff);
         outb(BASEPORT1 + 4, (sector >> 8) & 0xff);
@@ -166,8 +167,7 @@ idestart(uint dev, struct buf *b) {
 
     } else if (dev == 2) {
         idewait(2, 0);
-        outb(CONTROLBASE1, 0);  // generate interrupt
-        cprintf("GENERATED ON 2\n");
+        outb(CONTROLBASE2, 0);  // generate interrupt
         outb(BASEPORT2 + 2, sector_per_block);  // number of sectors
         outb(BASEPORT2 + 3, sector & 0xff);
         outb(BASEPORT2 + 4, (sector >> 8) & 0xff);
@@ -225,11 +225,10 @@ ideintr(void) {
 
 void
 ideintr2(void) {
-    panic("ideintr2");
     struct buf *b;
 
     // First queued buffer is the active request.
-    acquire(&idelock);
+    acquire(&idelock2);
 
 
     if ((b = idequeue2) == 0) {
@@ -253,11 +252,13 @@ ideintr2(void) {
 
     if ((b = idequeue2) != 0) {
         idestart(b->dev, idequeue2);
+        idequeue2 = b->qnext;
     }
 
-    idequeue2 = b->qnext;
 
-    release(&idelock);
+
+
+    release(&idelock2);
 
 }
 
@@ -300,7 +301,7 @@ iderw(struct buf *b, uint dev) {
         release(&idelock);
         return;
     } else if (dev == 2) {
-        acquire(&idelock);  //DOC:acquire-lock
+        acquire(&idelock2);  //DOC:acquire-lock
 
         // Append b to idequeue.
         b->qnext = 0;
@@ -313,10 +314,9 @@ iderw(struct buf *b, uint dev) {
             idestart(2, b);
         // Wait for request to finish.
         while ((b->flags & (B_VALID | B_DIRTY)) != B_VALID) {
-            cprintf(" dev %d blockno %d flags %d\n",b->dev,b->blockno,b->flags);
-            sleep(b, &idelock);
+            sleep(b, &idelock2);
         }
-        release(&idelock);
+        release(&idelock2);
         return;
     }
 

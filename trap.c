@@ -57,9 +57,7 @@ trap(struct trapframe *tf) {
             ideintr();
             lapiceoi();
             break;
-        case T_IRQ0 + IRQ_IDE + 1:
-            // Bochs generates spurious IDE1 interrupts.break;
-        case T_IRQ0 + IRQ_IDE2: // other ata controller
+        case T_IRQ0 + IRQ_IDE2:
             ideintr2();
             lapiceoi();
             break;

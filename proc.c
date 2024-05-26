@@ -816,11 +816,9 @@ forkret(void) {
         // be run from main().
         first = 0;
         iinit(ROOTDEV,1);
-        //iinit(SECONDARYDEV,2);
+        iinit(SECONDARYDEV,2);
         initlog(ROOTDEV);
-       // initlog(SECONDARYDEV);
-
-
+        initlog(SECONDARYDEV);
     }
 
     // Return to "caller", actually trapret (see allocproc).
