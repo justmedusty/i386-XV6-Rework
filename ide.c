@@ -27,7 +27,7 @@
 #define BASEPORT1     0x1f0
 #define BASEPORT2     0x170
 #define CONTROLBASE1  0x3F6
-#define CONTROLBASE2  0x376
+#define CONTROLBASE2  0x370
 
 // idequeue points to the buf now being read/written to the disk.
 // idequeue->qnext points to the next buf to be processed.
@@ -57,7 +57,7 @@ static int idewait(int dev, int checkerr) {
      * I have to send the ident cmd to the secondary ata controller for some reason, I did not have to do this
      * for the first disk. I am not sure why. But anyway, this is why this is here.
      */
-    if (dev == 2) {
+    if (!havedisk3) {
         outb(BASEPORT2 + 6, 0xe0 | (0 << 4));
     }
 
@@ -151,7 +151,7 @@ idestart(uint dev, struct buf *b) {
 
     if (dev == 1) {
         idewait(1, 0);
-        outb(CONTROLBASE1, 0);  // generate interrupt
+        outb(CONTROLBASE2, 0);  // generate interrupt
         outb(BASEPORT1 + 2, sector_per_block);  // number of sectors
         outb(BASEPORT1 + 3, sector & 0xff);
         outb(BASEPORT1 + 4, (sector >> 8) & 0xff);
@@ -166,17 +166,19 @@ idestart(uint dev, struct buf *b) {
 
     } else if (dev == 2) {
         idewait(2, 0);
-        outb(CONTROLBASE2, 0);  // generate interrupt
+        outb(CONTROLBASE1, 0);  // generate interrupt
+        cprintf("GENERATED ON 2\n");
         outb(BASEPORT2 + 2, sector_per_block);  // number of sectors
         outb(BASEPORT2 + 3, sector & 0xff);
         outb(BASEPORT2 + 4, (sector >> 8) & 0xff);
         outb(BASEPORT2 + 5, (sector >> 16) & 0xff);
-        outb(BASEPORT2 + 6, 0xe0 | ((b->dev & 1) << 4) | ((sector >> 24) & 0x0f));
+        outb(BASEPORT2 + 6, 0xe0 | (0 << 4) | ((sector >> 24) & 0x0f));
         if (b->flags & B_DIRTY) {
             outb(BASEPORT2 + 7, write_cmd);
             outsl(BASEPORT2, b->data, BSIZE / 4);
         } else {
             outb(BASEPORT2 + 7, read_cmd);
+
         }
     }
 
@@ -223,7 +225,7 @@ ideintr(void) {
 
 void
 ideintr2(void) {
-    panic(ideintr2);
+    panic("ideintr2");
     struct buf *b;
 
     // First queued buffer is the active request.
@@ -298,7 +300,6 @@ iderw(struct buf *b, uint dev) {
         release(&idelock);
         return;
     } else if (dev == 2) {
-
         acquire(&idelock);  //DOC:acquire-lock
 
         // Append b to idequeue.
@@ -309,9 +310,10 @@ iderw(struct buf *b, uint dev) {
 
         // Start disk if necessary.
         if (idequeue2 == b)
-            idestart(1, b);
+            idestart(2, b);
         // Wait for request to finish.
         while ((b->flags & (B_VALID | B_DIRTY)) != B_VALID) {
+            cprintf(" dev %d blockno %d flags %d\n",b->dev,b->blockno,b->flags);
             sleep(b, &idelock);
         }
         release(&idelock);
