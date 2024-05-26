@@ -52,8 +52,8 @@ static void idestart(uint dev, struct buf *);
 static int idewait(int dev, int checkerr) {
     int r;
     int port = (dev == 2) ? BASEPORT2 + 7 : BASEPORT1 + 7;
+    cprintf("Status: %x on port: %x\n", inb(port), port);
     while (((r = inb(port)) & (IDE_BSY | IDE_DRDY)) != IDE_DRDY) {
-        cprintf("Status: %x on port: %x\n", r, port);
         if (r & 0xff) {
           panic("Disk error");
         }
@@ -77,7 +77,7 @@ ideinit(void)
     ioapicenable(IRQ_IDE, ncpu - 1);
     ioapicenable(IRQ_IDE2, ncpu - 1);
     idewait(1,0);
-   // idewait(2,0);
+    idewait(2,0);
 
     //Check if disk 0 (ata0 master) is present
     outb(BASEPORT1 + 6, 0xe0 | (0<<4));
@@ -109,10 +109,10 @@ ideinit(void)
         }
     }
 
+
     if (!havedisk1) {
         panic("Missing disk 1");
     }
-
     if (!havedisk2) {
         panic("Missing disk 2");
     }
