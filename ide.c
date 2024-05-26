@@ -55,11 +55,10 @@ static int idewait(int dev, int checkerr) {
     while (((r = inb(port)) & (IDE_BSY | IDE_DRDY)) != IDE_DRDY) {
         cprintf("Status: %x on port: %x\n", r, port);
         if (r & 0xff) {
-            cprintf("ERROR ON DISK %d\n",dev);
-            panic("disk error");
+          panic("Disk error");
         }
         if(r == 0){
-            panic("Disk not found");
+           panic("Disk not found");
         }
         if (checkerr && (r & (IDE_DF | IDE_ERR)) != 0) {
             return -1;
@@ -74,17 +73,18 @@ ideinit(void)
     int i;
     initlock(&idelock, "ide");
 
+
     ioapicenable(IRQ_IDE, ncpu - 1);
     ioapicenable(IRQ_IDE2, ncpu - 1);
     idewait(1,0);
-    idewait(2,0);
+   // idewait(2,0);
 
     //Check if disk 0 (ata0 master) is present
     outb(BASEPORT1 + 6, 0xe0 | (0<<4));
     for(i=0; i<1000; i++){
         if(inb(BASEPORT1 + 7) != 0){
             havedisk1 = 1;
-            cprintf("FOUND DISK 1 after i : %x\n",i);
+            cprintf("Found disk 0 master : %x\n",inb(BASEPORT1 + 7));
             break;
         }
     }
@@ -94,7 +94,7 @@ ideinit(void)
     for(i=0; i<1000; i++){
         if(inb(BASEPORT1 + 7) != 0){
             havedisk2 = 1;
-            cprintf("FOUND DISK 2 after i : %x\n",i);
+            cprintf("Found disk 0 slave : %x\n",inb(BASEPORT1 + 7));
             break;
         }
     }
@@ -104,7 +104,7 @@ ideinit(void)
     for(i=0; i<1000; i++){
         if(inb(BASEPORT2 + 7) != 0){
             havedisk3 = 1;
-            cprintf("FOUND DISK 2 after i : %x\n",i);
+            cprintf("Found disk 1 master : %x\n",inb(BASEPORT2 + 7));
             break;
         }
     }

@@ -218,7 +218,7 @@ QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
 	then echo "-gdb tcp::$(GDBPORT)"; \
 	else echo "-s -p $(GDBPORT)"; fi)
 ifndef CPUS
-CPUS := 1
+CPUS := 4
 endif
 QEMUOPTS =     -drive file=xv6.img,media=disk,format=raw,bus=0,unit=0 \
                -drive file=fs.img,media=disk,format=raw,bus=0,unit=1 \
