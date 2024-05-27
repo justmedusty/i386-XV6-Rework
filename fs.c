@@ -106,9 +106,9 @@ static void
 bfree(int dev, uint b) {
     struct buf *bp;
     int bi, m;
-    if(dev == 2){
+    if (dev == 2) {
         bp = bread(dev, BBLOCK(b, sb2));
-    } else{
+    } else {
         bp = bread(dev, BBLOCK(b, sb));
     }
     bi = b % BPB;
@@ -239,7 +239,7 @@ ialloc(uint dev, short type) {
     struct buf *bp;
     struct dinode *dip;
 
-    if(dev == 2){
+    if (dev == 2) {
         for (inum = 1; inum < sb2.ninodes; inum++) {
             bp = bread(dev, IBLOCK(inum, sb2));
             dip = (struct dinode *) bp->data + inum % IPB;
@@ -253,7 +253,7 @@ ialloc(uint dev, short type) {
             brelse(bp);;
         }
         panic("ialloc: no inodes");
-    } else{
+    } else {
 
         for (inum = 1; inum < sb.ninodes; inum++) {
             bp = bread(dev, IBLOCK(inum, sb));
@@ -285,9 +285,9 @@ iupdate(struct inode *ip) {
     struct buf *bp;
     struct dinode *dip;
 
-    if(ip->dev == 2){
+    if (ip->dev == 2) {
         bp = bread(ip->dev, IBLOCK(ip->inum, sb2));
-    } else{
+    } else {
         bp = bread(ip->dev, IBLOCK(ip->inum, sb));
     }
 
@@ -309,16 +309,16 @@ iupdate(struct inode *ip) {
 static struct inode *
 iget(uint dev, uint inum) {
     struct inode *ip, *empty;
-    if(dev == 2){
+    if (dev == 2) {
         acquire(&icache2.lock);
-    } else{
+    } else {
         acquire(&icache.lock);
     }
 
 
     // Is the inode already cached?
     empty = 0;
-    if(dev == 2){
+    if (dev == 2) {
         for (ip = &icache2.inode[0]; ip < &icache2.inode[NINODE]; ip++) {
             if (ip->ref > 0 && ip->dev == dev && ip->inum == inum) {
                 ip->ref++;
@@ -328,7 +328,7 @@ iget(uint dev, uint inum) {
             if (empty == 0 && ip->ref == 0)    // Remember empty slot.
                 empty = ip;
         }
-    } else{
+    } else {
         for (ip = &icache.inode[0]; ip < &icache.inode[NINODE]; ip++) {
             if (ip->ref > 0 && ip->dev == dev && ip->inum == inum) {
                 ip->ref++;
@@ -351,9 +351,9 @@ iget(uint dev, uint inum) {
     ip->ref = 1;
     ip->valid = 0;
 
-    if(dev == 2){
+    if (dev == 2) {
         release(&icache2.lock);
-    } else{
+    } else {
         release(&icache.lock);
     }
 
@@ -365,11 +365,11 @@ iget(uint dev, uint inum) {
 struct inode *
 idup(struct inode *ip) {
 
-    if(ip->dev == 2){
+    if (ip->dev == 2) {
         acquire(&icache2.lock);
         ip->ref++;
         release(&icache2.lock);
-    } else{
+    } else {
         acquire(&icache.lock);
         ip->ref++;
         release(&icache.lock);
@@ -391,9 +391,9 @@ ilock(struct inode *ip) {
     acquiresleep(&ip->lock);
 
     if (ip->valid == 0) {
-        if(ip->dev == 2){
+        if (ip->dev == 2) {
             bp = bread(ip->dev, IBLOCK(ip->inum, sb2));
-        }else {
+        } else {
             bp = bread(ip->dev, IBLOCK(ip->inum, sb));
 
         }
@@ -433,11 +433,11 @@ iput(struct inode *ip) {
     int r;
 
     if (ip->valid && ip->nlink == 0) {
-        if(ip->dev == 2){
+        if (ip->dev == 2) {
             acquire(&icache.lock);
             r = ip->ref;
             release(&icache.lock);
-        } else{
+        } else {
             acquire(&icache2.lock);
             r = ip->ref;
             release(&icache2.lock);
@@ -452,11 +452,11 @@ iput(struct inode *ip) {
         }
     }
     releasesleep(&ip->lock);
-    if(ip->dev == 2){
+    if (ip->dev == 2) {
         acquire(&icache2.lock);
         ip->ref--;
         release(&icache2.lock);
-    }else {
+    } else {
         acquire(&icache.lock);
         ip->ref--;
         release(&icache.lock);
@@ -780,10 +780,11 @@ static struct inode *
 namex(uint dev, char *path, int nameiparent, char *name) {
     struct inode *ip, *next;
 
-    if (*path == '/'){
-      ip = iget(dev, ROOTINO);
-    }else
+    if (*path == '/') {
+        ip = iget(dev, ROOTINO);
+    } else
         ip = idup(myproc()->cwd);
+
 
     while ((path = skipelem(path, name)) != 0) {
         ilock(ip);
@@ -791,6 +792,11 @@ namex(uint dev, char *path, int nameiparent, char *name) {
             iunlockput(ip);
             return 0;
         }
+
+        if (ip == mounttable.mount_root && nameiparent) {
+            ip = mounttable.mount_point;
+        }
+
         if (nameiparent && *path == '\0') {
             // Stop one level early.
             iunlock(ip);
