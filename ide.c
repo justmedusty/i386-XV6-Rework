@@ -12,6 +12,7 @@
 #include "sleeplock.h"
 #include "fs.h"
 #include "buf.h"
+#include "ide.h"
 
 #define SECTOR_SIZE   512
 #define IDE_BSY       0x80
@@ -42,12 +43,49 @@ static struct buf *idequeue2;
 static int havedisk1; // ata0 master (xv6.img)
 static int havedisk2; // ata0 slave (fs.img)
 static int havedisk3; // ata1 master (secondaryfs.img)
+static int havedisk4; // ata1 slave (unimplemented)
+static int havedisk5; // ata2 master (unimplemented)
+static int havedisk6; // ata2 slave (unimplemented)
+static int havedisk7; // ata3 master (unimplemented)
+static int havedisk8; // ata3 slave (unimplemented)
 
+static
 static void idestart(uint dev, struct buf *);
 
 // Wait for IDE disk to become ready.
 static void idestart(uint dev, struct buf *);
 
+/*
+ * Simple function that returns a char bitmask indicating which disks are present, will be useful for santizing random device numbers passed as parameters.
+ */
+char disk_query(){
+
+    char disk_presence = 0;
+
+    if(havedisk2){
+        disk_presence |= DEV1;
+    }
+    if(havedisk3){
+        disk_presence |= DEV2;
+    }
+    if(havedisk4){
+        disk_presence |= DEV3;
+    }
+    if(havedisk5){
+        disk_presence |= DEV4;
+    }
+    if(havedisk6){
+        disk_presence |= DEV5;
+    }
+    if(havedisk7){
+        disk_presence |= DEV6;
+    }
+    if(havedisk8){
+        disk_presence |= DEV7;
+    }
+
+    return disk_presence;
+}
 // Wait for IDE disk to become ready.
 static int idewait(int dev, int checkerr) {
     int r;
@@ -82,6 +120,15 @@ void
 ideinit(void) {
     int i;
     initlock(&idelock, "ide");
+
+    havedisk1 = 0;
+    havedisk2 = 0;
+    havedisk3 = 0;
+    havedisk4 = 0;
+    havedisk5 = 0;
+    havedisk6 = 0;
+    havedisk7 = 0;
+    havedisk8 = 0;
 
     ioapicenable(IRQ_IDE, ncpu - 1);
     ioapicenable(IRQ_IDE2, ncpu - 1);
