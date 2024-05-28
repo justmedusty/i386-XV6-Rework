@@ -89,13 +89,13 @@ int mount(uint dev, char *path) {
     struct inode *mountpoint = namei(1, path);
 
     if (mountpoint == 0) {
-        iput(mountpoint);
         end_op();
         releasenonblocking(&mountlock);
         return -EMNTPNTNOTFOUND;
     }
 
     //Temporary hackjob because the type is changing from mkdir to here
+    //TODO figure out why this has to be here so I can get rid of it
     if (mountpoint->type != T_DIR) {
         mountpoint->type = T_DIR;
     }
@@ -124,7 +124,6 @@ int mount(uint dev, char *path) {
     if (mountroot == 0 || mountroot < 0) {
         releasenonblocking(&mountlock);
         end_op();
-        panic("here");
         return -EMOUNTROOTNOTFOUND;
     }
 
@@ -145,7 +144,12 @@ int unmount(char *mountpoint) {
 
     begin_op();
 
+    struct inode *mp = namei(1,mountpoint);
 
+    cprintf("Mount point inum : %d type : %d dev : %d",mp->inum,mp->type,mp->dev);
+    if(mounttable.mount_point == mp){
+        cprintf("MOUNTED\n");
+    }
     if (mounttable.mount_point == 0) {
         end_op();
         return -ENOMOUNT;

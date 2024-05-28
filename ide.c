@@ -100,12 +100,10 @@ static int idewait(int dev, int checkerr) {
     while (((r = inb(port)) & (IDE_BSY | IDE_DRDY)) != IDE_DRDY) {
 
         if (r & 0xff) {
-            cprintf("Status: %x on port: %x\n", inb(port), port);
-            panic("Disk error");
+            cprintf("Error on port : %x on dev: %x\n", inb(port), dev);
         }
         if (r == 0) {
-            cprintf("Status: %x on port: %x\n", inb(port), port);
-            panic("Disk not found");
+            cprintf("Disk not found on dev: %x on port: %x\n", dev, port);
         }
         if (checkerr && (r & (IDE_DF | IDE_ERR)) != 0) {
             return -1;

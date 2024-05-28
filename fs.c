@@ -830,6 +830,8 @@ namei(uint dev, char *path) {
     char name[DIRSIZ];
 
     //Is this inside the root of a mount point referencing the parent inode? If so, we need to move across mount points
+    // I should get this set up to get the parent however I will need to write a new function I believe since all getting of parent inode is done via path, which I won't have a path just
+    //an inode pointer. This solution is fine for now.
     if(dev > 1 && (*path == '.' && path[1] == '.') && (myproc()->cwd->inum == ROOTINO)){
        return iget(1, ROOTINO);
     }
