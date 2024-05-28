@@ -20,6 +20,7 @@
 #include "nonblockinglock.h"
 #include "stat.h"
 #include "mount.h"
+#include "ide.h"
 
 struct superblock superblock;
 
@@ -37,6 +38,46 @@ void init_mount_lock() {
  */
 int mount(uint dev, char *path) {
     begin_op();
+
+
+    char diskmask = disk_query();
+
+    switch (dev) {
+
+        case 1:
+            return -ECANNOTMOUNTONMAIN;
+        case 2:
+            if (diskmask & DEV2) {
+                break;
+            }
+        case 3:
+            if (diskmask & DEV3) {
+                break;
+            }
+        case 4:
+            if (diskmask & DEV4) {
+                break;
+            }
+        case 5:
+            if (diskmask & DEV5) {
+                break;
+            }
+        case 6:
+            if (diskmask & DEV6) {
+                break;
+            }
+        case 7:
+            if (diskmask & DEV7) {
+                break;
+            }
+
+        default:
+            if (dev > 7) {
+                return -EDEVOOR;
+            }
+            return -ENODEV;
+    }
+
 
     if (!acquirenonblockinglock(&mountlock)) {
         //Dont spin or sleep just return if the lock is taken
@@ -76,12 +117,14 @@ int mount(uint dev, char *path) {
 
     }
 
-    struct inode *mountroot = namei(dev, "/");
-    cprintf("dev: %d major %d minor %d inodenum %d\n",mountroot->dev,mountroot->major,mountroot->minor,mountroot->inum);
-    if (mountroot == 0) {
-        releasenonblocking(&mountlock);
 
+    struct inode *mountroot = namei(dev, "/");
+
+    cprintf("mountroot pointer %d\n", mountroot);
+    if (mountroot == 0 || mountroot < 0) {
+        releasenonblocking(&mountlock);
         end_op();
+        panic("here");
         return -EMOUNTROOTNOTFOUND;
     }
 

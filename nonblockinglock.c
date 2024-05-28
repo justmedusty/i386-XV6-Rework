@@ -32,7 +32,7 @@ acquirenonblockinglock(struct nonblockinglock *lock)
     acquire(&lock->lk);
     if(lock->locked) {
 
-        //immediately return, no sleeping or spinni
+        //immediately return, no sleeping or spinning
         release(&lock->lk);
         return 0;
     }
