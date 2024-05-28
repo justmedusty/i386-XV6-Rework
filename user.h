@@ -6,14 +6,16 @@ struct rtcdate;
 #define ESIG                    1000000000    //Bad signal || no such signal
 #define ENOPROC                 1000000001    // No proc of this pid found
 
-#define ENOMOUNT                2
-#define EMOUNTNTDIR             3
-#define EMNTPNTNOTFOUND         4
-#define EMOUNTPNTLOCKED         5
-#define EMOUNTPOINTBUSY         6
-#define ECANNOTMOUNTONROOT      7
-#define EMOUNTROOTNOTFOUND      8
-
+#define ENOMOUNT                2 //unmount spot not a mountpoint
+#define EMOUNTNTDIR             3 //mount point not directory
+#define EMNTPNTNOTFOUND         4 //mount point not found
+#define EMOUNTPNTLOCKED         5 //mount lock is taken
+#define EMOUNTPOINTBUSY         6 //ref count too high
+#define ECANNOTMOUNTONROOT      7 //cannot mount on dev 1 root
+#define EMOUNTROOTNOTFOUND      8 //mount root not found , could be no filesystem on that device
+#define ENODEV                  9 //dev not present
+#define EDEVOOR                 10 //out of range
+#define ECANNOTMOUNTONMAIN      11 // cannot mount main disk / drive (why would you mount the same device onto itself unless you like recursive mounting for some reason)
 // system calls
 int fork(void);
 int exit(void) __attribute__((noreturn));

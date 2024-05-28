@@ -49,9 +49,6 @@ static int havedisk6; // ata2 slave (unimplemented)
 static int havedisk7; // ata3 master (unimplemented)
 static int havedisk8; // ata3 slave (unimplemented)
 
-static
-static void idestart(uint dev, struct buf *);
-
 // Wait for IDE disk to become ready.
 static void idestart(uint dev, struct buf *);
 
@@ -86,6 +83,7 @@ char disk_query(){
 
     return disk_presence;
 }
+
 // Wait for IDE disk to become ready.
 static int idewait(int dev, int checkerr) {
     int r;
