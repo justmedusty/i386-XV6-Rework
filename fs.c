@@ -789,6 +789,7 @@ namex(uint dev, char *path, int nameiparent, char *name) {
     while ((path = skipelem(path, name)) != 0) {
         ilock(ip);
         if (ip->type != T_DIR) {
+
             iunlockput(ip);
             return 0;
         }
@@ -799,6 +800,7 @@ namex(uint dev, char *path, int nameiparent, char *name) {
 
         if (nameiparent && *path == '\0') {
             // Stop one level early.
+
             iunlock(ip);
             return ip;
         }
@@ -806,7 +808,7 @@ namex(uint dev, char *path, int nameiparent, char *name) {
             iunlockput(ip);
             return 0;
         }
-        if (next->is_mount_point == 1) {
+        if (next->is_mount_point) {
             next = idup(mounttable.mount_root);
         }
         iunlockput(ip);
@@ -829,8 +831,9 @@ namei(uint dev, char *path) {
 
     //Is this inside the root of a mount point referencing the parent inode? If so, we need to move across mount points
     if(dev > 1 && (*path == '.' && path[1] == '.') && (myproc()->cwd->inum == ROOTINO)){
-       return idup(mounttable.mount_point);
+       return iget(1, ROOTINO);
     }
+
     return namex(dev, path, 0, name);
 }
 
