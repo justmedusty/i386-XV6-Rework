@@ -476,11 +476,11 @@ iunlockput(struct inode *ip) {
  * There should only be 1 reference when unmounting a filesystem for obvious reasons.
  */
 int
-iunlockputmount(struct inode *ip) {
-    if (ip->ref != 1) {
+iputmount(struct inode *ip) {
+    //Should be 2 references, mount point and the mp pointer generated from the path passed to umountfs system call.
+    if (ip->ref != 2) {
         return -1;
     }
-    iunlock(ip);
     iput(ip);
     return 0;
 }

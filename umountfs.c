@@ -18,8 +18,8 @@ int main(int argc, char *argv[]) {
     int result = umount(path);
 
     if (result != 0) {
-
         switch (result) {
+
             case -EMOUNTPOINTBUSY:
                 printf(1, "Mount point busy\n");
                 exit();
@@ -27,11 +27,13 @@ int main(int argc, char *argv[]) {
             case -ENOMOUNT:
                 printf(1, "Mount point does not exist\n");
                 exit();
+
+            default:
+                printf(1, "Error occurred\n");
+                exit();
         }
 
-        printf(1, "Mount point removed on %s\n", argv[1]);
-        exit();
-
-
     }
+    printf(1, "Mount point removed on %s\n", argv[1]);
+    exit();
 }

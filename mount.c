@@ -146,18 +146,20 @@ int unmount(char *mountpoint) {
 
     struct inode *mp = namei(1,mountpoint);
 
-    cprintf("Path : %s Mount point inum : %d type : %d dev : %d", mountpoint,mp->inum,mp->type,mp->dev);
-    if(mounttable.mount_point == mp){
-        cprintf("MOUNTED\n");
-    }
-    if (mounttable.mount_point == 0) {
+    if (mp == 0) {
         end_op();
         return -ENOMOUNT;
     }
-    if (!acquirenonblockinglock(&mountlock)) {
+    if(mounttable.mount_root != mp){
         return -ENOMOUNT;
     }
-    if (iunlockputmount(mounttable.mount_root) != 0) {
+    if (acquirenonblockinglock(&mountlock)) {
+        releasenonblocking(&mountlock);
+        return -ENOMOUNT;
+    }
+    if (iputmount(mounttable.mount_root) != 0) {
+        cprintf("ref count : %d\n",mp->ref);
+        iput(mp);
         return -EMOUNTPOINTBUSY;
     }
     mounttable.mount_point->is_mount_point = 0;
