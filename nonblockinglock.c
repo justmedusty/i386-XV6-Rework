@@ -21,7 +21,7 @@
 void
 initnonblockinglock(struct nonblockinglock *lock, char *name)
 {
-    initlock(&lock->lk, "nonblocking lock");
+    initlock(&lock->lk, "nonblockinglock");
     lock->name = name;
     lock->locked = 0;
 }
@@ -31,7 +31,9 @@ acquirenonblockinglock(struct nonblockinglock *lock)
 {
     acquire(&lock->lk);
     if(lock->locked) {
+
         //immediately return, no sleeping or spinni
+        release(&lock->lk);
         return 0;
     }
     lock->locked = 1;

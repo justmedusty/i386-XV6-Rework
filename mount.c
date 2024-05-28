@@ -36,43 +36,51 @@ void init_mount_lock() {
  * The mount function for our mounting functionality. It will take a path mountpoint
  */
 int mount(uint dev, char *path) {
-    cprintf("path: %s\n",path);
     begin_op();
-    struct inode *mountpoint = namei(1, path);
 
-    //must be a directory, cannot mount on a file or device
-
-    //Temporary hackjob because the type is changing from mkdir to here
-    if (mountpoint->type != T_DIR) {
-        mountpoint->type = T_DIR;
-    }
-
-    if (mountpoint->type != T_DIR) {
-        cprintf("type is %d and inum is %d\n", mountpoint->type, mountpoint->inum);
-        iput(mountpoint);
-        end_op();
-        return -EMOUNTNTDIR;
-    }
-    if (mountpoint == 0) {
-        iput(mountpoint);
-        end_op();
-        return -EMNTPNTNOTFOUND;
-    }
-    if (mountpoint->inum == ROOTINO) {
-        iput(mountpoint);
-        end_op();
-        return -ECANNOTMOUNTONROOT;
-
-    }
     if (!acquirenonblockinglock(&mountlock)) {
         //Dont spin or sleep just return if the lock is taken
         end_op();
         return -EMOUNTPNTLOCKED;
     }
 
+
+    struct inode *mountpoint = namei(1, path);
+
+    if (mountpoint == 0) {
+        iput(mountpoint);
+        end_op();
+        releasenonblocking(&mountlock);
+        return -EMNTPNTNOTFOUND;
+    }
+
+    //Temporary hackjob because the type is changing from mkdir to here
+    if (mountpoint->type != T_DIR) {
+        mountpoint->type = T_DIR;
+    }
+    //must be a directory, cannot mount on a file or device
+    if (mountpoint->type != T_DIR) {
+        cprintf("type is %d and inum is %d\n", mountpoint->type, mountpoint->inum);
+        iput(mountpoint);
+        end_op();
+        releasenonblocking(&mountlock);
+        return -EMOUNTNTDIR;
+    }
+
+
+    if (mountpoint->inum == ROOTINO) {
+        iput(mountpoint);
+        end_op();
+        releasenonblocking(&mountlock);
+        return -ECANNOTMOUNTONROOT;
+
+    }
+
     struct inode *mountroot = namei(dev, "/");
     cprintf("dev: %d major %d minor %d inodenum %d\n",mountroot->dev,mountroot->major,mountroot->minor,mountroot->inum);
     if (mountroot == 0) {
+        releasenonblocking(&mountlock);
+
         end_op();
         return -EMOUNTROOTNOTFOUND;
     }
@@ -82,7 +90,6 @@ int mount(uint dev, char *path) {
     mounttable.mount_point = mountpoint;
     mounttable.mount_root = mountroot;
     end_op();
-
 
     return 0;
 
