@@ -476,7 +476,7 @@ int sys_mount(void){
 int sys_umount(void){
     int result;
     char *path;
-    if(argstr(1, &path) < 0){
+    if(argstr(0, &path) < 0){
         return -1;
     }
 

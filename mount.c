@@ -146,7 +146,7 @@ int unmount(char *mountpoint) {
 
     struct inode *mp = namei(1,mountpoint);
 
-    cprintf("Mount point inum : %d type : %d dev : %d",mp->inum,mp->type,mp->dev);
+    cprintf("Path : %s Mount point inum : %d type : %d dev : %d", mountpoint,mp->inum,mp->type,mp->dev);
     if(mounttable.mount_point == mp){
         cprintf("MOUNTED\n");
     }
