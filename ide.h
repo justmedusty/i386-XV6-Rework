@@ -11,10 +11,10 @@
 #define DEV2 0x2
 #define DEV3 0x4
 #define DEV4 0x8
-#define DEV5 0x16
-#define DEV6 0x32
-#define DEV7 0x64
-#define DEV8 0x128
+#define DEV5 0x10
+#define DEV6 0x20
+#define DEV7 0x40
+#define DEV8 0x80
 
 char disk_query();
 #endif //XV6_I386_IDE_H
