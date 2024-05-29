@@ -105,7 +105,7 @@ int mount(uint dev, char *path) {
         myproc()->cwd = idup(mountpoint);
         //now that we swapped our cwd out , . will select the relative entry that will allow this mount to work properly.
         struct inode *dir_check = namei(mountpoint->dev,".");
-        if(dir_check->type == T_DIR){
+        if(dir_check && dir_check->type == T_DIR){
             iput(mountpoint);
             mountpoint = idup(dir_check);
             iput(dir_check);
