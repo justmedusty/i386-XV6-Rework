@@ -96,13 +96,6 @@ int mount(uint dev, char *path) {
         return -EMNTPNTNOTFOUND;
     }
 
-    //Temporary hackjob because the type is changing from mkdir to here
-    //TODO figure out why this has to be here so I can get rid of it
-
-    //This works if we get the '.' dir entry inside of the directory instead of the directory name directly. This is a good start.
-    if (mountpoint->type != T_DIR) {
-      //  mountpoint->type = T_DIR;
-    }
     //must be a directory, cannot mount on a file or device
     //The problem to needing the hackjob solution above without writing new functions for inode traversal without a path is changing the cwd to
     //mount point and then just using . as a path so it will go from cwd. It maybe makes more sense to write new functions than to do this
@@ -120,6 +113,7 @@ int mount(uint dev, char *path) {
             goto fixed;
 
         }
+        iput(dir_check);
         cprintf("type is %d and inum is %d\n", mountpoint->type, mountpoint->inum);
         iput(mountpoint);
         end_op();
