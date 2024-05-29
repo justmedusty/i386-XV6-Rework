@@ -120,6 +120,7 @@ int mount(uint dev, char *path) {
             goto fixed;
 
         }
+        iput(dir_check);
         cprintf("type is %d and inum is %d\n", mountpoint->type, mountpoint->inum);
         iput(mountpoint);
         end_op();
