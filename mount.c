@@ -84,9 +84,8 @@ int mount(uint dev, char *path) {
         return -EMOUNTPNTLOCKED;
     }
 
-
     struct inode *mountpoint = namei(1, path);
-    cprintf("",mountpoint->type)
+
 
     if (mountpoint == 0) {
         end_op();
@@ -96,9 +95,14 @@ int mount(uint dev, char *path) {
 
     //Temporary hackjob because the type is changing from mkdir to here
     //TODO figure out why this has to be here so I can get rid of it
+
+    //This works if we get the '.' inode inside of the directory instead of the directory name directly. This is a good start.
     if (mountpoint->type != T_DIR) {
       //  mountpoint->type = T_DIR;
     }
+    struct stat st;
+    stati(mountpoint,&st);
+    cprintf("dev %d type %d ino %d\n",st.type,st.dev,st.ino);
     //must be a directory, cannot mount on a file or device
     if (mountpoint->type != T_DIR) {
         cprintf("type is %d and inum is %d\n", mountpoint->type, mountpoint->inum);
@@ -156,9 +160,11 @@ int unmount(char *mountpoint) {
         releasenonblocking(&mountlock);
         return -ENOMOUNT;
     }
+    //put the mount pointer so we can reduce the ref count to what SHOULD be 1 (just the mount table inode) which we will check for below in iputmount
+    iput(mp);
     if (iputmount(mounttable.mount_root) != 0) {
         cprintf("ref count : %d\n",mp->ref);
-        iput(mp);
+
         return -EMOUNTPOINTBUSY;
     }
     mounttable.mount_point->is_mount_point = 0;

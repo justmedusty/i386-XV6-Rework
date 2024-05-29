@@ -472,13 +472,13 @@ iunlockput(struct inode *ip) {
 }
 
 /*
- * Custom mount iunlockput it will just make sure there are no references when an unmount operation occurs.\
+ * Custom mount iput it will just make sure there are no unaccounted-for references when an unmount operation occurs.
  * There should only be 1 reference when unmounting a filesystem for obvious reasons.
  */
 int
 iputmount(struct inode *ip) {
-    //Should be 2 references, mount point and the mp pointer generated from the path passed to umountfs system call.
-    if (ip->ref != 2) {
+    //Should be 1 reference, mount root in the mounttable.
+    if (ip->ref != 1) {
         return -1;
     }
     iput(ip);
@@ -660,6 +660,7 @@ writei(struct inode *ip, char *src, uint off, uint n) {
         ip->size = off;
         iupdate(ip);
     }
+
     return n;
 }
 
@@ -706,6 +707,7 @@ int
 dirlink(struct inode *dp, char *name, uint inum) {
     if (dp->is_mount_point) {
         dp = mounttable.mount_root;
+        cprintf("DIRLINK MOUNT ROOT\n");
     }
     int off;
     struct dirent de;
@@ -727,9 +729,11 @@ dirlink(struct inode *dp, char *name, uint inum) {
 
     strncpy(de.name, name, DIRSIZ);
     de.inum = inum;
+    dp->type = 1;
     if (writei(dp, (char *) &de, off, sizeof(de)) != sizeof(de))
         panic("dirlink");
 
+    iupdate(dp);
     return 0;
 }
 
@@ -789,21 +793,16 @@ namex(uint dev, char *path, int nameiparent, char *name) {
     while ((path = skipelem(path, name)) != 0) {
         ilock(ip);
         if (ip->type != T_DIR) {
-
             iunlockput(ip);
             return 0;
         }
 
-        if (ip == mounttable.mount_root && nameiparent) {
-            ip = idup(mounttable.mount_point);
-        }
-
         if (nameiparent && *path == '\0') {
             // Stop one level early.
-
             iunlock(ip);
             return ip;
         }
+
         if ((next = dirlookup(ip, name, 0)) == 0) {
             iunlockput(ip);
             return 0;
