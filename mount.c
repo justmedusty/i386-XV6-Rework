@@ -43,7 +43,6 @@ int mount(uint dev, char *path) {
     char diskmask = disk_query();
 
     switch (dev) {
-
         case 1:
             return -ECANNOTMOUNTONMAIN;
         case 2:
@@ -87,6 +86,7 @@ int mount(uint dev, char *path) {
 
 
     struct inode *mountpoint = namei(1, path);
+    cprintf("",mountpoint->type)
 
     if (mountpoint == 0) {
         end_op();
@@ -97,7 +97,7 @@ int mount(uint dev, char *path) {
     //Temporary hackjob because the type is changing from mkdir to here
     //TODO figure out why this has to be here so I can get rid of it
     if (mountpoint->type != T_DIR) {
-        mountpoint->type = T_DIR;
+      //  mountpoint->type = T_DIR;
     }
     //must be a directory, cannot mount on a file or device
     if (mountpoint->type != T_DIR) {
@@ -120,7 +120,6 @@ int mount(uint dev, char *path) {
 
     struct inode *mountroot = namei(dev, "/");
 
-    cprintf("mountroot pointer %d\n", mountroot);
     if (mountroot == 0 || mountroot < 0) {
         releasenonblocking(&mountlock);
         end_op();
