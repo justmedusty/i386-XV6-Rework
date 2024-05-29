@@ -14,7 +14,6 @@ int main(int argc, char *argv[]) {
     }
 
     char *path = argv[1];
-
     int result = umount(path);
 
     if (result != 0) {

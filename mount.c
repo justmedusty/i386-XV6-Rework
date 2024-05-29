@@ -10,6 +10,7 @@
  * It does not make sense to have a sleeping or spinning process for an indeterminate amount of time. Just return and let
  * the process know it is busy. It can try again later, after all.
  */
+
 #include "types.h"
 #include "fs.h"
 #include "defs.h"
@@ -21,6 +22,8 @@
 #include "stat.h"
 #include "mount.h"
 #include "ide.h"
+#include "mmu.h"
+#include "proc.h"
 
 struct superblock superblock;
 
@@ -96,15 +99,27 @@ int mount(uint dev, char *path) {
     //Temporary hackjob because the type is changing from mkdir to here
     //TODO figure out why this has to be here so I can get rid of it
 
-    //This works if we get the '.' inode inside of the directory instead of the directory name directly. This is a good start.
+    //This works if we get the '.' dir entry inside of the directory instead of the directory name directly. This is a good start.
     if (mountpoint->type != T_DIR) {
       //  mountpoint->type = T_DIR;
     }
-    struct stat st;
-    stati(mountpoint,&st);
-    cprintf("dev %d type %d ino %d\n",st.type,st.dev,st.ino);
     //must be a directory, cannot mount on a file or device
+    //The problem to needing the hackjob solution above without writing new functions for inode traversal without a path is changing the cwd to
+    //mount point and then just using . as a path so it will go from cwd. It maybe makes more sense to write new functions than to do this
+    //but for now this is ok.
     if (mountpoint->type != T_DIR) {
+        struct inode *old_cwd = myproc()->cwd;
+        myproc()->cwd = idup(mountpoint);
+        //now that we swapped our cwd out , . will select the relative entry that will allow this mount to work properly.
+        struct inode *dir_check = namei(mountpoint->dev,".");
+        if(dir_check->type == T_DIR){
+            iput(mountpoint);
+            mountpoint = idup(dir_check);
+            iput(dir_check);
+            myproc()->cwd = old_cwd;
+            goto fixed;
+
+        }
         cprintf("type is %d and inum is %d\n", mountpoint->type, mountpoint->inum);
         iput(mountpoint);
         end_op();
@@ -112,6 +127,7 @@ int mount(uint dev, char *path) {
         return -EMOUNTNTDIR;
     }
 
+    fixed:
 
     if (mountpoint->inum == ROOTINO) {
         iput(mountpoint);
