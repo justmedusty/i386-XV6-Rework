@@ -807,7 +807,7 @@ namex(uint dev, char *path, int nameiparent, char *name) {
             iunlockput(ip);
             return 0;
         }
-        if (next->is_mount_point) {
+        if (!nameiparent && next->is_mount_point) {
             next = idup(mounttable.mount_root);
         }
         iunlockput(ip);
@@ -832,7 +832,14 @@ namei(uint dev, char *path) {
     // I should get this set up to get the parent however I will need to write a new function I believe since all getting of parent inode is done via path, which I won't have a path just
     //an inode pointer. This solution is fine for now.
     if(dev > 1 && (*path == '.' && path[1] == '.') && (myproc()->cwd->inum == ROOTINO)){
-       return iget(1, ROOTINO);
+        struct inode *old_cwd = myproc()->cwd;
+        myproc()->cwd = mounttable.mount_point;
+        iput(old_cwd);
+        struct inode *new = namex(1,"../..",1,name);
+        cprintf("NEW : INUM %d DEV %d TYPE %d\n",new->inum,new->dev,new->type);
+        myproc()->cwd = new;
+        iput(old_cwd);
+        return new;
     }
 
     return namex(dev, path, 0, name);
@@ -841,4 +848,9 @@ namei(uint dev, char *path) {
 struct inode *
 nameiparent(uint dev, char *path, char *name) {
     return namex(dev, path, 1, name);
+}
+
+struct inode *
+iparent(struct inode *parent){
+
 }
