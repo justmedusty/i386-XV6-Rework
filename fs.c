@@ -675,10 +675,14 @@ namecmp(const char *s, const char *t) {
 // Look for a directory entry in a directory.
 // If found, set *poff to byte offset of entry.
 struct inode *
-dirlookup(struct inode *dp, char *name, uint *poff) {
-    if (dp->is_mount_point) {
-        dp = mounttable.mount_root;
+dirlookup(struct inode *dp, char *name, uint *poff, uint leaving_mount) {
+
+    if (!leaving_mount) {
+        if (dp->is_mount_point) {
+            dp = mounttable.mount_root;
+        }
     }
+
     uint off, inum;
     struct dirent de;
 
@@ -707,14 +711,13 @@ int
 dirlink(struct inode *dp, char *name, uint inum) {
     if (dp->is_mount_point) {
         dp = mounttable.mount_root;
-        cprintf("DIRLINK MOUNT ROOT\n");
     }
     int off;
     struct dirent de;
     struct inode *ip;
 
     // Check that name is not present.
-    if ((ip = dirlookup(dp, name, 0)) != 0) {
+    if ((ip = dirlookup(dp, name, 0,0)) != 0) {
         iput(ip);
         return -1;
     }
@@ -803,7 +806,7 @@ namex(uint dev, char *path, int nameiparent, char *name) {
             return ip;
         }
 
-        if ((next = dirlookup(ip, name, 0)) == 0) {
+        if ((next = dirlookup(ip, name, 0,1)) == 0) {
             iunlockput(ip);
             return 0;
         }
@@ -831,12 +834,12 @@ namei(uint dev, char *path) {
     //Is this inside the root of a mount point referencing the parent inode? If so, we need to move across mount points
     // I should get this set up to get the parent however I will need to write a new function I believe since all getting of parent inode is done via path, which I won't have a path just
     //an inode pointer. This solution is fine for now.
-    if(dev > 1 && (*path == '.' && path[1] == '.') && (myproc()->cwd->inum == ROOTINO)){
+    if (dev > 1 && (*path == '.' && path[1] == '.') && (myproc()->cwd->inum == ROOTINO)) {
         struct inode *old_cwd = myproc()->cwd;
         myproc()->cwd = mounttable.mount_point;
         iput(old_cwd);
-        struct inode *new = namex(1,"../..",1,name);
-        cprintf("NEW : INUM %d DEV %d TYPE %d\n",new->inum,new->dev,new->type);
+        struct inode *new = namex(1, "../..", 1, name);
+        cprintf("NEW : INUM %d DEV %d TYPE %d\n", new->inum, new->dev, new->type);
         myproc()->cwd = new;
         iput(old_cwd);
         return new;
@@ -851,6 +854,6 @@ nameiparent(uint dev, char *path, char *name) {
 }
 
 struct inode *
-iparent(struct inode *parent){
+iparent(struct inode *parent) {
 
 }

@@ -206,7 +206,7 @@ sys_unlink(void)
   if(namecmp(name, ".") == 0 || namecmp(name, "..") == 0)
     goto bad;
 
-  if((ip = dirlookup(dp, name, &off)) == 0)
+  if((ip = dirlookup(dp, name, &off,0)) == 0)
     goto bad;
   ilock(ip);
 
@@ -250,7 +250,7 @@ create(char *path, short type, short major, short minor)
     return 0;
   ilock(dp);
 
-  if((ip = dirlookup(dp, name, 0)) != 0){
+  if((ip = dirlookup(dp, name, 0,1)) != 0){
     iunlockput(dp);
     ilock(ip);
     if(type == T_FILE && ip->type == T_FILE)
