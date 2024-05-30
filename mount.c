@@ -113,9 +113,13 @@ int mount(uint dev, char *path) {
             goto fixed;
 
         }
+
+
         myproc()->cwd = old_cwd;
-        iput(dir_check);
-        cprintf("type is %d and inum is %d\n", mountpoint->type, mountpoint->inum);
+        //dont try to put a null pointer
+        if(dir_check){
+            iput(dir_check);
+        }
         iput(mountpoint);
         end_op();
         releasenonblocking(&mountlock);
