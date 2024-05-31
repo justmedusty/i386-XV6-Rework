@@ -7,7 +7,7 @@
 #include "x86.h"
 #include "traps.h"
 #include "spinlock.h"
-
+#include "signal.h"
 // Interrupt descriptor table (shared by all CPUs).
 struct gatedesc idt[256];
 extern uint vectors[];  // in vectors.S: array of 256 entry pointers
@@ -46,7 +46,15 @@ trap(struct trapframe *tf) {
         case T_PGFLT:
             uint addr = rcr2();
             if(myproc() && addr < myproc()->sz && addr >= myproc()->stack_base - MAXSTACKSIZE){
-
+                // Check if the faulting address is within the stack growth range
+                uint newstacksize = PGROUNDUP(addr);
+                if(allocuvm(curproc->pgdir, curproc->stackbase - PGSIZE, newstacksize) == 0) {
+                    cprintf("allocuvm failed for stack growth\n");
+                    myproc()->p_sig |= SIGSEG
+                } else {
+                    myproc()->stack_base = newstacksize; // Update the stack base
+                }
+                return;
             }
 
         case T_IRQ0 + IRQ_TIMER:
