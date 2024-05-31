@@ -43,6 +43,12 @@ trap(struct trapframe *tf) {
     }
 
     switch (tf->trapno) {
+        case T_PGFLT:
+            uint addr = rcr2();
+            if(myproc() && addr < myproc()->sz && addr >= myproc()->stack_base - MAXSTACKSIZE){
+
+            }
+
         case T_IRQ0 + IRQ_TIMER:
             if (cpuid() == 0) {
                 acquire(&tickslock);

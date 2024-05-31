@@ -65,6 +65,7 @@ enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE, WAIT, PREE
 // Per-process state
 struct proc {
   uint sz;                     // Size of process memory (bytes)
+  uint stack_base;              //stack base
   int p_sig;                   //The signal sent to this process
   void (*signal_handler)(int); // Pointer to signal handler function
   int p_ign;                   //flag to ignore signals (other than a kill, seg fault)
