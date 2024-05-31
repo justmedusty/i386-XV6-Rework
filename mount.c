@@ -106,21 +106,17 @@ int mount(uint dev, char *path) {
         //now that we swapped our cwd out , . will select the relative entry that will allow this mount to work properly.
         struct inode *dir_check = namei(mountpoint->dev,".");
         if(dir_check && dir_check->type == T_DIR){
-            iput(mountpoint);
             mountpoint = idup(dir_check);
             iput(dir_check);
             myproc()->cwd = old_cwd;
             goto fixed;
 
         }
-
-
         myproc()->cwd = old_cwd;
         //dont try to put a null pointer
         if(dir_check){
             iput(dir_check);
         }
-        iput(mountpoint);
         end_op();
         releasenonblocking(&mountlock);
         return -EMOUNTNTDIR;

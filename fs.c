@@ -406,8 +406,10 @@ ilock(struct inode *ip) {
         memmove(ip->addrs, dip->addrs, sizeof(ip->addrs));
         brelse(bp);
         ip->valid = 1;
-        if (ip->type == 0)
+        if (ip->type == 0){
             panic("ilock: no type");
+        }
+
     }
 }
 
@@ -478,7 +480,7 @@ iunlockput(struct inode *ip) {
 int
 iputmount(struct inode *ip) {
     //Should be 1 reference, mount root in the mounttable.
-    if (ip->ref != 1) {
+    if (ip->ref > 1) {
         return -1;
     }
     iput(ip);
