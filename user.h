@@ -47,6 +47,9 @@ int mount(int,char*);
 int umount(char*);
 
 
+void stack_overflow(int x);
+void stack_overflow2(int x);
+
 // ulib.c
 int stat(const char*, struct stat*);
 char* strcpy(char*, const char*);
