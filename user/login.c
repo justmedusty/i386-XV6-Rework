@@ -4,7 +4,7 @@
 
 #include "../kernel/defs/types.h"
 #include "user.h"
-#include "../kernel/fs/fcntl.h"
+#include "../kernel/fs/xfcntl.h"
 #include "../kernel/syscall/syscall.h"
 
 char *argv[] = {"sh", 0};

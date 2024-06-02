@@ -3,7 +3,7 @@
 #include "../kernel/defs/types.h"
 #include "../kernel/fs/stat.h"
 #include "user.h"
-#include "../kernel/fs/fcntl.h"
+#include "../kernel/fs/xfcntl.h"
 #include "../kernel/syscall/syscall.h"
 
 char *argv[] = { "login", 0 };

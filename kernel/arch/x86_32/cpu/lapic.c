@@ -6,7 +6,7 @@
 #include "../../../defs/defs.h"
 #include "../../../defs/date.h"
 #include "../mem/memlayout.h"
-#include "../sys/traps.h"
+#include "../traps.h"
 #include "../mem/mmu.h"
 #include "../x86.h"
 

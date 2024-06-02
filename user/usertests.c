@@ -3,7 +3,7 @@
 #include "../kernel/fs/stat.h"
 #include "user.h"
 #include "../kernel/fs/fs.h"
-#include "../kernel/fs/fcntl.h"
+#include "../kernel/fs/xfcntl.h"
 #include "../kernel/syscall/syscall.h"
 #include "../kernel/arch/x86_32/sys/traps.h"
 #include "../kernel/arch/x86_32/mem/memlayout.h"

@@ -11,7 +11,7 @@
 #include "../kernel/fs/stat.h"
 #include "user.h"
 #include "../kernel/fs/fs.h"
-#include "../kernel/fs/fcntl.h"
+#include "../kernel/fs/xfcntl.h"
 
 int
 main(int argc, char *argv[])

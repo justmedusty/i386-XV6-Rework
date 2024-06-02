@@ -8,26 +8,26 @@ OBJS = \
 	kernel/arch/x86_32/cpu/ioapic.o\
 	kernel/mm/kalloc.o\
 	kernel/drivers/kbd.o\
-	lapic.o\
+	kernel/arch/x86_32/cpu/lapic.o\
 	kernel/fs/log.o\
-	main.o\
-	mount.o\
+	kernel/main.o\
+	kernel/fs/mount.o\
 	kernel/arch/x86_32/mp/mp.o\
-	nonblockinglock.o\
+	kernel/lock/nonblockinglock.o\
 	kernel/arch/x86_32/cpu/picirq.o\
-	pipe.o\
-	proc.o\
-	sleeplock.o\
-	spinlock.o\
-	string.o\
-	swtch.o\
-	syscall.o\
-	sysfile.o\
-	sysproc.o\
-	trapasm.o\
-	trap.o\
-	uart.o\
-	vectors.o\
+	kernel/ipc/pipe.o\
+	kernel/sched/proc.o\
+	kernel/lock/sleeplock.o\
+	kernel/lock/spinlock.o\
+	kernel/mm/string.o\
+	kernel/arch/x86_32/swtch.o\
+	kernel/syscall/syscall.o\
+	kernel/syscall/sysfile.o\
+	kernel/syscall/sysproc.o\
+	kernel/arch/x86_32/trapasm.o\
+	kernel/interrupts/trap.o\
+	kernel/drivers/uart.o\
+	kernel/scripts/vectors.o\
 	kernel/mm/vm.o \
 
 # Cross-compiling (e.g., on Mac OS X)
@@ -123,8 +123,8 @@ initcode: kernel/arch/x86_32/initcode.S
 	$(OBJCOPY) -S -O binary initcode.out initcode
 	$(OBJDUMP) -S initcode.o > initcode.asm
 
-kernel: $(OBJS) entry.o
-	$(LD) $(LDFLAGS) -T kernel.ld -o kernel entry.o $(OBJS) -b binary initcode entryother
+kernel: $(OBJS) kernel/arch/x86_32/boot/entry.o
+	$(LD) $(LDFLAGS) -T kernel/scripts/kernel.ld -o kernel kernel/arch/x86_32/boot/entry.o $(OBJS) -b binary initcode entryother
 	$(OBJDUMP) -S kernel > kernel.asm
 	$(OBJDUMP) -t kernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > kernel.sym
 
@@ -143,26 +143,25 @@ kernel: $(OBJS) entry.o
 tags: $(OBJS) kernel/boot _init
 	etags *.S *.c
 
-vectors.S: vectors.pl
-	./vectors.pl > vectors.S
+vectors.S: kernel/scripts/vectors.pl
+	./kernel/scripts/vectors.pl > kernel/scripts/vectors.S
 
-ULIB = ulib.o usys.o printf.o umalloc.o
+ULIB = user/ulib.o kernel/syscall/usys.o user/printf.o user/umalloc.o
 
 _%: %.o $(ULIB)
-	$(OBJCOPY) --remove-section .note.gnu.property ulib.o
-	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $@ $^
+	$(OBJCOPY) --remove-section .note.gnu.property user/ulib.o
+	$(LD) $(LDFLAGS) -N -e kernel/main -Ttext 0 -o $@ $^
 	$(OBJDUMP) -S $@ > $*.asm
 	$(OBJDUMP) -t $@ | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $*.sym
 
 _forktest: forktest.o $(ULIB)
 	# forktest has less library code linked in - needs to be small
 	# in order to be able to max out the proc table.
-	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o _forktest forktest.o ulib.o usys.o
+	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o user/_forktest user/forktest.o user/ulib.o kernel/syscall/usys.o
 	$(OBJDUMP) -S _forktest > forktest.asm
 
 mkfs: kernel/fs/mkfs.c kernel/fs/fs.h
-	gcc -Werror -Wall -o mkfs mkfs.c
-
+	gcc -Werror -Wall -o kernel/fs/mkfs kernel/fs/mkfs.c
 # Prevent deletion of intermediate files, e.g. cat.o, after first build, so
 # that disk image changes after first build are persistent until clean.  More
 # details:
@@ -189,28 +188,22 @@ UPROGS=\
 	user/_sig\
 	user/_login\
 	user/_mountfs\
-	user/_umountfs \
+	user/_umountfs\
 
 fs.img: kernel/fs/mkfs README files/passwd files/largefile $(UPROGS)
 	./kernel/fs/mkfs  fs.img README files/passwd files/largefile $(UPROGS)
 
 secondaryfs.img: mkfs README files/largefile
-	./kernel/fs/mkfs secondaryfs.img README largefile user/_ls user/_cat
+	./kernel/fs/mkfs secondaryfs.img README files/largefile user/_ls user/_cat
 -include *.d
 
 clean:
 	rm -f *.tex *.dvi *.idx *.aux *.log *.ind *.ilg \
 	*.o *.d *.asm *.sym vectors.S bootblock entryother \
-	initcode initcode.out kernel xv6.img fs.img kernelmemfs \
+	initcode initcode.out xv6.img fs.img kernelmemfs \
 	xv6memfs.img mkfs .gdbinit secondaryfs.img \
-	kernel/*/*.o user/*.o \
+	kernel/*/*.o kernel/*/*.d user/*.o user/*.d kernel/*.o kernel/*.d kernel/*/*/*.o kernel/*/*/*/*.o kernel/*/*/*/*.d kernel/*/*/*/*.asm kernel/*/*/*.d \
 	$(UPROGS)
-
-# run in emulators
-
-bochs : fs.img xv6.img secondaryfs.img
-	if [ ! -e .bochsrc ]; then ln -s dot-bochsrc .bochsrc; fi
-	bochs -q
 
 # try to generate a unique GDB port
 GDBPORT = $(shell expr `id -u` % 5000 + 25000)

@@ -1,12 +1,12 @@
-#include "../kernel/defs/types.h"
-#include "../kernel/defs/defs.h"
-#include "../kernel/defs/param.h"
-#include "../kernel/arch/x86_32/mem/mmu.h"
-#include "../kernel/sched/proc.h"
-#include "../kernel/fs/fs.h"
-#include "../kernel/lock/spinlock.h"
-#include "../kernel/lock/sleeplock.h"
-#include "../kernel/fs/file.h"
+#include "../defs/types.h"
+#include "../defs/defs.h"
+#include "../defs/param.h"
+#include "../arch/x86_32/mem/mmu.h"
+#include "../sched/proc.h"
+#include "../fs/fs.h"
+#include "../lock/spinlock.h"
+#include "../lock/sleeplock.h"
+#include "../fs/file.h"
 
 #define PIPESIZE 512
 
