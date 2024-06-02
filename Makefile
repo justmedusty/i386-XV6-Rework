@@ -1,20 +1,20 @@
 OBJS = \
-	bio.o\
-	console.o\
-	exec.o\
-	file.o\
-	fs.o\
-	ide.o\
-	ioapic.o\
-	kalloc.o\
-	kbd.o\
+	kernel/fs/bio.o\
+	kernel/dev/console.o\
+	kernel/exec.o\
+	kernel/fs/file.o\
+	kernel/fs/fs.o\
+	kernel/drivers/ide.o\
+	kernel/arch/x86_32/cpu/ioapic.o\
+	kernel/mm/kalloc.o\
+	kernel/drivers/kbd.o\
 	lapic.o\
-	log.o\
+	kernel/fs/log.o\
 	main.o\
 	mount.o\
-	mp.o\
+	kernel/arch/x86_32/mp/mp.o\
 	nonblockinglock.o\
-	picirq.o\
+	kernel/arch/x86_32/cpu/picirq.o\
 	pipe.o\
 	proc.o\
 	sleeplock.o\
@@ -28,7 +28,7 @@ OBJS = \
 	trap.o\
 	uart.o\
 	vectors.o\
-	vm.o \
+	kernel/mm/vm.o \
 
 # Cross-compiling (e.g., on Mac OS X)
 #TOOLPREFIX = i386-jos-elf
@@ -102,28 +102,28 @@ xv6.img: bootblock kernel
 #	dd if=bootblock of=xv6memfs.img conv=notrunc
 #	dd if=kernelmemfs of=xv6memfs.img seek=1 conv=notrunc
 
-bootblock: bootasm.S bootmain.c
-	$(CC) $(CFLAGS) -fno-pic -O -nostdinc -I. -c bootmain.c
-	$(CC) $(CFLAGS) -fno-pic -nostdinc -I. -c bootasm.S
+bootblock: kernel/arch/x86_32/boot/bootasm.S kernel/boot/bootmain.c
+	$(CC) $(CFLAGS) -fno-pic -O -nostdinc -I. -c kernel/boot/bootmain.c
+	$(CC) $(CFLAGS) -fno-pic -nostdinc -I. -c kernel/arch/x86_32/boot/bootasm.S
 	$(LD) $(LDFLAGS) -N -e start -Ttext 0x7C00 -o bootblock.o bootasm.o bootmain.o
 	$(OBJDUMP) -S bootblock.o > bootblock.asm
 	$(OBJCOPY) -S -O binary -j .text bootblock.o bootblock
-	./sign.pl bootblock
+	./kernel/scripts/sign.pl bootblock
 
-entryother: entryother.S
-	$(CC) $(CFLAGS) -fno-pic -nostdinc -I. -c entryother.S
+entryother: kernel/arch/x86_32/boot/entryother.S
+	$(CC) $(CFLAGS) -fno-pic -nostdinc -I. -c  kernel/arch/x86_32/boot/entryother.S
 	$(LD) $(LDFLAGS) -N -e start -Ttext 0x7000 -o bootblockother.o entryother.o
 	$(OBJCOPY) -S -O binary -j .text bootblockother.o entryother
 	$(OBJDUMP) -S bootblockother.o > entryother.asm
 
-initcode: initcode.S
-	$(CC) $(CFLAGS) -nostdinc -I. -c initcode.S
+initcode: kernel/arch/x86_32/initcode.S
+	$(CC) $(CFLAGS) -nostdinc -I. -c kernel/arch/x86_32/initcode.S
 	$(OBJCOPY) --remove-section .note.gnu.property initcode.o
 	$(LD) $(LDFLAGS) -N -e start -Ttext 0 -o initcode.out initcode.o
 	$(OBJCOPY) -S -O binary initcode.out initcode
 	$(OBJDUMP) -S initcode.o > initcode.asm
 
-kernel: $(OBJS) entry.o entryother initcode kernel.ld
+kernel: $(OBJS) entry.o
 	$(LD) $(LDFLAGS) -T kernel.ld -o kernel entry.o $(OBJS) -b binary initcode entryother
 	$(OBJDUMP) -S kernel > kernel.asm
 	$(OBJDUMP) -t kernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > kernel.sym
@@ -140,7 +140,7 @@ kernel: $(OBJS) entry.o entryother initcode kernel.ld
 #	$(OBJDUMP) -S kernelmemfs > kernelmemfs.asm
 #	$(OBJDUMP) -t kernelmemfs | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > kernelmemfs.sym
 
-tags: $(OBJS) entryother.S _init
+tags: $(OBJS) kernel/boot _init
 	etags *.S *.c
 
 vectors.S: vectors.pl
@@ -160,7 +160,7 @@ _forktest: forktest.o $(ULIB)
 	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o _forktest forktest.o ulib.o usys.o
 	$(OBJDUMP) -S _forktest > forktest.asm
 
-mkfs: mkfs.c fs.h
+mkfs: kernel/fs/mkfs.c kernel/fs/fs.h
 	gcc -Werror -Wall -o mkfs mkfs.c
 
 # Prevent deletion of intermediate files, e.g. cat.o, after first build, so
@@ -170,32 +170,32 @@ mkfs: mkfs.c fs.h
 .PRECIOUS: %.o
 
 UPROGS=\
-	_cat\
-	_echo\
-	_forktest\
-	_grep\
-	_init\
-	_kill\
-	_ln\
-	_ls\
-	_mkdir\
-	_rm\
-	_sh\
-	_stressfs\
-	_usertests\
-	_wc\
-	_zombie\
-	_freemem\
-	_sig\
-	_login\
-	_mountfs\
-	_umountfs \
+	user/_cat\
+	user/_echo\
+	user/_forktest\
+	user/_grep\
+	user/_init\
+	user/_kill\
+	user/_ln\
+	user/_ls\
+	user/_mkdir\
+	user/_rm\
+	user/_sh\
+	user/_stressfs\
+	user/_usertests\
+	user/_wc\
+	user/_zombie\
+	user/_freemem\
+	user/_sig\
+	user/_login\
+	user/_mountfs\
+	user/_umountfs \
 
-fs.img: mkfs README passwd largefile $(UPROGS)
-	./mkfs fs.img README passwd largefile $(UPROGS)
+fs.img: kernel/fs/mkfs README files/passwd files/largefile $(UPROGS)
+	./kernel/fs/mkfs  fs.img README files/passwd files/largefile $(UPROGS)
 
-secondaryfs.img: mkfs README largefile
-	./mkfs secondaryfs.img README largefile _ls _cat
+secondaryfs.img: mkfs README files/largefile
+	./kernel/fs/mkfs secondaryfs.img README largefile user/_ls user/_cat
 -include *.d
 
 clean:
@@ -203,6 +203,7 @@ clean:
 	*.o *.d *.asm *.sym vectors.S bootblock entryother \
 	initcode initcode.out kernel xv6.img fs.img kernelmemfs \
 	xv6memfs.img mkfs .gdbinit secondaryfs.img \
+	kernel/*/*.o user/*.o \
 	$(UPROGS)
 
 # run in emulators
@@ -237,7 +238,7 @@ qemu: xv6.img
 qemu-nox: fs.img secondaryfs.img xv6.img
 	$(QEMU) -nographic $(QEMUOPTS)
 
-.gdbinit: .gdbinit.tmpl
+.gdbinit: files/.gdbinit.tmpl
 	sed "s/localhost:1234/localhost:$(GDBPORT)/" < $^ > $@
 
 qemu-gdb: xv6.img .gdbinit

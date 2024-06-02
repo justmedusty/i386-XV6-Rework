@@ -1,3 +1,8 @@
+This is my rework of the x86 xv6 operating system.
+
+
+Original README Below:
+
 NOTE: we have stopped maintaining the x86 version of xv6, and switched
 our efforts to the RISC-V version
 (https://github.com/mit-pdos/xv6-riscv.git)
