@@ -411,13 +411,18 @@ copyout(pde_t *pgdir, uint va, void *p, uint len)
   buf = (char*)p;
   while(len > 0){
     va0 = (uint)PGROUNDDOWN(va);
+
     pa0 = uva2ka(pgdir, (char*)va0);
+
     if(pa0 == 0)
       return -1;
     n = PGSIZE - (va - va0);
+
     if(n > len)
       n = len;
+
     memmove(pa0 + (va - va0), buf, n);
+
     len -= n;
     buf += n;
     va = va0 + PGSIZE;

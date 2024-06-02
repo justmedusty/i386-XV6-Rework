@@ -8,7 +8,7 @@
 #include "elf.h"
 
 //Keep stack at a high address so it will grow down toward the heap, this will allow for a dynamically growing stack
-#define STACK_BASE 0x80000000
+#define STACK_BASE 0x700000
 int
 exec(char *path, char **argv)
 {
@@ -59,18 +59,21 @@ exec(char *path, char **argv)
     if(loaduvm(pgdir, (char*)ph.vaddr, ip, ph.off, ph.filesz) < 0)
       goto bad;
   }
+
   iunlockput(ip);
   end_op();
   ip = 0;
 
   // Allocate two pages at the next page boundary.
   // Make the first inaccessible.  Use the second as the user stack.
-  sz = PGROUNDUP(sz);
-  if((sz = allocuvm(pgdir, sz, sz + 2*PGSIZE)) == 0)
-    goto bad;
-  clearpteu(pgdir, (char*)(sz - 2*PGSIZE));
+
+  if((sz = allocuvm(pgdir, sz, PGROUNDUP(STACK_BASE))) == 0){
+      goto bad;
+  }
+  sz = PGROUNDUP(STACK_BASE);
   uint stack_top = STACK_BASE + PGSIZE;
-  sp = STACK_BASE;
+  clearpteu(pgdir, (char*)(STACK_BASE - 2*PGSIZE));
+  sp = sz;
 
   myproc()->stack_base = sp;
   // Push argument strings, prepare rest of stack in ustack.
@@ -80,8 +83,10 @@ exec(char *path, char **argv)
     sp = (sp - (strlen(argv[argc]) + 1)) & ~3;
     if(copyout(pgdir, sp, argv[argc], strlen(argv[argc]) + 1) < 0)
       goto bad;
+
     ustack[3+argc] = sp;
   }
+
   ustack[3+argc] = 0;
 
   ustack[0] = 0xffffffff;  // fake return PC
@@ -106,6 +111,7 @@ exec(char *path, char **argv)
   curproc->tf->esp = sp;
   switchuvm(curproc);
   freevm(oldpgdir);
+    cprintf("STACK POINTER : %x\n",sp);
   return 0;
 
  bad:
@@ -115,5 +121,6 @@ exec(char *path, char **argv)
     iunlockput(ip);
     end_op();
   }
+
   return -1;
 }
