@@ -7,6 +7,8 @@
 #include "x86.h"
 #include "elf.h"
 
+//Keep stack at a high address so it will grow down toward the heap, this will allow for a dynamically growing stack
+#define STACK_BASE 0x80000000
 int
 exec(char *path, char **argv)
 {
@@ -67,7 +69,8 @@ exec(char *path, char **argv)
   if((sz = allocuvm(pgdir, sz, sz + 2*PGSIZE)) == 0)
     goto bad;
   clearpteu(pgdir, (char*)(sz - 2*PGSIZE));
-  sp = sz;
+  uint stack_top = STACK_BASE + PGSIZE;
+  sp = STACK_BASE;
 
   myproc()->stack_base = sp;
   // Push argument strings, prepare rest of stack in ustack.

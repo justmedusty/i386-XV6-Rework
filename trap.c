@@ -67,7 +67,6 @@ trap(struct trapframe *tf) {
             }
             lapiceoi();
             break;
-            //We will swap this out with a real handler once we implement our new drivers
         case T_IRQ0 + IRQ_IDE:
             ideintr();
             lapiceoi();
