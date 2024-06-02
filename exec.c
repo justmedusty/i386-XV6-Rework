@@ -8,7 +8,7 @@
 #include "elf.h"
 
 //Keep stack at a high address so it will grow down toward the heap, this will allow for a dynamically growing stack
-#define STACK_BASE 0x700000
+#define STACK_BASE 0x70000000
 int
 exec(char *path, char **argv)
 {
@@ -52,7 +52,7 @@ exec(char *path, char **argv)
       goto bad;
     if(ph.vaddr + ph.memsz < ph.vaddr)
       goto bad;
-    if((sz = allocuvm(pgdir, sz, ph.vaddr + ph.memsz)) == 0)
+    if((sz = allocuvm(pgdir, sz, ph.vaddr + ph.memsz,0)) == 0)
       goto bad;
     if(ph.vaddr % PGSIZE != 0)
       goto bad;
@@ -67,11 +67,12 @@ exec(char *path, char **argv)
   // Allocate two pages at the next page boundary.
   // Make the first inaccessible.  Use the second as the user stack.
 
-  if((sz = allocuvm(pgdir, sz, PGROUNDUP(STACK_BASE))) == 0){
+  if((sz = allocuvm(pgdir, STACK_BASE, PGROUNDDOWN(STACK_BASE)*2,1)) == 0){
       goto bad;
   }
-  sz = PGROUNDUP(STACK_BASE);
+  sz = PGROUNDDOWN(STACK_BASE);
   uint stack_top = STACK_BASE + PGSIZE;
+
   clearpteu(pgdir, (char*)(STACK_BASE - 2*PGSIZE));
   sp = sz;
 

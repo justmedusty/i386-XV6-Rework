@@ -49,7 +49,7 @@ trap(struct trapframe *tf) {
             if(myproc() && addr < myproc()->sz && addr >= myproc()->stack_base - MAXSTACKSIZE){
                 // Check if the faulting address is within the stack growth range
                 uint newstacksize = PGROUNDUP(addr);
-                if(allocuvm(myproc()->pgdir, myproc()->stack_base - PGSIZE, newstacksize) == 0) {
+                if(allocuvm(myproc()->pgdir, myproc()->stack_base - PGSIZE, newstacksize,1) == 0) {
                     cprintf("allocuvm failed for stack growth\n");
                     myproc()->p_sig |= SIGSEG;
                 } else {
