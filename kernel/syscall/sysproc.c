@@ -117,7 +117,7 @@ sys_sleep(void)
   return 0;
 }
 
-// return how many clock tick interrupts have occurred
+// return how many clock tick trap have occurred
 // since start.
 int
 sys_uptime(void)

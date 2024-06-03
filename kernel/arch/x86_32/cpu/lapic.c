@@ -1,4 +1,4 @@
-// The local APIC manages internal (non-I/O) interrupts.
+// The local APIC manages internal (non-I/O) trap.
 // See Chapter 8 & Appendix C of Intel processor manual volume 3.
 
 #include "../../../defs/param.h"
@@ -71,7 +71,7 @@ lapicinit(void) {
     lapicw(LINT0, MASKED);
     lapicw(LINT1, MASKED);
 
-    // Disable performance counter overflow interrupts
+    // Disable performance counter overflow trap
     // on machines that provide that interrupt entry.
     if (((lapic[VER] >> 16) & 0xFF) >= 4)
         lapicw(PCINT, MASKED);
@@ -83,7 +83,7 @@ lapicinit(void) {
     lapicw(ESR, 0);
     lapicw(ESR, 0);
 
-    // Ack any outstanding interrupts.
+    // Ack any outstanding trap.
     lapicw(EOI, 0);
 
     // Send an Init Level De-Assert to synchronise arbitration ID's.
@@ -91,7 +91,7 @@ lapicinit(void) {
     lapicw(ICRLO, BCAST | INIT | LEVEL);
     while (lapic[ICRLO] & DELIVS);
 
-    // Enable interrupts on the APIC (but not on the processor).
+    // Enable trap on the APIC (but not on the processor).
     lapicw(TPR, 0);
 }
 

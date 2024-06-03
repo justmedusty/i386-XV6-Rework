@@ -24,7 +24,7 @@ initlock(struct spinlock *lk, char *name)
 void
 acquire(struct spinlock *lk)
 {
-  pushcli(); // disable interrupts to avoid deadlock.
+  pushcli(); // disable trap to avoid deadlock.
   if(holding(lk))
     panic("acquire");
 
@@ -98,7 +98,7 @@ holding(struct spinlock *lock)
 
 
 // Pushcli/popcli are like cli/sti except that they are matched:
-// it takes two popcli to undo two pushcli.  Also, if interrupts
+// it takes two popcli to undo two pushcli.  Also, if trap
 // are off, then pushcli, popcli leaves them off.
 
 void

@@ -96,13 +96,13 @@ static inline void loadgs(ushort v)
     asm volatile("movw %0, %%gs" : : "r" (v));
 }
 
-// Disables interrupts.
+// Disables trap.
 static inline void cli(void)
 {
     asm volatile("cli");
 }
 
-// Enables interrupts.
+// Enables trap.
 static inline void sti(void)
 {
     asm volatile("sti");

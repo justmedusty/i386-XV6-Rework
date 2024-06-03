@@ -17,23 +17,8 @@ void *sig_handler() {
     printf(1, "RECEIVED INTERRUPT\n");
     return;
 }
-//for testing
-void stack_overflow(int x){
-    int i = (x + x )/ 3;
-    int free_pages = freemem();
-    printf(1,"Pages allocated : %d which amounts to %d bytes\n",free_pages,free_pages * 4096);
-    stack_overflow2(i);
-}
-
-void stack_overflow2(int x){
-    x = x * x - 24 / 3;
-    int free_pages = freemem();
-    printf(1,"Pages allocated : %d which amounts to %d bytes\n",free_pages,free_pages * 4096);
-    stack_overflow(x);
-}
 
 int main(int argc, char **argv) {
-    stack_overflow(25);
     if (argc == 2 && ((strcmp(argv[1],"--list")) == 0) ){
         printf(1,"SIGUP   : %d\n",SIGHUP);
         printf(1,"SIGINT  : %d\n",SIGINT);

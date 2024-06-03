@@ -10,7 +10,7 @@
 void
 picinit(void)
 {
-  // mask all interrupts
+  // mask all trap
 
 
   outb(IO_PIC1+1, 0xFF);

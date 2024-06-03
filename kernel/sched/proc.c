@@ -222,20 +222,20 @@ void shift_queue() {
 
 }
 
-// Must be called with interrupts disabled
+// Must be called with trap disabled
 int
 cpuid() {
     return mycpu() - cpus;
 }
 
-// Must be called with interrupts disabled to avoid the caller being
+// Must be called with trap disabled to avoid the caller being
 // rescheduled between reading lapicid and running through the loop.
 struct cpu *
 mycpu(void) {
     int apicid, i;
 
     if (readeflags() & FL_IF)
-        panic("mycpu called with interrupts enabled\n");
+        panic("mycpu called with trap enabled\n");
 
     apicid = lapicid();
     // APIC IDs are not guaranteed to be contiguous. Maybe we should have
@@ -270,7 +270,7 @@ int freemem(void) {
     return total_pages;
 }
 
-// Disable interrupts so that we are not rescheduled
+// Disable trap so that we are not rescheduled
 // while reading proc from the cpu structure
 struct proc *
 myproc(void) {
@@ -635,7 +635,7 @@ scheduler(void) {
     c->proc = 0;
     main:
     for (;;) {
-        // Enable interrupts on this processor.
+        // Enable trap on this processor.
         sti();
 
 

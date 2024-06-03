@@ -121,7 +121,7 @@ uint tally_kernel_page_directory(void) {
 }
 // There is one page table per process, plus one that's used when
 // a CPU is not running any process (kpgdir). The kernel uses the
-// current process's page table during system calls and interrupts;
+// current process's page table during system calls and trap;
 // page protection bits prevent user code from using the kernel's
 // mappings.
 //

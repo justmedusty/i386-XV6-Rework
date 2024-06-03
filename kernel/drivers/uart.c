@@ -30,7 +30,7 @@ uartinit(void)
   outb(COM1+1, 0);
   outb(COM1+3, 0x03);    // Lock divisor, 8 data bits.
   outb(COM1+4, 0);
-  outb(COM1+1, 0x01);    // Enable receive interrupts.
+  outb(COM1+1, 0x01);    // Enable receive trap.
 
   // If status is 0xFF, no serial port.
   if(inb(COM1+5) == 0xFF)
@@ -38,7 +38,7 @@ uartinit(void)
   uart = 1;
 
   // Acknowledge pre-existing interrupt conditions;
-  // enable interrupts.
+  // enable trap.
   inb(COM1+2);
   inb(COM1+0);
   ioapicenable(IRQ_COM1, 0);

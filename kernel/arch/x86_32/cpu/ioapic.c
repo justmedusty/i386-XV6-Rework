@@ -1,4 +1,4 @@
-// The I/O APIC manages hardware interrupts for an SMP system.
+// The I/O APIC manages hardware trap for an SMP system.
 // http://www.intel.com/design/chipsets/datashts/29056601.pdf
 // See also picirq.c.
 
@@ -56,7 +56,7 @@ ioapicinit(void)
   if(id != ioapicid)
     cprintf("ioapicinit: id isn't equal to ioapicid; not a MP\n");
 
-  // Mark all interrupts edge-triggered, active high, disabled,
+  // Mark all trap edge-triggered, active high, disabled,
   // and not routed to any CPUs.
   for(i = 0; i <= maxintr; i++){
     ioapicwrite(REG_TABLE+2*i, INT_DISABLED | (T_IRQ0 + i));

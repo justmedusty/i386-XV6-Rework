@@ -1,34 +1,34 @@
 OBJS = \
-	kernel/fs/bio.o\
-	kernel/dev/console.o\
-	kernel/exec.o\
-	kernel/fs/file.o\
-	kernel/fs/fs.o\
-	kernel/drivers/ide.o\
-	kernel/arch/x86_32/cpu/ioapic.o\
-	kernel/mm/kalloc.o\
-	kernel/drivers/kbd.o\
-	kernel/arch/x86_32/cpu/lapic.o\
-	kernel/fs/log.o\
-	kernel/main.o\
-	kernel/fs/mount.o\
-	kernel/arch/x86_32/mp/mp.o\
-	kernel/lock/nonblockinglock.o\
-	kernel/arch/x86_32/cpu/picirq.o\
-	kernel/ipc/pipe.o\
-	kernel/sched/proc.o\
-	kernel/lock/sleeplock.o\
-	kernel/lock/spinlock.o\
-	kernel/mm/string.o\
-	kernel/arch/x86_32/swtch.o\
-	kernel/syscall/syscall.o\
-	kernel/syscall/sysfile.o\
-	kernel/syscall/sysproc.o\
-	kernel/arch/x86_32/trapasm.o\
-	kernel/interrupts/trap.o\
-	kernel/drivers/uart.o\
-	kernel/scripts/vectors.o\
-	kernel/mm/vm.o \
+	../kernel/fs/bio.o\
+	../kernel/dev/console.o\
+	../kernel/exec.o\
+	../kernel/fs/file.o\
+	../kernel/fs/fs.o\
+	../kernel/drivers/ide.o\
+	../kernel/arch/x86_32/cpu/ioapic.o\
+	../kernel/mm/kalloc.o\
+	../kernel/drivers/kbd.o\
+	../kernel/arch/x86_32/cpu/lapic.o\
+	../kernel/fs/log.o\
+	../kernel/main.o\
+	../kernel/fs/mount.o\
+	../kernel/arch/x86_32/mp/mp.o\
+	../kernel/lock/nonblockinglock.o\
+	../kernel/arch/x86_32/cpu/picirq.o\
+	../kernel/ipc/pipe.o\
+	../kernel/sched/proc.o\
+	../kernel/lock/sleeplock.o\
+	../kernel/lock/spinlock.o\
+	../kernel/mm/string.o\
+	../kernel/arch/x86_32/swtch.o\
+	../kernel/syscall/syscall.o\
+	../kernel/syscall/sysfile.o\
+	../kernel/syscall/sysproc.o\
+	../kernel/arch/x86_32/trapasm.o\
+	../kernel/trap/trap.o\
+	../kernel/drivers/uart.o\
+	../kernel/scripts/vectors.o\
+	../kernel/mm/vm.o \
 
 # Cross-compiling (e.g., on Mac OS X)
 #TOOLPREFIX = i386-jos-elf
@@ -81,8 +81,15 @@ OBJDUMP = $(TOOLPREFIX)objdump
 CFLAGS = -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -mno-sse -m32 -fno-omit-frame-pointer
 CFLAGS += $(shell $(CC) -fno-stack-protector -E -x c /dev/null >/dev/null 2>&1 && echo -fno-stack-protector)
 ASFLAGS = -m32 -gdwarf-2 -Wa,-divide
-# FreeBSD ld wants ``elf_i386_fbsd''
-LDFLAGS = -m elf_i386
+LDFLAGS += -m $(shell $(LD) -V | grep elf_i386 2>/dev/null | head -n 1)
+
+# Disable PIE when possible (for Ubuntu 16.10 toolchain)
+ifneq ($(shell $(CC) -dumpspecs 2>/dev/null | grep -e '[^f]no-pie'),)
+CFLAGS += -fno-pie -no-pie
+endif
+ifneq ($(shell $(CC) -dumpspecs 2>/dev/null | grep -e '[^f]nopie'),)
+CFLAGS += -fno-pie -nopie
+endif
 
 # Disable PIE when possible (for Ubuntu 16.10 toolchain)
 ifneq ($(shell $(CC) -dumpspecs 2>/dev/null | grep -e '[^f]no-pie'),)
@@ -102,29 +109,29 @@ xv6.img: bootblock xkernel
 #	dd if=bootblock of=xv6memfs.img conv=notrunc
 #	dd if=kernelmemfs of=xv6memfs.img seek=1 conv=notrunc
 
-bootblock: kernel/arch/x86_32/boot/bootasm.S kernel/boot/bootmain.c
-	$(CC) $(CFLAGS) -fno-pic -O -nostdinc -I. -c kernel/boot/bootmain.c
-	$(CC) $(CFLAGS) -fno-pic -nostdinc -I. -c kernel/arch/x86_32/boot/bootasm.S
+bootblock: ../kernel/arch/x86_32/boot/bootasm.S ../kernel/boot/bootmain.c
+	$(CC) $(CFLAGS) -fno-pic -O -nostdinc -I. -c ../kernel/boot/bootmain.c
+	$(CC) $(CFLAGS) -fno-pic -nostdinc -I. -c ../kernel/arch/x86_32/boot/bootasm.S
 	$(LD) $(LDFLAGS) -N -e start -Ttext 0x7C00 -o bootblock.o bootasm.o bootmain.o
 	$(OBJDUMP) -S bootblock.o > bootblock.asm
 	$(OBJCOPY) -S -O binary -j .text bootblock.o bootblock
 	./kernel/scripts/sign.pl bootblock
 
-kernel/arch/x86_32/boot/entryother: kernel/arch/x86_32/boot/entryother.S
-	$(CC) $(CFLAGS) -fno-pic -nostdinc -I. -c  kernel/arch/x86_32/boot/entryother.S
+kernel/arch/x86_32/boot/entryother: ../kernel/arch/x86_32/boot/entryother.S
+	$(CC) $(CFLAGS) -fno-pic -nostdinc -I. -c  ../kernel/arch/x86_32/boot/entryother.S
 	$(LD) $(LDFLAGS) -N -e start -Ttext 0x7000 -o bootblockother.o entryother.o
 	$(OBJCOPY) -S -O binary -j .text bootblockother.o entryother
 	$(OBJDUMP) -S bootblockother.o > entryother.asm
 
-kernel/arch/x86_32/initcode: kernel/arch/x86_32/initcode.S
-	$(CC) $(CFLAGS) -nostdinc -I. -c kernel/arch/x86_32/initcode.S
+kernel/arch/x86_32/initcode: ../kernel/arch/x86_32/initcode.S
+	$(CC) $(CFLAGS) -nostdinc -I. -c ../kernel/arch/x86_32/initcode.S
 	$(OBJCOPY) --remove-section .note.gnu.property initcode.o
 	$(LD) $(LDFLAGS) -N -e start -Ttext 0 -o initcode.out initcode.o
 	$(OBJCOPY) -S -O binary initcode.out initcode
 	$(OBJDUMP) -S initcode.o > initcode.asm
 
-xkernel: $(OBJS) kernel/arch/x86_32/boot/entry.o kernel/arch/x86_32/boot/entryother kernel/arch/x86_32/initcode kernel/scripts/kernel.ld
-	$(LD) $(LDFLAGS) -T kernel/scripts/kernel.ld -o xkernel kernel/arch/x86_32/boot/entry.o $(OBJS) -b binary initcode entryother
+xkernel: $(OBJS) ../kernel/arch/x86_32/boot/entry.o kernel/arch/x86_32/boot/entryother kernel/arch/x86_32/initcode ../kernel/scripts/kernel.ld
+	$(LD) $(LDFLAGS) -T ../kernel/scripts/kernel.ld -o xkernel ../kernel/arch/x86_32/boot/entry.o $(OBJS) -b binary initcode entryother
 	$(OBJDUMP) -S xkernel > kernel.asm
 	$(OBJDUMP) -t xkernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > kernel.sym
 
@@ -140,17 +147,15 @@ xkernel: $(OBJS) kernel/arch/x86_32/boot/entry.o kernel/arch/x86_32/boot/entryot
 #	$(OBJDUMP) -S kernelmemfs > kernelmemfs.asm
 #	$(OBJDUMP) -t kernelmemfs | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > kernelmemfs.sym
 
-tags: $(OBJS) kernel/boot _init
+tags: $(OBJS) ../kernel/arch/x86_32/boot/entryother.S init
 	etags *.S *.c
 
-vectors.S: kernel/scripts/vectors.pl
-	./kernel/scripts/vectors.pl > kernel/scripts/vectors.S
+vectors.S: ../kernel/scripts/vectors.pl
+	./../kernel/scripts/vectors.pl > ../kernel/scripts/vectors.S
 
-ULIB = user/ulib.o kernel/syscall/usys.o user/printf.o user/umalloc.o
+ULIB = ulib.o usys.o printf.o umalloc.o
 
-# Rule for building user programs
-user/%: user/%.o $(ULIB)
-	$(CC) $(CFLAGS) -c -o $@ $<
+_%: %.o $(ULIB)
 	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $@ $^
 	$(OBJDUMP) -S $@ > $*.asm
 	$(OBJDUMP) -t $@ | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $*.sym
@@ -161,41 +166,42 @@ user/forktest: user/forktest.o $(ULIB)
 	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o user/_forktest user/forktest.o user/ulib.o kernel/syscall/usys.o
 	$(OBJDUMP) -S user/_forktest > user/forktest.asm
 
-mkfs: kernel/fs/mkfs.c kernel/fs/fs.h
-	gcc -Werror -Wall -o kernel/fs/mkfs kernel/fs/mkfs.c
+mkfs: ../kernel/fs/mkfs.c ../kernel/fs/fs.h
+	gcc -Werror -Wall -o mkfs ../kernel/fs/mkfs.c
 # Prevent deletion of intermediate files, e.g. cat.o, after first build, so
 # that disk image changes after first build are persistent until clean.  More
 # details:
 # http://www.gnu.org/software/make/manual/html_node/Chained-Rules.html
-.PRECIOUS: %user/*.o
+.PRECIOUS: %.o
 
-UPROGS= \
-	user/cat\
-	user/echo\
-	user/grep\
-	user/init\
-	user/kill\
-	user/ln\
-	user/ls\
-	user/mkdir\
-	user/rm\
-	user/sh\
-	user/stressfs\
-	user/usertests\
-	user/wc\
-	user/zombie\
-	user/freemem\
-	user/sig\
-	user/login\
-	user/mountfs\
-	user/umountfs\
+UPROGS=\
+	cat\
+	echo\
+	grep\
+	init\
+	kill\
+	ln\
+	ls\
+	mkdir\
+	rm\
+	sh\
+	stressfs\
+	sig\
+	usertests\
+	wc\
+	zombie\
+	freemem\
+	sig\
+	login\
+	mountfs\
+	umountfs\
 
 
-fs.img: kernel/fs/mkfs README files/passwd files/largefile $(UPROGS)
-	./kernel/fs/mkfs  fs.img README files/passwd files/largefile $(UPROGS)
+fs.img: mkfs README passwd largefile $(UPROGS)
+	./mkfs  fs.img README passwd largefile $(UPROGS)
 
-secondaryfs.img: kernel/fs/mkfs README files/largefile user/ls user/cat
-	./kernel/fs/mkfs secondaryfs.img README files/largefile user/ls user/cat
+secondaryfs.img: mkfs README largefile ls cat
+	./mkfs secondaryfs.img README largefile ls cat
 -include *.d
 
 clean:
@@ -232,7 +238,7 @@ qemu: xv6.img
 qemu-nox: fs.img secondaryfs.img xv6.img
 	$(QEMU) -nographic $(QEMUOPTS)
 
-.gdbinit: files/.gdbinit.tmpl
+.gdbinit: ../files/.gdbinit.tmpl
 	sed "s/localhost:1234/localhost:$(GDBPORT)/" < $^ > $@
 
 qemu-gdb: xv6.img .gdbinit

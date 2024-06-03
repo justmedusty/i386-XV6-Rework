@@ -114,7 +114,7 @@ trap(struct trapframe *tf) {
         exit();
 
     // Force process to give up CPU on exceeding time quantum.
-    // If interrupts were on while locks held, would need to check nlock.
+    // If trap were on while locks held, would need to check nlock.
 
 
     //Increment the cpu usage counter for the process each clock interrupt and check against its time quantum , preempt it if it exceeds it's given time quantum

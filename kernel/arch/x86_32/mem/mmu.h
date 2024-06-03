@@ -144,7 +144,7 @@ struct taskstate {
   ushort iomb;       // I/O map base address
 };
 
-// Gate descriptors for interrupts and traps
+// Gate descriptors for trap and traps
 struct gatedesc {
   uint off_15_0 : 16;   // low 16 bits of offset in segment
   uint cs : 16;         // code segment selector
