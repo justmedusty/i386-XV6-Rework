@@ -45,18 +45,6 @@ trap(struct trapframe *tf) {
     switch (tf->trapno) {
         case T_PGFLT:
             panic("PAGE FAULT");
-            uint addr = rcr2();
-            if(myproc() && addr < myproc()->sz && addr >= myproc()->stack_base - MAXSTACKSIZE){
-                // Check if the faulting address is within the stack growth range
-                uint newstacksize = PGROUNDUP(addr);
-                if(allocuvm(myproc()->pgdir, myproc()->stack_base - PGSIZE, newstacksize,1) == 0) {
-                    cprintf("allocuvm failed for stack growth\n");
-                    myproc()->p_sig |= SIGSEG;
-                } else {
-                    myproc()->stack_base = newstacksize; // Update the stack base
-                }
-                return;
-            }
 
         case T_IRQ0 + IRQ_TIMER:
             if (cpuid() == 0) {
