@@ -13,3 +13,4 @@ initcode.out
 kernelmemfs
 mkfs
 .gdbinit
+.idea
