@@ -110,20 +110,20 @@ bootblock: kernel/arch/x86_32/boot/bootasm.S kernel/boot/bootmain.c
 	$(OBJCOPY) -S -O binary -j .text bootblock.o bootblock
 	./kernel/scripts/sign.pl bootblock
 
-entryother: kernel/arch/x86_32/boot/entryother.S
+kernel/arch/x86_32/boot/entryother: kernel/arch/x86_32/boot/entryother.S
 	$(CC) $(CFLAGS) -fno-pic -nostdinc -I. -c  kernel/arch/x86_32/boot/entryother.S
 	$(LD) $(LDFLAGS) -N -e start -Ttext 0x7000 -o bootblockother.o entryother.o
 	$(OBJCOPY) -S -O binary -j .text bootblockother.o entryother
 	$(OBJDUMP) -S bootblockother.o > entryother.asm
 
-initcode: kernel/arch/x86_32/initcode.S
+kernel/arch/x86_32/initcode: kernel/arch/x86_32/initcode.S
 	$(CC) $(CFLAGS) -nostdinc -I. -c kernel/arch/x86_32/initcode.S
 	$(OBJCOPY) --remove-section .note.gnu.property initcode.o
 	$(LD) $(LDFLAGS) -N -e start -Ttext 0 -o initcode.out initcode.o
 	$(OBJCOPY) -S -O binary initcode.out initcode
 	$(OBJDUMP) -S initcode.o > initcode.asm
 
-kernel: $(OBJS) kernel/arch/x86_32/boot/entry.o
+xkernel: $(OBJS) kernel/arch/x86_32/boot/entry.o kernel/arch/x86_32/boot/entryother kernel/arch/x86_32/initcode kernel/scripts/kernel.ld
 	$(LD) $(LDFLAGS) -T kernel/scripts/kernel.ld -o xkernel kernel/arch/x86_32/boot/entry.o $(OBJS) -b binary initcode entryother
 	$(OBJDUMP) -S xkernel > kernel.asm
 	$(OBJDUMP) -t xkernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > kernel.sym
@@ -166,7 +166,7 @@ mkfs: kernel/fs/mkfs.c kernel/fs/fs.h
 # that disk image changes after first build are persistent until clean.  More
 # details:
 # http://www.gnu.org/software/make/manual/html_node/Chained-Rules.html
-.PRECIOUS: %.o
+.PRECIOUS: %user/*.o
 
 UPROGS=\
 	user/_cat\
@@ -193,7 +193,7 @@ UPROGS=\
 fs.img: kernel/fs/mkfs README files/passwd files/largefile $(UPROGS)
 	./kernel/fs/mkfs  fs.img README files/passwd files/largefile $(UPROGS)
 
-secondaryfs.img: mkfs README files/largefile
+secondaryfs.img: kernel/fs/mkfs README files/largefile
 	./kernel/fs/mkfs secondaryfs.img README files/largefile user/_ls user/_cat
 -include *.d
 
