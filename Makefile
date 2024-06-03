@@ -150,7 +150,8 @@ ULIB = user/ulib.o kernel/syscall/usys.o user/printf.o user/umalloc.o
 
 # Rule for building user programs
 user/%: user/%.o $(ULIB)
-	$(LD) $(LDFLAGS) -N -e kernel/main -Ttext 0 -o $@ $^
+	$(CC) $(CFLAGS) -c -o $@ $<
+	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $@ $^
 	$(OBJDUMP) -S $@ > $*.asm
 	$(OBJDUMP) -t $@ | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $*.sym
 
@@ -169,32 +170,33 @@ mkfs: kernel/fs/mkfs.c kernel/fs/fs.h
 .PRECIOUS: %user/*.o
 
 UPROGS=\
-	user/_cat\
-	user/_echo\
-	user/_forktest\
-	user/_grep\
-	user/_init\
-	user/_kill\
-	user/_ln\
-	user/_ls\
-	user/_mkdir\
-	user/_rm\
-	user/_sh\
-	user/_stressfs\
-	user/_usertests\
-	user/_wc\
-	user/_zombie\
-	user/_freemem\
-	user/_sig\
-	user/_login\
-	user/_mountfs\
-	user/_umountfs\
+	user/cat\
+	user/echo\
+	user/forktest\
+	user/grep\
+	user/init\
+	user/kill\
+	user/ln\
+	user/ls\
+	user/mkdir\
+	user/rm\
+	user/sh\
+	user/stressfs\
+	user/usertests\
+	user/wc\
+	user/zombie\
+	user/freemem\
+	user/sig\
+	user/login\
+	user/mountfs\
+	user/umountfs\
+
 
 fs.img: kernel/fs/mkfs README files/passwd files/largefile $(UPROGS)
 	./kernel/fs/mkfs  fs.img README files/passwd files/largefile $(UPROGS)
 
-secondaryfs.img: kernel/fs/mkfs README files/largefile
-	./kernel/fs/mkfs secondaryfs.img README files/largefile user/_ls user/_cat
+secondaryfs.img: kernel/fs/mkfs README files/largefile user/_ls user/_cat
+	./kernel/fs/mkfs secondaryfs.img README files/largefile user/ls user/cat
 -include *.d
 
 clean:
