@@ -148,13 +148,13 @@ vectors.S: kernel/scripts/vectors.pl
 
 ULIB = user/ulib.o kernel/syscall/usys.o user/printf.o user/umalloc.o
 
-_%: %/user/*.o $(ULIB)
-	$(OBJCOPY) --remove-section .note.gnu.property user/ulib.o
+# Rule for building user programs
+user/%: user/%.o $(ULIB)
 	$(LD) $(LDFLAGS) -N -e kernel/main -Ttext 0 -o $@ $^
 	$(OBJDUMP) -S $@ > $*.asm
 	$(OBJDUMP) -t $@ | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $*.sym
 
-_forktest: user/forktest.o $(ULIB)
+user/_forktest: user/forktest.o $(ULIB)
 	# forktest has less library code linked in - needs to be small
 	# in order to be able to max out the proc table.
 	$(LD) $(LDFLAGS) -N -e kernel/main -Ttext 0 -o user/_forktest user/forktest.o user/ulib.o kernel/syscall/usys.o
