@@ -92,10 +92,10 @@ ifneq ($(shell $(CC) -dumpspecs 2>/dev/null | grep -e '[^f]nopie'),)
 CFLAGS += -fno-pie -nopie
 endif
 
-xv6.img: bootblock kernel
+xv6.img: bootblock xkernel
 	dd if=/dev/zero of=xv6.img count=10000
 	dd if=bootblock of=xv6.img conv=notrunc
-	dd if=kernel of=xv6.img seek=1 conv=notrunc
+	dd if=xkernel of=xv6.img seek=1 conv=notrunc
 
 #xv6memfs.img: bootblock kernelmemfs
 #	dd if=/dev/zero of=xv6memfs.img count=10000
@@ -124,9 +124,9 @@ initcode: kernel/arch/x86_32/initcode.S
 	$(OBJDUMP) -S initcode.o > initcode.asm
 
 kernel: $(OBJS) kernel/arch/x86_32/boot/entry.o
-	$(LD) $(LDFLAGS) -T kernel/scripts/kernel.ld -o kernel kernel/arch/x86_32/boot/entry.o $(OBJS) -b binary initcode entryother
-	$(OBJDUMP) -S kernel > kernel.asm
-	$(OBJDUMP) -t kernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > kernel.sym
+	$(LD) $(LDFLAGS) -T kernel/scripts/kernel.ld -o xkernel kernel/arch/x86_32/boot/entry.o $(OBJS) -b binary initcode entryother
+	$(OBJDUMP) -S xkernel > kernel.asm
+	$(OBJDUMP) -t xkernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > kernel.sym
 
 # kernelmemfs is a copy of kernel that maintains the
 # disk image in memory instead of writing to a disk.
@@ -148,17 +148,17 @@ vectors.S: kernel/scripts/vectors.pl
 
 ULIB = user/ulib.o kernel/syscall/usys.o user/printf.o user/umalloc.o
 
-_%: %.o $(ULIB)
+_%: %/user/*.o $(ULIB)
 	$(OBJCOPY) --remove-section .note.gnu.property user/ulib.o
 	$(LD) $(LDFLAGS) -N -e kernel/main -Ttext 0 -o $@ $^
 	$(OBJDUMP) -S $@ > $*.asm
 	$(OBJDUMP) -t $@ | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $*.sym
 
-_forktest: forktest.o $(ULIB)
+_forktest: user/forktest.o $(ULIB)
 	# forktest has less library code linked in - needs to be small
 	# in order to be able to max out the proc table.
-	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o user/_forktest user/forktest.o user/ulib.o kernel/syscall/usys.o
-	$(OBJDUMP) -S _forktest > forktest.asm
+	$(LD) $(LDFLAGS) -N -e kernel/main -Ttext 0 -o user/_forktest user/forktest.o user/ulib.o kernel/syscall/usys.o
+	$(OBJDUMP) -S user/_forktest > user/forktest.asm
 
 mkfs: kernel/fs/mkfs.c kernel/fs/fs.h
 	gcc -Werror -Wall -o kernel/fs/mkfs kernel/fs/mkfs.c
@@ -202,7 +202,7 @@ clean:
 	*.o *.d *.asm *.sym vectors.S bootblock entryother \
 	initcode initcode.out xv6.img fs.img kernelmemfs \
 	xv6memfs.img mkfs .gdbinit secondaryfs.img \
-	kernel/*/*.o kernel/*/*.d user/*.o user/*.d kernel/*.o kernel/*.d kernel/*/*/*.o kernel/*/*/*/*.o kernel/*/*/*/*.d kernel/*/*/*/*.asm kernel/*/*/*.d \
+	kernel/*/*.o user/*.sym user/*.asm kernel/*/*.d user/*.o user/*.d kernel/*.o kernel/*.d kernel/*/*/*.o kernel/*/*/*/*.o kernel/*/*/*/*.d kernel/*/*/*/*.asm kernel/*/*/*.d \
 	$(UPROGS)
 
 # try to generate a unique GDB port

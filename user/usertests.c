@@ -5,7 +5,7 @@
 #include "../kernel/fs/fs.h"
 #include "../kernel/fs/xfcntl.h"
 #include "../kernel/syscall/syscall.h"
-#include "../kernel/arch/x86_32/sys/traps.h"
+#include "../kernel/arch/x86_32/traps.h"
 #include "../kernel/arch/x86_32/mem/memlayout.h"
 
 char buf[8192];
