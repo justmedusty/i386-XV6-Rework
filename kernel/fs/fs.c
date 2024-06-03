@@ -848,7 +848,7 @@ namei(uint dev, char *path) {
     }
 
     struct inode *ip = namex(dev, path, 0, name);
-    cprintf("%d %d %d %x\n",ip->dev,ip->inum,ip->type,ip);
+    cprintf("initial dev: %d path : %s %d %d %d %x\n",dev,path,ip->dev,ip->inum,ip->type,ip);
     return ip;
 }
 

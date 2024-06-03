@@ -25,10 +25,9 @@ exec(char *path, char **argv)
     if((ip = namei(1,path)) == 0){
         end_op();
         cprintf("exec: fail\n");
-
         return -1;
     }
-    cprintf("inum %d \n",ip);
+    cprintf("addr %x \n",ip);
     ilock(ip);
     pgdir = 0;
 
