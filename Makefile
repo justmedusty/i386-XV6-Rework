@@ -155,10 +155,10 @@ user/%: user/%.o $(ULIB)
 	$(OBJDUMP) -S $@ > $*.asm
 	$(OBJDUMP) -t $@ | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $*.sym
 
-user/_forktest: user/forktest.o $(ULIB)
+user/forktest: user/forktest.o $(ULIB)
 	# forktest has less library code linked in - needs to be small
 	# in order to be able to max out the proc table.
-	$(LD) $(LDFLAGS) -N -e kernel/main -Ttext 0 -o user/_forktest user/forktest.o user/ulib.o kernel/syscall/usys.o
+	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o user/_forktest user/forktest.o user/ulib.o kernel/syscall/usys.o
 	$(OBJDUMP) -S user/_forktest > user/forktest.asm
 
 mkfs: kernel/fs/mkfs.c kernel/fs/fs.h
@@ -169,10 +169,9 @@ mkfs: kernel/fs/mkfs.c kernel/fs/fs.h
 # http://www.gnu.org/software/make/manual/html_node/Chained-Rules.html
 .PRECIOUS: %user/*.o
 
-UPROGS=\
+UPROGS= \
 	user/cat\
 	user/echo\
-	user/forktest\
 	user/grep\
 	user/init\
 	user/kill\
@@ -195,7 +194,7 @@ UPROGS=\
 fs.img: kernel/fs/mkfs README files/passwd files/largefile $(UPROGS)
 	./kernel/fs/mkfs  fs.img README files/passwd files/largefile $(UPROGS)
 
-secondaryfs.img: kernel/fs/mkfs README files/largefile user/_ls user/_cat
+secondaryfs.img: kernel/fs/mkfs README files/largefile user/ls user/cat
 	./kernel/fs/mkfs secondaryfs.img README files/largefile user/ls user/cat
 -include *.d
 
@@ -222,7 +221,7 @@ QEMUOPTS =     -drive file=xv6.img,media=disk,format=raw,bus=0,unit=0 \
                -smp $(CPUS) -m 512 $(QEMUEXTRA) \
                -monitor stdio
 
-drives: fs.img secondaryfs.img
+drives: mkfs fs.img secondaryfs.img
 
 qemu: xv6.img
 	$(QEMU) -serial mon:vc $(QEMUOPTS)

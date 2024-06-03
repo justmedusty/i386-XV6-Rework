@@ -145,7 +145,23 @@ main(int argc, char *argv[])
 
     bzero(&de, sizeof(de));
     de.inum = xshort(inum);
-    strncpy(de.name, argv[i], DIRSIZ);
+    if(strcmp(argv[i],"/user/init")){
+        strncpy(argv[i],"init", strlen(argv[i]));
+    }
+    /*
+    printf("%s\n",argv[i]);
+    int len = strlen(argv[i]);
+    int slash_count = 0;
+    for(int i =0;i<len;i++){
+        if(*argv[i] == '/'){
+            slash_count = i;
+        }
+    }
+    char *entry = argv[i] + slash_count;
+      printf("%s\n",entry);
+      */
+        strncpy(de.name, argv[i], DIRSIZ);
+
     iappend(rootino, &de, sizeof(de));
 
     while((cc = read(fd, buf, sizeof(buf))) > 0)

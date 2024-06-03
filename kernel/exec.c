@@ -22,13 +22,13 @@ exec(char *path, char **argv)
     struct proc *curproc = myproc();
 
     begin_op();
-
-
-    if((ip = namei(0,path)) == 0){
+    if((ip = namei(1,path)) == 0){
         end_op();
         cprintf("exec: fail\n");
+
         return -1;
     }
+    cprintf("inum %d \n",ip);
     ilock(ip);
     pgdir = 0;
 
@@ -43,6 +43,7 @@ exec(char *path, char **argv)
 
     // Load program into memory.
     sz = 0;
+
     for(i=0, off=elf.phoff; i<elf.phnum; i++, off+=sizeof(ph)){
         if(readi(ip, (char*)&ph, off, sizeof(ph)) != sizeof(ph))
             goto bad;
@@ -104,6 +105,7 @@ exec(char *path, char **argv)
     curproc->tf->esp = sp;
     switchuvm(curproc);
     freevm(oldpgdir);
+
     return 0;
 
     bad:
