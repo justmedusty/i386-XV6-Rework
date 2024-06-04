@@ -115,7 +115,7 @@ bootblock: ../kernel/arch/x86_32/boot/bootasm.S ../kernel/boot/bootmain.c
 	$(LD) $(LDFLAGS) -N -e start -Ttext 0x7C00 -o bootblock.o bootasm.o bootmain.o
 	$(OBJDUMP) -S bootblock.o > bootblock.asm
 	$(OBJCOPY) -S -O binary -j .text bootblock.o bootblock
-	./kernel/scripts/sign.pl bootblock
+	./../kernel/scripts/sign.pl bootblock
 
 kernel/arch/x86_32/boot/entryother: ../kernel/arch/x86_32/boot/entryother.S
 	$(CC) $(CFLAGS) -fno-pic -nostdinc -I. -c  ../kernel/arch/x86_32/boot/entryother.S
@@ -147,20 +147,20 @@ xkernel: $(OBJS) ../kernel/arch/x86_32/boot/entry.o kernel/arch/x86_32/boot/entr
 #	$(OBJDUMP) -S kernelmemfs > kernelmemfs.asm
 #	$(OBJDUMP) -t kernelmemfs | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > kernelmemfs.sym
 
-tags: $(OBJS) ../kernel/arch/x86_32/boot/entryother.S init
+tags: $(OBJS) ../kernel/arch/x86_32/boot/entryother.S _init
 	etags *.S *.c
 
 vectors.S: ../kernel/scripts/vectors.pl
 	./../kernel/scripts/vectors.pl > ../kernel/scripts/vectors.S
 
-ULIB = ulib.o usys.o printf.o umalloc.o
+ULIB = ulib.o ../kernel/syscall/usys.o printf.o umalloc.o
 
 _%: %.o $(ULIB)
 	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $@ $^
 	$(OBJDUMP) -S $@ > $*.asm
 	$(OBJDUMP) -t $@ | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $*.sym
 
-user/forktest: user/forktest.o $(ULIB)
+user/forktest: forktest.o $(ULIB)
 	# forktest has less library code linked in - needs to be small
 	# in order to be able to max out the proc table.
 	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o user/_forktest user/forktest.o user/ulib.o kernel/syscall/usys.o
@@ -175,38 +175,38 @@ mkfs: ../kernel/fs/mkfs.c ../kernel/fs/fs.h
 .PRECIOUS: %.o
 
 UPROGS=\
-	cat\
-	echo\
-	grep\
-	init\
-	kill\
-	ln\
-	ls\
-	mkdir\
-	rm\
-	sh\
-	stressfs\
-	sig\
-	usertests\
-	wc\
-	zombie\
-	freemem\
-	sig\
-	login\
-	mountfs\
-	umountfs\
+	_cat\
+	_echo\
+	_grep\
+	_init\
+	_kill\
+	_ln\
+	_ls\
+	_mkdir\
+	_rm\
+	_sh\
+	_stressfs\
+	_sig\
+	_usertests\
+	_wc\
+	_zombie\
+	_freemem\
+	_sig\
+	_login\
+	_mountfs\
+	_umountfs\
 
 
 fs.img: mkfs README passwd largefile $(UPROGS)
 	./mkfs  fs.img README passwd largefile $(UPROGS)
 
-secondaryfs.img: mkfs README largefile ls cat
-	./mkfs secondaryfs.img README largefile ls cat
+secondaryfs.img: mkfs README largefile _ls _cat
+	./mkfs secondaryfs.img README largefile _ls _cat
 -include *.d
 
 clean:
 	rm -f *.tex *.dvi *.idx *.aux *.log *.ind *.ilg \
-	*.o *.d *.asm *.sym vectors.S bootblock entryother \
+	*.o *.d *.asm *.sym vectors.S bootblock entryother _* \
 	initcode initcode.out xv6.img fs.img kernelmemfs \
 	xv6memfs.img mkfs .gdbinit secondaryfs.img \
 	kernel/*/*.o user/*.sym user/*.asm kernel/*/*.d user/*.o user/*.d kernel/*.o kernel/*.d kernel/*/*/*.o kernel/*/*/*/*.o kernel/*/*/*/*.d kernel/*/*/*/*.asm kernel/*/*/*.d \
