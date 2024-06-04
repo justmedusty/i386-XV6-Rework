@@ -6,7 +6,7 @@
 #include "../arch/x86_32/traps.h"
 #include "../lock/spinlock.h"
 #include "../lock/sleeplock.h"
-#include "../fs/fs.h"
+#include "../../user/fs.h"
 #include "../fs/file.h"
 #include "../arch/x86_32/mem/mmu.h"
 #include "../sched/proc.h"

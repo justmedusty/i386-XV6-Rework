@@ -5,7 +5,7 @@
 #include "../defs/types.h"
 #include "../defs/defs.h"
 #include "../defs/param.h"
-#include "fs.h"
+#include "../../user/fs.h"
 #include "../lock/spinlock.h"
 #include "../lock/sleeplock.h"
 #include "file.h"

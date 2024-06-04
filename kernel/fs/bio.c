@@ -23,7 +23,7 @@
 #include "../defs/param.h"
 #include "../lock/spinlock.h"
 #include "../lock/sleeplock.h"
-#include "fs.h"
+#include "../../user/fs.h"
 #include "buf.h"
 #include "file.h"
 

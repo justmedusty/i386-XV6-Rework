@@ -35,7 +35,7 @@ exec(char *path, char **argv)
     if(readi(ip, (char*)&elf, 0, sizeof(elf)) != sizeof(elf))
         goto bad;
     if(elf.magic != ELF_MAGIC)
-        goto bad;
+        panic("bad elf magic");
 
     if((pgdir = setupkvm()) == 0)
         goto bad;
@@ -76,6 +76,7 @@ exec(char *path, char **argv)
         if(argc >= MAXARG)
             goto bad;
         sp = (sp - (strlen(argv[argc]) + 1)) & ~3;
+
         if(copyout(pgdir, sp, argv[argc], strlen(argv[argc]) + 1) < 0)
             goto bad;
         ustack[3+argc] = sp;

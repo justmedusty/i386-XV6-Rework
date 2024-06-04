@@ -166,8 +166,8 @@ user/forktest: forktest.o $(ULIB)
 	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o user/_forktest user/forktest.o user/ulib.o kernel/syscall/usys.o
 	$(OBJDUMP) -S user/_forktest > user/forktest.asm
 
-mkfs: ../kernel/fs/mkfs.c ../kernel/fs/fs.h
-	gcc -Werror -Wall -o mkfs ../kernel/fs/mkfs.c
+mkfs: mkfs.c fs.h
+	gcc -Werror -Wall -o mkfs mkfs.c
 # Prevent deletion of intermediate files, e.g. cat.o, after first build, so
 # that disk image changes after first build are persistent until clean.  More
 # details:
@@ -227,7 +227,7 @@ QEMUOPTS =     -drive file=xv6.img,media=disk,format=raw,bus=0,unit=0 \
                -smp $(CPUS) -m 512 $(QEMUEXTRA) \
                -monitor stdio
 
-drives: mkfs fs.img secondaryfs.img
+drives:fs.img secondaryfs.img
 
 qemu: xv6.img
 	$(QEMU) -serial mon:vc $(QEMUOPTS)
