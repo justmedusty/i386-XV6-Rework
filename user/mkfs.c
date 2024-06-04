@@ -77,7 +77,7 @@ main(int argc, char *argv[])
     static_assert(sizeof(int) == 4, "Integers must be 4 bytes!");
 
     if(argc < 2){
-        fprintf(stderr, "Usage: mkfs fs.img files...\n");
+        fprintf(stderr, "Usage: mkfs secondaryfs.img files...\n");
         exit(1);
     }
 

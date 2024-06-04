@@ -135,8 +135,8 @@ xkernel: $(OBJS) ../kernel/arch/x86_32/boot/entry.o kernel/arch/x86_32/boot/entr
 # great for testing the kernel on real hardware without
 # needing a scratch disk.
 #MEMFSOBJS = $(filter-out ide.o,$(OBJS)) #memide.o
-#kernelmemfs: $(MEMFSOBJS) entry.o entryother initcode kernel.ld #fs.img secondaryfs.img
-#	$(LD) $(LDFLAGS) -T kernel.ld -o kernelmemfs entry.o  $(MEMFSOBJS) -b binary initcode entryother #fs.img secondaryfs.img
+#kernelmemfs: $(MEMFSOBJS) entry.o entryother initcode kernel.ld #secondaryfs.img secondaryfs.img
+#	$(LD) $(LDFLAGS) -T kernel.ld -o kernelmemfs entry.o  $(MEMFSOBJS) -b binary initcode entryother #secondaryfs.img secondaryfs.img
 #	$(OBJDUMP) -S kernelmemfs > kernelmemfs.asm
 #	$(OBJDUMP) -t kernelmemfs | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > kernelmemfs.sym
 
@@ -149,11 +149,12 @@ vectors.S: ../kernel/scripts/vectors.pl
 ULIB = ulib.o ../kernel/syscall/usys.o printf.o umalloc.o
 
 _%: %.o $(ULIB)
+	$(OBJCOPY) --remove-section .note.gnu.property ulib.o
 	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $@ $^
 	$(OBJDUMP) -S $@ > $*.asm
 	$(OBJDUMP) -t $@ | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $*.sym
 
-user/forktest: forktest.o $(ULIB)
+forktest: forktest.o $(ULIB)
 	# forktest has less library code linked in - needs to be small
 	# in order to be able to max out the proc table.
 	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o user/_forktest user/forktest.o user/ulib.o kernel/syscall/usys.o
@@ -184,6 +185,7 @@ UPROGS=\
 	_wc\
 	_zombie\
 	_freemem\
+	_forktest\
 	_sig\
 	_login\
 	_mountfs\
@@ -201,8 +203,8 @@ clean:
 	rm -f *.tex *.dvi *.idx *.aux *.log *.ind *.ilg \
 	*.o *.d *.asm *.sym vectors.S bootblock entryother _* \
 	initcode initcode.out xv6.img fs.img kernelmemfs \
-	xv6memfs.img mkfs .gdbinit secondaryfs.img \
-	kernel/*/*.o user/*.sym user/*.asm kernel/*/*.d user/*.o user/*.d kernel/*.o kernel/*.d kernel/*/*/*.o kernel/*/*/*/*.o kernel/*/*/*/*.d kernel/*/*/*/*.asm kernel/*/*/*.d \
+	xv6memfs.img mkfs .gdbinit secondaryfs.img ../kernel/*/*.o\
+	../kernel/*/*.o user/*.sym user/*.asm ../kernel/*/*.d user/*.o user/*.d ../kernel/*.o ../kernel/*.d ../kernel/*/*/*.o ../kernel/*/*/*/*.o ../kernel/*/*/*/*.d ../kernel/*/*/*/*.asm ../kernel/*/*/*.d \
 	$(UPROGS)
 
 # try to generate a unique GDB port
@@ -220,7 +222,7 @@ QEMUOPTS =     -drive file=xv6.img,media=disk,format=raw,bus=0,unit=0 \
                -smp $(CPUS) -m 512 $(QEMUEXTRA) \
                -monitor stdio
 
-drives:fs.img secondaryfs.img
+drives: fs.img secondaryfs.img
 
 qemu: xv6.img
 	$(QEMU) -serial mon:vc $(QEMUOPTS)
@@ -228,7 +230,7 @@ qemu: xv6.img
 #qemu-memfs: xv6memfs.img
 #	$(QEMU) -drive file=xv6memfs.img,index=0,media=disk,format=raw -smp $(CPUS) -m 256
 
-qemu-nox: fs.img secondaryfs.img xv6.img
+qemu-nox: secondaryfs.img secondaryfs.img xv6.img
 	$(QEMU) -nographic $(QEMUOPTS)
 
 .gdbinit: ../files/.gdbinit.tmpl
@@ -238,6 +240,6 @@ qemu-gdb: xv6.img .gdbinit
 	@echo "*** Now run 'gdb'." 1>&2
 	$(QEMU) -serial mon:stdio $(QEMUOPTS) -S $(QEMUGDB)
 
-qemu-nox-gdb: fs.img secondaryfs.img xv6.img .gdbinit
+qemu-nox-gdb: secondaryfs.img secondaryfs.img xv6.img .gdbinit
 	@echo "*** Now run 'gdb'." 1>&2
 	$(QEMU) -nographic $(QEMUOPTS) -S $(QEMUGDB)

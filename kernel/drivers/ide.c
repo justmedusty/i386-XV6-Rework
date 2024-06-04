@@ -41,7 +41,7 @@ static struct buf *idequeue2;
 
 
 static int havedisk1; // ata0 master (xv6.img)
-static int havedisk2; // ata0 slave (fs.img)
+static int havedisk2; // ata0 slave (secondaryfs.img)
 static int havedisk3; // ata1 master (secondaryfs.img)
 static int havedisk4; // ata1 slave (unimplemented)
 static int havedisk5; // ata2 master (unimplemented)
