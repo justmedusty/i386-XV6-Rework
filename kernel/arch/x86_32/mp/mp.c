@@ -2,7 +2,7 @@
 // Search memory for MP description structures.
 // http://developer.intel.com/design/pentium/datashts/24201606.pdf
 
-#include "../../../defs/types.h"
+#include "../../../../user/types.h"
 #include "../../../defs/defs.h"
 #include "../../../defs/param.h"
 #include "../mem/memlayout.h"

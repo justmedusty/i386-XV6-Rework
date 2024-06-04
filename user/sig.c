@@ -8,7 +8,7 @@
  * no permissions etc. there is only kernel or user so this can be used on any other process. At some point I will add users and groups and permission bits etc.
  */
 #include "../kernel/syscall/syscall.h"
-#include "../kernel/defs/types.h"
+#include "types.h"
 #include "user.h"
 #include "../kernel/sched/signal.h"
 

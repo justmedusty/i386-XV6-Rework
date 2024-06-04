@@ -11,7 +11,7 @@
  * the process know it is busy. It can try again later, after all.
  */
 
-#include "../defs/types.h"
+#include "../../user/types.h"
 #include "../../user/fs.h"
 #include "../defs/defs.h"
 #include "../defs/param.h"
@@ -19,7 +19,7 @@
 #include "../lock/sleeplock.h"
 #include "file.h"
 #include "../lock/nonblockinglock.h"
-#include "stat.h"
+#include "../../user/stat.h"
 #include "mount.h"
 #include "../drivers/ide.h"
 #include "../arch/x86_32/mem/mmu.h"

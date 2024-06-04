@@ -1,5 +1,5 @@
 #include "../defs/param.h"
-#include "../defs/types.h"
+#include "../../user/types.h"
 #include "../defs/defs.h"
 #include "../arch/x86_32/x86.h"
 #include "../arch/x86_32/mem/memlayout.h"

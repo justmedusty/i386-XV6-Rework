@@ -1,4 +1,4 @@
-#include "../defs/types.h"
+#include "../../user/types.h"
 #include "../arch/x86_32/x86.h"
 #include "../defs/defs.h"
 #include "kbd.h"

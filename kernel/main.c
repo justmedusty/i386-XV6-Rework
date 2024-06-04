@@ -1,4 +1,4 @@
-#include "defs/types.h"
+#include "../user/types.h"
 #include "defs/defs.h"
 #include "defs/param.h"
 #include "arch/x86_32/mem/memlayout.h"

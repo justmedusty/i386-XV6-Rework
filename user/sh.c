@@ -1,6 +1,6 @@
 // Shell.
 
-#include "../kernel/defs/types.h"
+#include "types.h"
 #include "user.h"
 #include "../kernel/fs/xfcntl.h"
 #include "../kernel/sched/signal.h"

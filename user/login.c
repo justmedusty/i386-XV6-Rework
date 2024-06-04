@@ -2,7 +2,7 @@
 // Created by dustyn on 5/11/24.
 // login shell.
 
-#include "../kernel/defs/types.h"
+#include "types.h"
 #include "user.h"
 #include "../kernel/fs/xfcntl.h"
 #include "../kernel/syscall/syscall.h"

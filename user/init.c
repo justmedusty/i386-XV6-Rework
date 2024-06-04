@@ -1,7 +1,7 @@
 // init: The initial user-level program
 
-#include "../kernel/defs/types.h"
-#include "../kernel/fs/stat.h"
+#include "types.h"
+#include "stat.h"
 #include "user.h"
 #include "../kernel/fs/xfcntl.h"
 #include "../kernel/syscall/syscall.h"

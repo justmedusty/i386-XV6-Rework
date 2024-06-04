@@ -2,7 +2,7 @@
 // Created by dustyn on 5/7/24.
 //
 #include "../kernel/syscall/syscall.h"
-#include "../kernel/defs/types.h"
+#include "types.h"
 #include "user.h"
 
 

@@ -1,4 +1,4 @@
-#include "../defs/types.h"
+#include "../../user/types.h"
 #include "../defs/defs.h"
 #include "../defs/param.h"
 #include "../lock/spinlock.h"

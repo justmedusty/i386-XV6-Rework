@@ -6,10 +6,10 @@
  * I will use this lock for mounts and maybe other things as well, for now it will just indicate that the point is mounted so the same mount point cannot be mounted again.
  * It will not affect a processes ability to unmount , only to mount the same point twice.
  */
-#include "../defs/types.h"
+#include "../../user/types.h"
 #include "spinlock.h"
 #include "nonblockinglock.h"
-#include "../defs/types.h"
+#include "../../user/types.h"
 #include "../defs/defs.h"
 #include "../defs/param.h"
 #include "../arch/x86_32/x86.h"

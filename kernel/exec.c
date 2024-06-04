@@ -1,4 +1,4 @@
-#include "defs/types.h"
+#include "../user/types.h"
 #include "defs/param.h"
 #include "arch/x86_32/mem/memlayout.h"
 #include "arch/x86_32/mem/mmu.h"
@@ -27,7 +27,6 @@ exec(char *path, char **argv)
         cprintf("exec: fail\n");
         return -1;
     }
-    cprintf("addr %x \n",ip);
     ilock(ip);
     pgdir = 0;
 

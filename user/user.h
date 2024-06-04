@@ -1,4 +1,4 @@
-#include "../kernel/defs/types.h"
+#include "types.h"
 struct stat;
 struct rtcdate;
 

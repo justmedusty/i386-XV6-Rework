@@ -18,7 +18,7 @@
 // * B_DIRTY: the buffer data has been modified
 //     and needs to be written to disk.
 
-#include "../defs/types.h"
+#include "../../user/types.h"
 #include "../defs/defs.h"
 #include "../defs/param.h"
 #include "../lock/spinlock.h"

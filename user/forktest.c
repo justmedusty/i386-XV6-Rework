@@ -1,8 +1,8 @@
 // Test that fork fails gracefully.
 // Tiny executable so that the limit can be filling the proc table.
 
-#include "../kernel/defs/types.h"
-#include "../kernel/fs/stat.h"
+#include "types.h"
+#include "stat.h"
 #include "user.h"
 
 #define N  1000

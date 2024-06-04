@@ -9,10 +9,10 @@
 // routines.  The (higher-level) system call implementations
 // are in sysfile.c.
 
-#include "../defs/types.h"
+#include "../../user/types.h"
 #include "../defs/defs.h"
 #include "../defs/param.h"
-#include "stat.h"
+#include "../../user/stat.h"
 #include "../arch/x86_32/mem/mmu.h"
 #include "../sched/proc.h"
 #include "../lock/spinlock.h"

@@ -1,7 +1,7 @@
 // Simple grep.  Only supports ^ . * $ operators.
 
-#include "../kernel/defs/types.h"
-#include "../kernel/fs/stat.h"
+#include "types.h"
+#include "stat.h"
 #include "user.h"
 
 char buf[1024];

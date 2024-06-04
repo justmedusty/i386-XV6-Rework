@@ -2,7 +2,7 @@
 // memory for user processes, kernel stacks, page table pages,
 // and pipe buffers. Allocates 4096-byte pages.
 
-#include "../defs/types.h"
+#include "../../user/types.h"
 #include "../defs/defs.h"
 #include "../defs/param.h"
 #include "../arch/x86_32/mem/memlayout.h"

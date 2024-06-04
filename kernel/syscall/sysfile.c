@@ -4,10 +4,10 @@
 // user code, and calls into file.c and fs.c.
 //
 
-#include "../defs/types.h"
+#include "../../user/types.h"
 #include "../defs/defs.h"
 #include "../defs/param.h"
-#include "../fs/stat.h"
+#include "../../user/stat.h"
 #include "../arch/x86_32/mem/mmu.h"
 #include "../sched/proc.h"
 #include "../../user/fs.h"

@@ -2,7 +2,7 @@
 // File descriptors
 //
 
-#include "../defs/types.h"
+#include "../../user/types.h"
 #include "../defs/defs.h"
 #include "../defs/param.h"
 #include "../../user/fs.h"
