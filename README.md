@@ -17,3 +17,5 @@ Changes made so far:
 
   - Added preemption of processes if the time quantum is exceeded and a higher prio process is waiting, i added the special PREEMPTED process state so that I can ensure fairness
     and allow a preempted process to execute again later even if it is low prio.
+
+  - Added nonblocking lock specifically for mounting. It is just a lock that returns immediately if locked instead of spinning or sleeping.
