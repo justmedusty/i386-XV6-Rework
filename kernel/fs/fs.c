@@ -17,7 +17,7 @@
 #include "../sched/proc.h"
 #include "../lock/spinlock.h"
 #include "../lock/sleeplock.h"
-#include "../../user/fs.h"
+#include "fs.h"
 #include "buf.h"
 #include "file.h"
 #include "mount.h"

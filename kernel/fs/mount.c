@@ -12,7 +12,7 @@
  */
 
 #include "../../user/types.h"
-#include "../../user/fs.h"
+#include "fs.h"
 #include "../defs/defs.h"
 #include "../defs/param.h"
 #include "../lock/spinlock.h"
