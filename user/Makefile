@@ -204,9 +204,11 @@ clean:
 	rm -f *.tex *.dvi *.idx *.aux *.log *.ind *.ilg \
 	*.o *.d *.asm *.sym vectors.S bootblock entryother _* \
 	initcode initcode.out xv6.img fs.img kernelmemfs \
-	xv6memfs.img mkfs .gdbinit secondaryfs.img ../kernel/*/*.o\
-	../kernel/*/*.o user/*.sym user/*.asm ../kernel/*/*.d user/*.o user/*.d ../kernel/*.o ../kernel/*.d ../kernel/*/*/*.o ../kernel/*/*/*/*.o ../kernel/*/*/*/*.d ../kernel/*/*/*/*.asm ../kernel/*/*/*.d \
-	$(UPROGS)
+	xv6memfs.img mkfs .gdbinit secondaryfs.img
+	find ../ -type f \( -name '*.o' -o -name '*.d' -o -name '*.asm' -o -name '*.sym' \) -exec rm -f {} +
+	find user/ -type f \( -name '*.sym' -o -name '*.asm' -o -name '*.o' -o -name '*.d' \) -exec rm -f {} +
+	find ../kernel/ -type f \( -name '*.o' -o -name '*.d' -o -name '*.asm' \) -exec rm -f {} +
+	rm -f $(UPROGS)
 
 # try to generate a unique GDB port
 GDBPORT = $(shell expr `id -u` % 5000 + 25000)
