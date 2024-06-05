@@ -33,6 +33,12 @@ void yield(void);
 
 void preempt(void);
 
+uint get_cpu_avg();
+
+void update_cpu_avg(uint ticks);
+
+void init_cpu_avg_counter();
+
 void scheduler(void);
 
 

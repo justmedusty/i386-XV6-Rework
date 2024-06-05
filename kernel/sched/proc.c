@@ -28,6 +28,7 @@ cpuid() {
 void
 pinit(void) {
     initlock(&ptable.lock, "ptable");
+    init_cpu_avg_counter();
 }
 // Must be called with trap disabled to avoid the caller being
 // rescheduled between reading lapicid and running through the loop.
@@ -263,7 +264,10 @@ fork(void) {
      * Clear time taken and copy the time quantum from the parent
      */
     np->p_cpu_usage = 0;
-    np->p_time_quantum = curproc->p_time_quantum;
+    //prevent abuse of the scheduler by resetting your TQ with a fork and subsequent suicide
+    //so split the usage between the parent and child
+    np->p_time_quantum = curproc->p_cpu_usage / 2;
+    curproc->p_time_quantum -= np->p_time_quantum;
 
     /*
      * Fill the intr/ign/handler fields
@@ -350,14 +354,12 @@ exit(void) {
         }
     }
     remove_proc_from_queue(curproc);
-    // curproc->name[0] = 0;
-    // curproc->killed = 0;
     curproc->state = ZOMBIE;
     curproc->killed = 1;
     nextpid = curproc->pid;
-    //freevm(curproc->pgdir);
-    //kfree(curproc->kstack);
 
+    //update our average cpu usage metrics for dynamic time quanta calculation
+    update_cpu_avg(curproc->p_cpu_usage);
     // Jump into the scheduler, never to return.
     sched();
     panic("zombie exit");
@@ -429,6 +431,7 @@ forkret(void) {
         iinit(SECONDARYDEV,2);
         initlog(ROOTDEV);
         initlog(SECONDARYDEV);
+        init_cpu_avg_counter();
     }
 
     // Return to "caller", actually trapret (see allocproc).

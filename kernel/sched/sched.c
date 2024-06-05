@@ -25,29 +25,35 @@ struct pqueue procqueue;
 
 int queueinit = 0;
 
-/*
- * I think I will do live calculations of average cpu usage in clock cycles, update this obj-wide variable and let
- * that be a basis for preempting..
- *
- * I'll start it with a dummy value
- *
- * todo implement live calculation of avg cpu usage
- */
-
-int avg_cpu_usage = 25;
 
 /*
  * After each proc has finished, we can add its cpu usage to the total_cpu_time
  * increment n_procs, and then divide total_cpu_time by n_procs to get our new mean
  */
+
 struct cpu_avg{
     uint total_cpu_time;
     uint n_procs;
     uint avg;
 };
 
-
-
+struct cpu_avg c_avg;
+//init our counter, dummy value to start with avg
+void init_cpu_avg_counter(){
+    c_avg.avg = 25;
+    c_avg.n_procs = 0;
+    c_avg.total_cpu_time = 0;
+}
+//Update with the new average
+void update_cpu_avg(uint ticks){
+    c_avg.total_cpu_time += ticks;
+    c_avg.n_procs++;
+    c_avg.avg = c_avg.total_cpu_time / c_avg.n_procs;
+}
+//get the avg clock cycles per proc
+uint get_cpu_avg(){
+    return c_avg.avg;
+}
 /*
  * Init our proc queue by linking the head and tail and initing the spinlock
  *
@@ -189,9 +195,7 @@ void purge_queue() {
     while (pointer != 0) {
 
         if (pointer->state != RUNNABLE) {
-
             remove_proc_from_queue(pointer);
-
         }
 
         pointer = pointer->next;
@@ -300,6 +304,9 @@ scheduler(void) {
             //prempted procs will need to go round the merry-go-round a few times before they are reset
             if (is_queue_empty() && p->state == PREEMPTED && !is_proc_queued(p)) {
                 p->state = RUNNABLE;
+                //Add onto the time quantum with our averaged value, I prefer this to resetting the cpu_usage field because then
+                //the calculations can get skewed
+                p->p_time_quantum += c_avg.avg;
                 insert_proc_into_queue(p);
                 goto sched;
             }

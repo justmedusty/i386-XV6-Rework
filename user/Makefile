@@ -204,7 +204,7 @@ clean:
 	rm -f *.tex *.dvi *.idx *.aux *.log *.ind *.ilg \
 	*.o *.d *.asm *.sym vectors.S bootblock entryother _* \
 	initcode initcode.out xv6.img fs.img kernelmemfs \
-	xv6memfs.img mkfs .gdbinit secondaryfs.img
+	xv6memfs.img mkfs .gdbinit secondaryfs.img xkernel
 	find ../ -type f \( -name '*.o' -o -name '*.d' -o -name '*.asm' -o -name '*.sym' \) -exec rm -f {} +
 	find user/ -type f \( -name '*.sym' -o -name '*.asm' -o -name '*.o' -o -name '*.d' \) -exec rm -f {} +
 	find ../kernel/ -type f \( -name '*.o' -o -name '*.d' -o -name '*.asm' \) -exec rm -f {} +
