@@ -29,7 +29,7 @@ OBJS = \
 	../kernel/trap/trap.o\
 	../kernel/drivers/uart.o\
 	../kernel/scripts/vectors.o\
-	../kernel/mm/vm.o \
+	../kernel/arch/x86_32/mem/vm.o \
 
 # Cross-compiling (e.g., on Mac OS X)
 #TOOLPREFIX = i386-jos-elf

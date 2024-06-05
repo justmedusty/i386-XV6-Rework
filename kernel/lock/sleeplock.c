@@ -6,8 +6,8 @@
 #include "../arch/x86_32/x86.h"
 #include "../arch/x86_32/mem/memlayout.h"
 #include "../arch/x86_32/mem/mmu.h"
-#include "../sched/proc.h"
 #include "spinlock.h"
+#include "../sched/proc.h"
 #include "sleeplock.h"
 
 void

@@ -4,10 +4,11 @@
 #include "../x86.h"
 #include "memlayout.h"
 #include "mmu.h"
+#include "../../../lock/spinlock.h"
 #include "../../../sched/proc.h"
 #include "../../../defs/elf.h"
 #include "vm.h"
-#include "../../../lock/spinlock.h"
+
 
 extern char data[];  // defined by kernel.ld
 pde_t *kpgdir;  // for use in scheduler()

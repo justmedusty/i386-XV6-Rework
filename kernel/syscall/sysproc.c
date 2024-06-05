@@ -5,6 +5,7 @@
 #include "../defs/param.h"
 #include "../arch/x86_32/mem/memlayout.h"
 #include "../arch/x86_32/mem/mmu.h"
+#include "../lock/spinlock.h"
 #include "../sched/proc.h"
 
 int

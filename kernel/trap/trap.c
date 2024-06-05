@@ -3,10 +3,10 @@
 #include "../defs/param.h"
 #include "../arch/x86_32/mem/memlayout.h"
 #include "../arch/x86_32/mem/mmu.h"
+#include "../lock/spinlock.h"
 #include "../sched/proc.h"
 #include "../arch/x86_32/x86.h"
 #include "../arch/x86_32/traps.h"
-#include "../lock/spinlock.h"
 #include "../sched/signal.h"
 #include "../sched/sched.h"
 // Interrupt descriptor table (shared by all CPUs).
