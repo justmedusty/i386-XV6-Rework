@@ -34,7 +34,17 @@ int queueinit = 0;
  * todo implement live calculation of avg cpu usage
  */
 
-static int avg_cpu_usage = 25;
+int avg_cpu_usage = 25;
+
+/*
+ * After each proc has finished, we can add its cpu usage to the total_cpu_time
+ * increment n_procs, and then divide total_cpu_time by n_procs to get our new mean
+ */
+struct cpu_avg{
+    uint total_cpu_time;
+    uint n_procs;
+    uint avg;
+};
 
 
 

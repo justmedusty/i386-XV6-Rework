@@ -13,6 +13,7 @@
 extern char data[];  // defined by kernel.ld
 pde_t *kpgdir;  // for use in scheduler()
 
+#define STACK_BASE 0x7000000
 // Set up CPU's kernel segment descriptors.
 // Run once on entry on each CPU.
 void
