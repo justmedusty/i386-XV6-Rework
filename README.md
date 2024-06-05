@@ -6,6 +6,8 @@ Changes made so far:
     Insertions into the sched queue are done by placing the highest prio first on the runqeue and as the kernel walks
     down the queue it checks the process to be enqueued against the process in this spot in the queue.
 
+  - Laying groundwork to do cpu usage averaging to dynamically set time quanta for processes as they are created  
+
   - Added basic signals, can be seen in signal.h. Signals can be masked and ignored via the sigignore system call (non fatal signals only)
     signal handlers not properly implemented yet will get to this later.
 
