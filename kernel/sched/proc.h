@@ -1,4 +1,5 @@
 // Per-CPU state
+=
 struct cpu {
   uchar apicid;                // Local APIC ID
   struct context *scheduler;   // swtch() here to enter scheduler
@@ -97,6 +98,10 @@ struct proc {
 //   fixed-size stack
 //   expandable heap
 
+struct {
+    struct spinlock lock;
+    struct proc proc[NPROC];
+} ptable;
 
 /* Dustyn's extra function */
 
@@ -104,5 +109,3 @@ uint tally_allocated_memory_for_all_procs(void);
 void inc_time_quantum(struct proc *p);
 void change_process_space(int state_flag);
 void preempt(void);
-int is_proc_alone_in_queue(struct proc *p);
-
