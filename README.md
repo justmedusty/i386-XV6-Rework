@@ -2,7 +2,7 @@ This is my rework of the x86 xv6 operating system.
 
 Changes made so far:
 
-  - Sched queue based on processor priorities, differing from typical unix in that higher number eq higher prio. 
+  - Sched queue based on process priorities, differing from typical unix in that higher number eq higher prio. 
     Insertions into the sched queue are done by placing the highest prio first on the runqeue and as the kernel walks
     down the queue it checks the process to be enqueued against the process in this spot in the queue.
 
