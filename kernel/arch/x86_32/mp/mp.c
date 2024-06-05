@@ -9,6 +9,7 @@
 #include "mp.h"
 #include "../x86.h"
 #include "../mem/mmu.h"
+#include "../../../lock/spinlock.h"
 #include "../../../sched/proc.h"
 
 struct cpu cpus[NCPU];

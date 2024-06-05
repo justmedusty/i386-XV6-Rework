@@ -4,8 +4,8 @@
 #include "../arch/x86_32/mem/memlayout.h"
 #include "../arch/x86_32/mem/mmu.h"
 #include "../arch/x86_32/x86.h"
-#include "proc.h"
 #include "../lock/spinlock.h"
+#include "proc.h"
 #include "../arch/x86_32/mem/vm.h"
 #include "signal.h"
 #include "sched.h"
@@ -17,6 +17,8 @@ extern void forkret(void);
 extern void trapret(void);
 static void wakeup1(void *chan);
 // Must be called with trap disabled
+
+
 int
 cpuid() {
     return mycpu() - cpus;

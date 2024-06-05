@@ -1,5 +1,5 @@
 // Per-CPU state
-=
+
 struct cpu {
   uchar apicid;                // Local APIC ID
   struct context *scheduler;   // swtch() here to enter scheduler
@@ -10,6 +10,9 @@ struct cpu {
   int intena;                  // Were trap enabled before pushcli?
   struct proc *proc;           // The process running on this cpu or null
 };
+
+
+
 
 extern struct cpu cpus[NCPU];
 extern int ncpu;
@@ -98,13 +101,13 @@ struct proc {
 //   fixed-size stack
 //   expandable heap
 
-struct {
+extern struct {
     struct spinlock lock;
     struct proc proc[NPROC];
 } ptable;
 
-/* Dustyn's extra function */
 
+/* Dustyn's extra functions */
 uint tally_allocated_memory_for_all_procs(void);
 void inc_time_quantum(struct proc *p);
 void change_process_space(int state_flag);

@@ -5,6 +5,12 @@
 #ifndef I386_XV6_REWORK_SCHED_H
 #define I386_XV6_REWORK_SCHED_H
 
+extern struct {
+    struct spinlock qloc;
+    struct proc *head;
+    struct proc *tail;
+} procqueue;
+
 int is_proc_alone_in_queue(struct proc *p);
 
 int is_queue_empty();
@@ -27,6 +33,5 @@ void preempt(void);
 
 void scheduler(void);
 
-void initprocqueue();
 
 #endif //I386_XV6_REWORK_SCHED_H

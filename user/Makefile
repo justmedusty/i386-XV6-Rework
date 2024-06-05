@@ -16,8 +16,8 @@ OBJS = \
 	../kernel/lock/nonblockinglock.o\
 	../kernel/arch/x86_32/cpu/picirq.o\
 	../kernel/ipc/pipe.o\
-	../kernel/sched/proc.o\
 	../kernel/sched/sched.o\
+	../kernel/sched/proc.o\
 	../kernel/lock/sleeplock.o\
 	../kernel/lock/spinlock.o\
 	../kernel/mm/string.o\

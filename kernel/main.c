@@ -3,9 +3,11 @@
 #include "defs/param.h"
 #include "arch/x86_32/mem/memlayout.h"
 #include "arch/x86_32/mem/mmu.h"
+#include "lock/spinlock.h"
 #include "sched/proc.h"
 #include "arch/x86_32/x86.h"
 #include "fs/mount.h"
+
 #include "sched/sched.h"
 static void startothers(void);
 static void mpmain(void)  __attribute__((noreturn));
