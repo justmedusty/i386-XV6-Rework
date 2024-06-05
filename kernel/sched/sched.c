@@ -12,6 +12,7 @@
 #include "proc.h"
 #include "../arch/x86_32/mem/vm.h"
 #include "signal.h"
+#include "sched.h"
 
 /*
  * This will be a doubly linked list where processes of higher or lower priorities will be sorted either at the head or the ass end depending on priority.
@@ -20,11 +21,7 @@
  * could lead to issues. This will help ensure fairness.
  *
  */
-struct {
-    struct spinlock qloc;
-    struct proc *head;
-    struct proc *tail;
-} procqueue;
+struct pqueue procqueue;
 
 int queueinit = 0;
 

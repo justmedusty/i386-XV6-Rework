@@ -5,11 +5,13 @@
 #ifndef I386_XV6_REWORK_SCHED_H
 #define I386_XV6_REWORK_SCHED_H
 
-extern struct {
+struct pqueue {
     struct spinlock qloc;
     struct proc *head;
     struct proc *tail;
-} procqueue;
+};
+
+extern struct pqueue procqueue;
 
 int is_proc_alone_in_queue(struct proc *p);
 

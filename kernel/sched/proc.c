@@ -18,6 +18,8 @@ extern void trapret(void);
 static void wakeup1(void *chan);
 // Must be called with trap disabled
 
+struct proctable ptable;
+
 
 int
 cpuid() {
