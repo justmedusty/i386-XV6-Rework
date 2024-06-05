@@ -6,7 +6,7 @@
 #include "../arch/x86_32/x86.h"
 #include "proc.h"
 #include "../lock/spinlock.h"
-#include "../mm/vm.h"
+#include "../arch/x86_32/mem/vm.h"
 #include "signal.h"
 
 struct {

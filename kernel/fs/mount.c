@@ -52,31 +52,38 @@ int mount(uint dev, char *path) {
             if (diskmask & DEV2) {
                 break;
             }
+            goto bad;
         case 3:
             if (diskmask & DEV3) {
                 break;
             }
+            goto bad;
         case 4:
             if (diskmask & DEV4) {
                 break;
             }
+            goto bad;
         case 5:
             if (diskmask & DEV5) {
                 break;
             }
+            goto bad;
         case 6:
             if (diskmask & DEV6) {
                 break;
             }
+            goto bad;
         case 7:
             if (diskmask & DEV7) {
                 break;
             }
+            goto bad;
 
         default:
             if (dev > 7) {
                 return -EDEVOOR;
             }
+        bad:
             return -ENODEV;
     }
 

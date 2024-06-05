@@ -1,13 +1,13 @@
-#include "../defs/param.h"
-#include "../../user/types.h"
-#include "../defs/defs.h"
-#include "../arch/x86_32/x86.h"
-#include "../arch/x86_32/mem/memlayout.h"
-#include "../arch/x86_32/mem/mmu.h"
-#include "../sched/proc.h"
-#include "../defs/elf.h"
+#include "../../../defs/param.h"
+#include "../../../../user/types.h"
+#include "../../../defs/defs.h"
+#include "../x86.h"
+#include "memlayout.h"
+#include "mmu.h"
+#include "../../../sched/proc.h"
+#include "../../../defs/elf.h"
 #include "vm.h"
-#include "../lock/spinlock.h"
+#include "../../../lock/spinlock.h"
 
 extern char data[];  // defined by kernel.ld
 pde_t *kpgdir;  // for use in scheduler()
