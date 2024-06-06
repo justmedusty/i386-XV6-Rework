@@ -19,4 +19,6 @@ int is_proc_queued(struct proc *p,struct pqueue *procqueue);
 void remove_proc_from_queue(struct proc *old,struct pqueue *procqueue);
 int claim_proc(struct proc *p);
 int unclaim_proc(struct proc *p);
+void purge_queue(struct pqueue *procqueue);
+void shift_queue(struct pqueue *procqueue);
 #endif //I386_XV6_REWORK_QUEUE_H

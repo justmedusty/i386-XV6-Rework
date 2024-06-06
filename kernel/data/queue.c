@@ -2,17 +2,17 @@
 // Created by dustyn on 6/5/24->
 //
 
-#include "queue->h"
-#include "->->/->->/user/types->h"
-#include "->->/defs/defs->h"
-#include "->->/lock/spinlock->h"
-#include "->->/defs/param->h"
-#include "->->/arch/x86_32/mem/memlayout->h"
-#include "->->/arch/x86_32/mem/mmu->h"
-#include "->->/arch/x86_32/x86->h"
-#include "proc->h"
-#include "->->/arch/x86_32/mem/vm->h"
-#include "signal->h"
+#include "queue.h"
+#include "../../user/types.h"
+#include "../defs/defs.h"
+#include "../lock/spinlock.h"
+#include "../defs/param.h"
+#include "../arch/x86_32/mem/memlayout.h"
+#include "../arch/x86_32/mem/mmu.h"
+#include "../arch/x86_32/x86.h"
+#include "proc.h"
+#include "../arch/x86_32/mem/vm.h"
+#include "signal.h"
 
 /*
  * We will create some reusable functions for dealing with proc queues and other types of queues in order to make it simpler to deal with many different
@@ -199,7 +199,7 @@ void shift_queue(struct pqueue *procqueue) {
     new_head->prev = 0;
     procqueue->head = new_head;
     old_head->next = 0;
-
+    unclaim_proc(old_head);
     release(&procqueue->qloc);
 
     if (procqueue->head != 0 && procqueue->head == procqueue->tail) {

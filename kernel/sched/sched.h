@@ -15,20 +15,6 @@ struct pqueue {
 //one for each possible cpu, only use one per CPU based off num_cpu result from mp.c
 extern struct pqueue procqueue[NCPU];
 
-int is_proc_alone_in_queue(struct proc *p);
-
-int is_queue_empty();
-
-void insert_proc_into_queue(struct proc *new);
-
-int is_proc_queued(struct proc *p);
-
-void remove_proc_from_queue(struct proc *old);
-
-void purge_queue();
-
-void shift_queue();
-
 void sched(void);
 
 void yield(void);
