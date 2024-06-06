@@ -10,7 +10,7 @@
 #include "signal.h"
 #include "sched.h"
 #include "../arch/x86_32/mp/mp.h"
-
+#include "../data/queue.h"
 
 int nextpid = 1;
 static struct proc *initproc;
@@ -144,7 +144,13 @@ allocproc(void) {
 // Set up first user process.
 void
 userinit(void) {
-    initprocqueue();
+    /*
+     * Init the procqueues based on number of cpus detected by MP.c
+     */
+    int ncpus = num_cpus();
+    for(int i = 0;i < ncpus; i++){
+        initprocqueue(procqueue[i]);
+    }
     struct proc *p;
     extern char _binary_initcode_start[], _binary_initcode_size[];
 
@@ -195,7 +201,8 @@ userinit(void) {
     acquire(&ptable.lock);
 
     p->state = RUNNABLE;
-
+    p->next = 0;
+    p->prev = 0;
 
     release(&ptable.lock);
 }
@@ -294,6 +301,8 @@ fork(void) {
     safestrcpy(np->name, curproc->name, sizeof(curproc->name));
     np->tf->eax = 0;
     pid = np->pid;
+    np->next = 0;
+    np->prev = 0;
 
     acquire(&ptable.lock);
 

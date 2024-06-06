@@ -7,6 +7,8 @@ Changes made so far:
     down the queue it checks the process to be enqueued against the process in this spot in the queue.
 
   - Added basic function to do cpu usage averaging to dynamically set time quanta for processes based on a the mean process life in clock cycles 
+    
+  - Adding cpu based runqeueus so each cpu will have its own runqueue, will also implement rebalancing along side this
 
   - Added basic signals, can be seen in signal.h. Signals can be masked and ignored via the sigignore system call (non fatal signals only)
     signal handlers not properly implemented yet will get to this later.

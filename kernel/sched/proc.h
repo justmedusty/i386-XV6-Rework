@@ -66,6 +66,9 @@ enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE, WAIT, PREE
 #define ESIG                    1000000000    //Bad signal || no such signal
 #define ENOPROC                 1000000001    // No proc of this pid found
 
+//Important flags for PFLAG
+#define IN_QUEUE               0x1
+#define
 // Per-process state
 struct proc {
   uint sz;                     // Size of process memory (bytes)
@@ -76,7 +79,7 @@ struct proc {
   char p_pri;                  // The priority of this process, for scheduling
   int p_time_quantum;          //The resident time for scheduling
   int p_cpu_usage;            //The amount of loops taken on this proc
-  char p_flag;                 //Flag indicating the schedule status of this proc
+  char p_flag;                 //Flag indicating many statuses of the proc
   int space_flag;              //flag to mark a process as either kernel space or user space
   int child_pri;               //A binary flag that will just indicate whether any children on fork should retain the same scheduling priority.
   pde_t* pgdir;                // Page table
