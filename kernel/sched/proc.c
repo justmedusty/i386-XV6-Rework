@@ -9,6 +9,7 @@
 #include "../arch/x86_32/mem/vm.h"
 #include "signal.h"
 #include "sched.h"
+#include "../arch/x86_32/mp/mp.h"
 
 
 int nextpid = 1;

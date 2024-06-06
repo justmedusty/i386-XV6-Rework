@@ -138,3 +138,7 @@ mpinit(void)
     outb(0x23, inb(0x23) | 1);  // Mask external trap.
   }
 }
+
+int num_cpus(){
+    return ncpu;
+}
