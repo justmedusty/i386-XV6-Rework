@@ -44,16 +44,23 @@ void init_cpu_avg_counter(){
     c_avg.n_procs = 0;
     c_avg.total_cpu_time = 0;
 }
+
+
 //Update with the new average
 void update_cpu_avg(uint ticks){
     c_avg.total_cpu_time += ticks;
     c_avg.n_procs++;
     c_avg.avg = c_avg.total_cpu_time / c_avg.n_procs;
 }
+
+
 //get the avg clock cycles per proc
 uint get_cpu_avg(){
     return c_avg.avg;
 }
+
+
+
 /*
  * Init our proc queue by linking the head and tail and initing the spinlock
  *
@@ -312,10 +319,7 @@ scheduler(void) {
             }
             if (p->state == PREEMPTED && p->p_pri != TOP_PRIORITY) {
                 p->p_pri++;
-                //We will reset the cpu usage when a process is lifted out of preempted state,
-                //this way we can start to implement logic into our algorithim that will
-                //take recent cpu usage into account. Otherwise, cpu usage would rise forever, and you would
-                //not know if it was recent..
+
             } else if (p->state == PREEMPTED && p->p_pri == TOP_PRIORITY) {
                 p->state = RUNNABLE;
                 p->p_pri = MED_USER_PRIORITY;
