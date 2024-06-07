@@ -258,6 +258,7 @@ fork(void) {
     np->sz = curproc->sz;
     np->parent = curproc;
     *np->tf = *curproc->tf;
+
     /*
      * We will see the approriate scheduling flags and whatnot , we will check
      * the child pri flag to indicate whether or not the scheduler should
@@ -284,6 +285,7 @@ fork(void) {
     //so split the usage between the parent and child
     np->p_time_quantum = curproc->p_cpu_usage / 2;
     curproc->p_time_quantum -= np->p_time_quantum;
+
 
     /*
      * Fill the intr/ign/handler fields
@@ -319,10 +321,6 @@ fork(void) {
 
 
     release(&ptable.lock);
-
-    if (claim_proc(np,cpuid())) {
-        insert_proc_into_queue(np,&procqueue[cpuid()]);
-    }
 
     return pid;
 }
