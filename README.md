@@ -29,3 +29,21 @@ Changes made so far:
     and allow a preempted process to execute again later even if it is low prio.
 
   - Added nonblocking lock specifically for mounting. It is just a lock that returns immediately if locked instead of spinning or sleeping.
+
+  - Added login shell, only supports 1 pair of credentials located in the passwd file in the users directory
+
+  - Freemem function which spits out the # of pages allocated to all user processes (very useful for tracking memory usage when you play around with memory management)
+
+  - Sig command which uses the sig system call to send a signal to a process
+
+  - Mountfs and umountfs user programs which can be run from the shell, allows mounting of the secondary disk on the secondary ata controller, usage
+    is mountfs dev dir (ie mountfs 2 /dir) It does not make new nodes so you need to create the directory to mount onto with mkdir. Unmount works as umountfs mountdir (ie umountfs /dir).
+
+
+How to build (linux):
+
+- Download QEMU & the source
+- Ensure you get the source from a commit that is preceded by FUNCTIONAL
+- Navigate to /users in the source tree
+- Enter 'Make qemu' in your terminal (This builds vectors.S from the pl file, both hard disk images, and the kernel, and starts qemu)
+- You need to update the passwd file in /users if you want to use any other user/pass combo (only supports 1 set of credentials)
