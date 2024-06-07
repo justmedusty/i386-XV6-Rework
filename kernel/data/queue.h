@@ -4,7 +4,6 @@
 
 #ifndef I386_XV6_REWORK_QUEUE_H
 #define I386_XV6_REWORK_QUEUE_H
-#include "../l"
 struct pqueue {
     struct spinlock qloc;
     struct proc *head;

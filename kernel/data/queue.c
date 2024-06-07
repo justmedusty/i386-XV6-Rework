@@ -1,11 +1,11 @@
 //
 // Created by dustyn on 6/5/24->
 //
-
+#include "../../user/types.h"
+#include "../lock/spinlock.h"
 #include "queue.h"
 #include "../../user/types.h"
 #include "../defs/defs.h"
-#include "../lock/spinlock.h"
 #include "../defs/param.h"
 #include "../arch/x86_32/mem/memlayout.h"
 #include "../arch/x86_32/mem/mmu.h"
