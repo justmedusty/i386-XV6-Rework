@@ -46,6 +46,7 @@ int is_proc_alone_in_queue(struct proc *p,struct pqueue *procqueue){
  * the new process in an appropriate place in the queue-> If there is nothing in the queue, it will be placed between head and tail->
  */
 void insert_proc_into_queue(struct proc *new,struct pqueue *procqueue){
+
     acquire(&procqueue->qloc);
     if (procqueue->head == 0) {
 
@@ -104,7 +105,9 @@ void insert_proc_into_queue(struct proc *new,struct pqueue *procqueue){
  *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *
  */
 int claim_proc(struct proc *p,int cpu) {
+
     acquire(&check_lock);
+
     int result = 0;
    if((p->queue_mask & IN_QUEUE) == 0){
        p->queue_mask |= IN_QUEUE;
@@ -131,7 +134,6 @@ int unclaim_proc(struct proc *p) {
  * Remove this process from the queue
  */
 void remove_proc_from_queue(struct proc *old,struct pqueue *procqueue) {
-
     acquire(&procqueue->qloc);
 
 // Handle the case when the process to remove is at the head of the queue
@@ -181,7 +183,9 @@ void purge_queue(struct pqueue *procqueue) {
     while (pointer != 0) {
 
         if (pointer->state != RUNNABLE) {
+            release(&procqueue->qloc);
             remove_proc_from_queue(pointer,procqueue);
+            acquire(&procqueue->qloc);
         }
 
         pointer = pointer->next;

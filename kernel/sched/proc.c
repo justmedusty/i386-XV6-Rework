@@ -242,7 +242,6 @@ fork(void) {
     int i, pid;
     struct proc *np;
     struct proc *curproc = myproc();
-
     // Allocate process.
     if ((np = allocproc()) == 0) {
         return -1;
@@ -322,6 +321,7 @@ fork(void) {
 
     release(&ptable.lock);
 
+
     return pid;
 }
 
@@ -369,7 +369,7 @@ exit(void) {
             wakeup1(initproc);
         }
     }
-    remove_proc_from_queue(curproc,&procqueue[cpuid()]);
+
     curproc->state = ZOMBIE;
     curproc->killed = 1;
     nextpid = curproc->pid;
@@ -477,7 +477,6 @@ sleep(void *chan, struct spinlock *lk) {
     }
     // Go to sleep.
     p->chan = chan;
-    remove_proc_from_queue(p,&procqueue[cpuid()]);
     p->state = SLEEPING;
 
 

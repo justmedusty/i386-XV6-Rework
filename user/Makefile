@@ -228,7 +228,7 @@ QEMUOPTS =     -drive file=xv6.img,media=disk,format=raw,bus=0,unit=0 \
 
 drives: fs.img secondaryfs.img
 
-qemu: xv6.img
+qemu: drives xv6.img
 	$(QEMU) -serial mon:vc $(QEMUOPTS)
 
 #qemu-memfs: xv6memfs.img
