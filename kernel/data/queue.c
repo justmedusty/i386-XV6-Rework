@@ -10,9 +10,9 @@
 #include "../arch/x86_32/mem/memlayout.h"
 #include "../arch/x86_32/mem/mmu.h"
 #include "../arch/x86_32/x86.h"
-#include "proc.h"
+#include "../sched/proc.h"
 #include "../arch/x86_32/mem/vm.h"
-#include "signal.h"
+#include "../sched/signal.h"
 
 /*
  * We will create some reusable functions for dealing with proc queues and other types of queues in order to make it simpler to deal with many different
@@ -98,12 +98,13 @@ void insert_proc_into_queue(struct proc *new,struct pqueue *procqueue){
  * The nature of this function means it needs to be checked at the end of a check ie not
  * if claim_proc && something else, it needs to be something && something else && claim_proc
  */
-int claim_proc(struct proc *p) {
+int claim_proc(struct proc *p,int cpu) {
     acquire(&check_lock);
     int result = 0;
-   if(!p->p_flag & IN_QUEUE){
+   if(!(p->p_flag & IN_QUEUE)){
        p->p_flag |= IN_QUEUE;
        result = 1;
+       p->curr_cpu = cpu;
    }
     release(&check_lock);
     return result;
@@ -115,6 +116,7 @@ int unclaim_proc(struct proc *p) {
     if(p->p_flag & IN_QUEUE){
         p->p_flag &= ~IN_QUEUE;
         result = 1;
+        p->curr_cpu = NOCPU;
     }
     release(&check_lock);
     return result;
@@ -173,7 +175,7 @@ void purge_queue(struct pqueue *procqueue) {
     while (pointer != 0) {
 
         if (pointer->state != RUNNABLE) {
-            remove_proc_from_queue(pointer);
+            remove_proc_from_queue(pointer,procqueue);
         }
 
         pointer = pointer->next;
@@ -207,3 +209,7 @@ void shift_queue(struct pqueue *procqueue) {
     }
 
 }
+
+//************************************************
+//OTHER QUEUES (FOR LATER)
+//*************************************************

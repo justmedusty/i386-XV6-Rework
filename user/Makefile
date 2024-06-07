@@ -27,6 +27,7 @@ OBJS = \
 	../kernel/syscall/sysproc.o\
 	../kernel/arch/x86_32/trapasm.o\
 	../kernel/trap/trap.o\
+	../kernel/data/queue.o\
 	../kernel/drivers/uart.o\
 	../kernel/scripts/vectors.o\
 	../kernel/arch/x86_32/mem/vm.o \

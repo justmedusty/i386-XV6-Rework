@@ -149,7 +149,7 @@ userinit(void) {
      */
     int ncpus = num_cpus();
     for(int i = 0;i < ncpus; i++){
-        initprocqueue(procqueue[i]);
+        initprocqueue(&procqueue[i]);
     }
     struct proc *p;
     extern char _binary_initcode_start[], _binary_initcode_size[];
@@ -311,8 +311,8 @@ fork(void) {
 
     release(&ptable.lock);
 
-    if (!is_proc_queued(np)) {
-        insert_proc_into_queue(np);
+    if (claim_proc(np,cpuid())) {
+        insert_proc_into_queue(np,&procqueue[cpuid()]);
     }
 
     return pid;
@@ -363,7 +363,7 @@ exit(void) {
             wakeup1(initproc);
         }
     }
-    remove_proc_from_queue(curproc);
+    remove_proc_from_queue(curproc,&procqueue[cpuid()]);
     curproc->state = ZOMBIE;
     curproc->killed = 1;
     nextpid = curproc->pid;
@@ -471,7 +471,7 @@ sleep(void *chan, struct spinlock *lk) {
     }
     // Go to sleep.
     p->chan = chan;
-    remove_proc_from_queue(p);
+    remove_proc_from_queue(p,&procqueue[cpuid()]);
     p->state = SLEEPING;
 
 

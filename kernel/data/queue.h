@@ -4,7 +4,7 @@
 
 #ifndef I386_XV6_REWORK_QUEUE_H
 #define I386_XV6_REWORK_QUEUE_H
-
+#include "../l"
 struct pqueue {
     struct spinlock qloc;
     struct proc *head;
@@ -17,7 +17,7 @@ int is_proc_alone_in_queue(struct proc *p,struct pqueue *procqueue);
 void insert_proc_into_queue(struct proc *new,struct pqueue *procqueue);
 int is_proc_queued(struct proc *p,struct pqueue *procqueue);
 void remove_proc_from_queue(struct proc *old,struct pqueue *procqueue);
-int claim_proc(struct proc *p);
+int claim_proc(struct proc *p,int cpu);
 int unclaim_proc(struct proc *p);
 void purge_queue(struct pqueue *procqueue);
 void shift_queue(struct pqueue *procqueue);

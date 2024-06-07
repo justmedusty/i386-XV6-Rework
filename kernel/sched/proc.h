@@ -68,7 +68,6 @@ enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE, WAIT, PREE
 
 //Important flags for PFLAG
 #define IN_QUEUE               0x1
-#define
 // Per-process state
 struct proc {
   uint sz;                     // Size of process memory (bytes)
@@ -96,6 +95,7 @@ struct proc {
   char name[16];               // Process name (debugging)
   struct proc *next;           // Will work this doubly linked list for scheduling right into the process table, like what was done with the buffer cache
   struct proc *prev;           // Will work this doubly linked list for scheduling right into the process table, like what was done with the buffer cache
+  int curr_cpu;                //the cpu this proc is queued on
 };
 
 // Process memory is laid out contiguously, low addresses first:

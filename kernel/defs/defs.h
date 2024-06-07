@@ -10,6 +10,8 @@ struct sleeplock;
 struct stat;
 struct superblock;
 struct nonblockinglock;
+//macro indicating this process is not on any cpus queue
+#define NOCPU   777
 // bio.c
 void            binit(void);
 struct buf*     bread(uint, uint);

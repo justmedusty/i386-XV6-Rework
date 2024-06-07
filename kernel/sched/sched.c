@@ -139,12 +139,12 @@ scheduler(void) {
             }
 
             //prempted procs will need to go round the merry-go-round a few times before they are reset
-            if (is_queue_empty(procqueue[this_cpu]) && p->state == PREEMPTED && claim_proc(p)) {
+            if (is_queue_empty(&procqueue[this_cpu]) && p->state == PREEMPTED && claim_proc(p,cpuid())) {
                 p->state = RUNNABLE;
                 //Add onto the time quantum with our averaged value, I prefer this to resetting the cpu_usage field because then
                 //the calculations can get skewed
                 p->p_time_quantum += c_avg.avg;
-                insert_proc_into_queue(procqueue[this_cpu],p);
+                insert_proc_into_queue(&procqueue[this_cpu],p);
                 goto sched;
             }
             if (p->state == PREEMPTED && p->p_pri != TOP_PRIORITY) {
@@ -158,8 +158,8 @@ scheduler(void) {
                 continue;
             }
 
-            if (claim_proc(p)) {
-                insert_proc_into_queue(p,procqueue[this_cpu]);
+            if (claim_proc(p,cpuid())) {
+                insert_proc_into_queue(p,&procqueue[this_cpu]);
             }
 
 
@@ -169,19 +169,20 @@ scheduler(void) {
             // to release ptable.lock and then reacquire it
             // before jumping back to us.
 
-            if (is_queue_empty(procqueue[this_cpu])) {
+            if (is_queue_empty(&procqueue[this_cpu])) {
                 goto main;
             }
 
 
-            shift_queue(procqueue[this_cpu]);
-            c->proc = procqueue.head;
-            switchuvm(procqueue.head);
+            shift_queue(&procqueue[this_cpu]);
+            purge_queue(&procqueue[this_cpu]);
+            c->proc = procqueue[this_cpu].head;
+            switchuvm(procqueue[this_cpu].head);
             procqueue[this_cpu].head->state = RUNNING;
 
             swtch(&(c->scheduler), procqueue[this_cpu].head->context);
             switchkvm();
-            purge_queue(procqueue[this_cpu]);
+            purge_queue(&procqueue[this_cpu]);
 
 
             // Process is done running for now.
@@ -225,8 +226,8 @@ sched(void) {
         p->p_flag = URGENT;
     }
     //Put this process into the queue if it was not already there
-    if (p->state == RUNNABLE && claim_proc()) {
-        insert_proc_into_queue(procqueue[cpuid()],p);
+    if (p->state == RUNNABLE && claim_proc(p,cpuid())) {
+        insert_proc_into_queue(p,&procqueue[cpuid()]);
     }
 
     swtch(&p->context, mycpu()->scheduler);
@@ -239,7 +240,7 @@ yield(void) {
     acquire(&ptable.lock);  //DOC: yieldlock
     int this_cpu = cpuid();
     myproc()->state = RUNNABLE;
-    purge_queue(procqueue[this_cpu]);
+    purge_queue(&procqueue[this_cpu]);
     sched();
     release(&ptable.lock);
 }
@@ -248,7 +249,7 @@ void preempt(void) {
     acquire(&ptable.lock);  //DOC: yieldlock
     int this_cpu = cpuid();
     myproc()->state = PREEMPTED;
-    purge_queue(procqueue[this_cpu]);
+    purge_queue(&procqueue[this_cpu]);
     sched();
     release(&ptable.lock);
 }

@@ -5,13 +5,7 @@
 #ifndef I386_XV6_REWORK_SCHED_H
 #define I386_XV6_REWORK_SCHED_H
 #include "../defs/param.h"
-
-struct pqueue {
-    struct spinlock qloc;
-    struct proc *head;
-    struct proc *tail;
-};
-
+#include "../data/queue.h"
 //one for each possible cpu, only use one per CPU based off num_cpu result from mp.c
 extern struct pqueue procqueue[NCPU];
 
