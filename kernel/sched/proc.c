@@ -350,7 +350,6 @@ exit(void) {
     iput(curproc->cwd);
     end_op();
     curproc->cwd = 0;
-
     acquire(&ptable.lock);
 
     // Parent might be sleeping in wait().
@@ -546,7 +545,7 @@ int sig(int sigmask, int pid) {
 
     struct proc *proc;
     //make sure this is a valid signal
-    if (sigmask > (SIGKILL + SIGSEG + SIGINT + SIGPIPE + SIGHUP + SIGSYS + SIGCPU)) {
+    if (sigmask > (SIGKILL & SIGSEG & SIGINT & SIGPIPE & SIGHUP & SIGSYS & SIGCPU)) {
         return ESIG;
     }
 
@@ -622,7 +621,8 @@ procdump(void) {
             [SLEEPING]  "sleep ",
             [RUNNABLE]  "runble",
             [RUNNING]   "run   ",
-            [ZOMBIE]    "zombie"
+            [ZOMBIE]    "zombie",
+            [PREEMPTED] "preempt"
     };
     int i;
     struct proc *p;

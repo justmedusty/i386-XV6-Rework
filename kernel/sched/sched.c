@@ -83,7 +83,7 @@ scheduler(void) {
     //Init to a null pointer so we can assign the first proc to it and then from there keep checking.
     c->proc = 0;
     int this_cpu = cpuid();
-    main:
+
     for (;;) {
         // Enable trap on this processor.
         sti();
@@ -91,8 +91,8 @@ scheduler(void) {
 
         // Loop over process table looking for process to run.
         acquire(&ptable.lock);
+        main:
         for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
-
 
             //If there is an unhandled signal
             if (p->p_sig != 0) {
@@ -144,7 +144,7 @@ scheduler(void) {
                 //Add onto the time quantum with our averaged value, I prefer this to resetting the cpu_usage field because then
                 //the calculations can get skewed
                 p->p_time_quantum += c_avg.avg;
-                insert_proc_into_queue(&procqueue[this_cpu],p);
+                insert_proc_into_queue(p,&procqueue[this_cpu]);
                 goto sched;
             }
             if (p->state == PREEMPTED && p->p_pri != TOP_PRIORITY) {
@@ -173,15 +173,16 @@ scheduler(void) {
                 goto main;
             }
 
-            shift_queue(&procqueue[this_cpu]);
+
             purge_queue(&procqueue[this_cpu]);
             c->proc = procqueue[this_cpu].head;
             switchuvm(procqueue[this_cpu].head);
             procqueue[this_cpu].head->state = RUNNING;
-
+            cprintf("PROC %d cpu %d pri %d \n",procqueue[this_cpu].head->pid,procqueue[this_cpu].head->curr_cpu,procqueue[this_cpu].head->p_pri);
             swtch(&(c->scheduler), procqueue[this_cpu].head->context);
             switchkvm();
             purge_queue(&procqueue[this_cpu]);
+            shift_queue(&procqueue[this_cpu]);
 
             // Process is done running for now.
             // It should have changed its p->state before coming back.
@@ -191,7 +192,6 @@ scheduler(void) {
         }
 
         release(&ptable.lock);
-
 
     }
 

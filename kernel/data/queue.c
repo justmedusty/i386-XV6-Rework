@@ -97,6 +97,8 @@ void insert_proc_into_queue(struct proc *new,struct pqueue *procqueue){
  * Check if proc is queued, mark it taken if so
  * The nature of this function means it needs to be checked at the end of a check ie not
  * if claim_proc && something else, it needs to be something && something else && claim_proc
+ *
+ * YOU MUST QUEUE AFTER A CLAIM OTHERWISE IT WILL NOT BE ACCESSIBLE TO ANY RUNQUEUE
  */
 int claim_proc(struct proc *p,int cpu) {
     acquire(&check_lock);
@@ -105,6 +107,7 @@ int claim_proc(struct proc *p,int cpu) {
        p->p_flag |= IN_QUEUE;
        result = 1;
        p->curr_cpu = cpu;
+
    }
     release(&check_lock);
     return result;
