@@ -148,9 +148,14 @@ userinit(void) {
      * Init the procqueues based on number of cpus detected by MP.c
      */
     int ncpus = num_cpus();
-    for(int i = 0;i < ncpus; i++){
-        initprocqueue(&procqueue[i]);
+    if(ncpus == 0){
+        initprocqueue(&procqueue[0]);
+    } else{
+        for(int i = 0;i < ncpus; i++){
+            initprocqueue(&procqueue[i]);
+        }
     }
+
     struct proc *p;
     extern char _binary_initcode_start[], _binary_initcode_size[];
 
@@ -203,6 +208,7 @@ userinit(void) {
     p->state = RUNNABLE;
     p->next = 0;
     p->prev = 0;
+    p->curr_cpu = NOCPU;
 
     release(&ptable.lock);
 }
@@ -303,6 +309,7 @@ fork(void) {
     pid = np->pid;
     np->next = 0;
     np->prev = 0;
+    np->curr_cpu = NOCPU;
 
     acquire(&ptable.lock);
 

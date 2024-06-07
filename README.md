@@ -1,5 +1,8 @@
 This is my rework of the x86 xv6 operating system.
 
+IMPORTANT NOTE: I add changes in many commits, and it may be broken between these implementations, if you are trying to run this yourself, reach out to me and I will let you know which commit to revert to in the case I am
+in the middle of implementing and debugging changes.
+
 Changes made so far:
 
   - Sched queue based on process priorities, differing from typical unix in that higher number eq higher prio. 

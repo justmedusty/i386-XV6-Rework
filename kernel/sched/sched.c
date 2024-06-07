@@ -178,7 +178,6 @@ scheduler(void) {
             c->proc = procqueue[this_cpu].head;
             switchuvm(procqueue[this_cpu].head);
             procqueue[this_cpu].head->state = RUNNING;
-            cprintf("PROC %d cpu %d pri %d \n",procqueue[this_cpu].head->pid,procqueue[this_cpu].head->curr_cpu,procqueue[this_cpu].head->p_pri);
             swtch(&(c->scheduler), procqueue[this_cpu].head->context);
             switchkvm();
             purge_queue(&procqueue[this_cpu]);
