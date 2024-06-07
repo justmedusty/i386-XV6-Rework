@@ -78,7 +78,8 @@ struct proc {
   char p_pri;                  // The priority of this process, for scheduling
   int p_time_quantum;          //The resident time for scheduling
   int p_cpu_usage;            //The amount of loops taken on this proc
-  char p_flag;                 //Flag indicating many statuses of the proc
+  char p_flag;                 //Flag indicating status of the proc
+  int queue_mask;              //for enqueuing / dequeuing purposes
   int space_flag;              //flag to mark a process as either kernel space or user space
   int child_pri;               //A binary flag that will just indicate whether any children on fork should retain the same scheduling priority.
   pde_t* pgdir;                // Page table

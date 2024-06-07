@@ -208,6 +208,7 @@ userinit(void) {
     p->state = RUNNABLE;
     p->next = 0;
     p->prev = 0;
+    p->queue_mask = 0;
     p->curr_cpu = NOCPU;
 
     release(&ptable.lock);
@@ -261,7 +262,8 @@ fork(void) {
      * We will see the approriate scheduling flags and whatnot , we will check
      * the child pri flag to indicate whether or not the scheduler should
      */
-    np->p_flag = curproc->p_flag;
+    np->p_flag = 0;
+    np->queue_mask = 0;
 
     if (curproc->child_pri == CHILD_SAME_PRI) {
 

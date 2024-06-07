@@ -98,16 +98,18 @@ void insert_proc_into_queue(struct proc *new,struct pqueue *procqueue){
  * The nature of this function means it needs to be checked at the end of a check ie not
  * if claim_proc && something else, it needs to be something && something else && claim_proc
  *
- * YOU MUST QUEUE AFTER A CLAIM OTHERWISE IT WILL NOT BE ACCESSIBLE TO ANY RUNQUEUE
+ *
+ *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *
+ * YOU MUST QUEUE AFTER A CLAIM OTHERWISE IT WILL NOT BE ACCESSIBLE TO ANY RUNQUEUE  *
+ *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *
  */
 int claim_proc(struct proc *p,int cpu) {
     acquire(&check_lock);
     int result = 0;
-   if(!(p->p_flag & IN_QUEUE)){
-       p->p_flag |= IN_QUEUE;
+   if((p->queue_mask & IN_QUEUE) == 0){
+       p->queue_mask |= IN_QUEUE;
        result = 1;
        p->curr_cpu = cpu;
-
    }
     release(&check_lock);
     return result;
@@ -116,8 +118,8 @@ int claim_proc(struct proc *p,int cpu) {
 int unclaim_proc(struct proc *p) {
     acquire(&check_lock);
     int result = 0;
-    if(p->p_flag & IN_QUEUE){
-        p->p_flag &= ~IN_QUEUE;
+    if(p->queue_mask & IN_QUEUE){
+        p->queue_mask &= ~IN_QUEUE;
         result = 1;
         p->curr_cpu = NOCPU;
     }
@@ -140,7 +142,7 @@ void remove_proc_from_queue(struct proc *old,struct pqueue *procqueue) {
         } else {
             procqueue->tail = 0; // Queue becomes empty
         }
-
+        unclaim_proc(old);
         release(&procqueue->qloc);
         return;
     }
@@ -157,12 +159,13 @@ void remove_proc_from_queue(struct proc *old,struct pqueue *procqueue) {
             } else {
                 procqueue->tail = this->prev; // Update tail if the process is at the tail
             }
-
+            unclaim_proc(old);
             release(&procqueue->qloc);
             return;
         }
     }
     if (procqueue->head == 0) {
+        unclaim_proc(old);
         release(&procqueue->qloc);
         panic("proc not in queue");
     }

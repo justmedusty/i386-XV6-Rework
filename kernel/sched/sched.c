@@ -173,7 +173,6 @@ scheduler(void) {
                 goto main;
             }
 
-
             purge_queue(&procqueue[this_cpu]);
             c->proc = procqueue[this_cpu].head;
             switchuvm(procqueue[this_cpu].head);
@@ -207,6 +206,7 @@ void
 sched(void) {
     int intena;
     struct proc *p = myproc();
+    int cpu_id = cpuid();
     if (!holding(&ptable.lock))
         panic("sched ptable.lock");
     if (mycpu()->ncli != 1) {
@@ -222,9 +222,13 @@ sched(void) {
     if (mycpu()->proc->p_pri < p->p_pri || mycpu()->proc->space_flag < p->space_flag) {
         p->p_flag = URGENT;
     }
+
+    if(p->curr_cpu != NOCPU){
+        remove_proc_from_queue(p,&procqueue[p->curr_cpu]);
+    }
     //Put this process into the queue if it was not already there
-    if (p->state == RUNNABLE && claim_proc(p,cpuid())) {
-        insert_proc_into_queue(p,&procqueue[cpuid()]);
+    if (p->state == RUNNABLE && claim_proc(p,cpu_id)) {
+       insert_proc_into_queue(p,&procqueue[cpu_id]);
     }
 
     swtch(&p->context, mycpu()->scheduler);
