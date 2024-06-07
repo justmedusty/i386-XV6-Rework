@@ -1,5 +1,7 @@
 This is my rework of the x86 xv6 operating system.
 
+Last functional commit : 8f759b1d2b0e2d2c3ce389b144cfc569fd16e3e7
+
 IMPORTANT NOTE: I add changes in many commits, and it may be broken between these implementations, if you are trying to run this yourself, reach out to me and I will let you know which commit to revert to in the case I am
 in the middle of implementing and debugging changes. Going forward I will mark commits as FUNCTIONAL if everything is working properly so you can find a commit that works if you wish to run it.
 
