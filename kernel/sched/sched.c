@@ -173,7 +173,6 @@ scheduler(void) {
                 goto main;
             }
 
-
             shift_queue(&procqueue[this_cpu]);
             purge_queue(&procqueue[this_cpu]);
             c->proc = procqueue[this_cpu].head;
@@ -183,7 +182,6 @@ scheduler(void) {
             swtch(&(c->scheduler), procqueue[this_cpu].head->context);
             switchkvm();
             purge_queue(&procqueue[this_cpu]);
-
 
             // Process is done running for now.
             // It should have changed its p->state before coming back.
@@ -232,6 +230,7 @@ sched(void) {
 
     swtch(&p->context, mycpu()->scheduler);
     mycpu()->intena = intena;
+
 }
 
 // Give up the CPU for one scheduling round.

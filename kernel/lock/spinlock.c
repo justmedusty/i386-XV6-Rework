@@ -25,8 +25,11 @@ void
 acquire(struct spinlock *lk)
 {
   pushcli(); // disable trap to avoid deadlock.
-  if(holding(lk))
-    panic("acquire");
+  if(holding(lk)){
+      cprintf("name %s\n",lk->name);
+      panic("acquire");
+  }
+
 
   // The xchg is atomic.
   while(xchg(&lk->locked, 1) != 0)

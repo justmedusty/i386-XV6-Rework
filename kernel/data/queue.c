@@ -169,7 +169,7 @@ void remove_proc_from_queue(struct proc *old,struct pqueue *procqueue) {
  * Purge all invalid states from the run queue-> Only runnable procs should be in the queue->
  */
 void purge_queue(struct pqueue *procqueue) {
-
+    acquire(&procqueue->qloc);
     struct proc *pointer = procqueue->head;
 
     while (pointer != 0) {
@@ -180,6 +180,7 @@ void purge_queue(struct pqueue *procqueue) {
 
         pointer = pointer->next;
     }
+    release(&procqueue->qloc);
 }
 
 /*
