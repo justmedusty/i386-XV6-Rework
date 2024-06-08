@@ -236,17 +236,7 @@ void queues_need_balance(){
     int tasks_per_rq[ncpu];
     struct proc *pointer;
     for (int i = 0; i < ncpu; i++) {
-        tasks_per_rq[i] = 0;
-        do{
-            struct proc *pointer = procqueue[i].head;
-
-            if(pointer != 0){
-                tasks_per_rq[i]++;
-                pointer = pointer->next;
-            }
-
-        } while (pointer != 0);
-
+        tasks_per_rq[i] = procqueue[i].len;
     }
 
     int ideal_queue_len = 0;
