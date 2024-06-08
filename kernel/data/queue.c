@@ -13,6 +13,8 @@
 #include "../sched/proc.h"
 #include "../arch/x86_32/mem/vm.h"
 #include "../sched/signal.h"
+#include "../arch/x86_32/mp/mp.h"
+#include "../sched/sched.h"
 
 /*
  * We will create some reusable functions for dealing with proc queues and other types of queues in order to make it simpler to deal with many different
@@ -31,6 +33,7 @@ void initprocqueue(struct pqueue *procqueue) {
     initlock(&procqueue->qloc, "procqueue");
     procqueue->head = 0;
     procqueue->tail = 0;
+    procqueue->len = 0;
 }
 
 int is_queue_empty(struct pqueue *procqueue) {
@@ -53,6 +56,7 @@ void insert_proc_into_queue(struct proc *new,struct pqueue *procqueue){
         procqueue->head = new;
         new->next = 0;
         new->prev = 0;
+        procqueue->len++;
         release(&procqueue->qloc);
         return;
 
@@ -62,6 +66,7 @@ void insert_proc_into_queue(struct proc *new,struct pqueue *procqueue){
         new->next = 0;
         new->prev = procqueue->head;
         procqueue->head->next = new;
+        procqueue->len++;
         release(&procqueue->qloc);
         return;
     }
@@ -79,7 +84,7 @@ void insert_proc_into_queue(struct proc *new,struct pqueue *procqueue){
             }
 
             this->prev = new;
-
+            procqueue->len++;
             release(&procqueue->qloc);
             return;
         }
@@ -89,6 +94,7 @@ void insert_proc_into_queue(struct proc *new,struct pqueue *procqueue){
     new->prev = procqueue->tail;
     new->next = 0;
     procqueue->tail = new;
+    procqueue->len++;
     release(&procqueue->qloc);
     return;
 
@@ -101,7 +107,7 @@ void insert_proc_into_queue(struct proc *new,struct pqueue *procqueue){
  *
  *
  *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *
- * YOU MUST QUEUE AFTER A CLAIM OTHERWISE IT WILL NOT BE ACCESSIBLE TO ANY RUNQUEUE  *
+ * YOU MUST QUEUE AFTER A CLAIM OTHERWISE IT WILL NOT BE ACCESSIBLE TO ANY RUNQUEUE!  *
  *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *   *
  */
 int claim_proc(struct proc *p,int cpu) {
@@ -144,6 +150,7 @@ void remove_proc_from_queue(struct proc *old,struct pqueue *procqueue) {
         } else {
             procqueue->tail = 0; // Queue becomes empty
         }
+        procqueue->len--;
         unclaim_proc(old);
         release(&procqueue->qloc);
         return;
@@ -161,12 +168,14 @@ void remove_proc_from_queue(struct proc *old,struct pqueue *procqueue) {
             } else {
                 procqueue->tail = this->prev; // Update tail if the process is at the tail
             }
+            procqueue->len--;
             unclaim_proc(old);
             release(&procqueue->qloc);
             return;
         }
     }
     if (procqueue->head == 0) {
+        procqueue->len--;
         unclaim_proc(old);
         release(&procqueue->qloc);
         panic("proc not in queue");
@@ -221,6 +230,41 @@ void shift_queue(struct pqueue *procqueue) {
 
 }
 
+// check the per-cpu rqs to see if we need to rebalance the queues
+void queues_need_balance(){
+    int ncpu = num_cpus();
+    int tasks_per_rq[ncpu];
+    struct proc *pointer;
+    for (int i = 0; i < ncpu; i++) {
+        tasks_per_rq[i] = 0;
+        do{
+            struct proc *pointer = procqueue[i].head;
+
+            if(pointer != 0){
+                tasks_per_rq[i]++;
+                pointer = pointer->next;
+            }
+
+        } while (pointer != 0);
+
+    }
+
+    int ideal_queue_len = 0;
+    for (int i = 0; i < ncpu ; i++) {
+        ideal_queue_len += tasks_per_rq[i];
+    }
+    ideal_queue_len /= ncpu;
+    //25% grace cause we don't need to be exact just close enough
+    int padded_ideal = (ideal_queue_len * 125) / 100;
+
+    unsigned char unbalanced_rq_mask = 0;
+    for (int i = 0; i < ncpu; ++i) {
+        if(procqueue[i].len > padded_ideal){
+            unbalanced_rq_mask |= (1 << i);
+        }
+    }
+    return unbalanced_rq_mask;
+}
 //************************************************
 //OTHER QUEUES (FOR LATER)
 //*************************************************

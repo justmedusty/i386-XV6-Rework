@@ -8,6 +8,7 @@ struct pqueue {
     struct spinlock qloc;
     struct proc *head;
     struct proc *tail;
+    int len;
 };
 
 void initprocqueue(struct pqueue *procqueue);
