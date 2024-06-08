@@ -50,6 +50,10 @@ int is_proc_alone_in_queue(struct proc *p,struct pqueue *procqueue){
  */
 void insert_proc_into_queue(struct proc *new,struct pqueue *procqueue){
 
+    if(new->state == RUNNING){
+        panic("Inserting running proc");
+    }
+
     acquire(&procqueue->qloc);
     if (procqueue->head == 0) {
 
@@ -140,6 +144,11 @@ int unclaim_proc(struct proc *p) {
  * Remove this process from the queue
  */
 void remove_proc_from_queue(struct proc *old,struct pqueue *procqueue) {
+
+    if(old->state == RUNNING){
+        panic("Removing running proc");
+    }
+
     acquire(&procqueue->qloc);
 
 // Handle the case when the process to remove is at the head of the queue
@@ -206,6 +215,9 @@ void purge_queue(struct pqueue *procqueue) {
  * This plucks the head out of the queue and allows it to be picked up by another cpu 
  */
 void shift_queue(struct pqueue *procqueue) {
+    if(procqueue->head && procqueue->head->state == RUNNING){
+        panic("Removing running proc");
+    }
 
     acquire(&procqueue->qloc);
 
@@ -232,28 +244,50 @@ void shift_queue(struct pqueue *procqueue) {
 
 // check the per-cpu rqs to see if we need to rebalance the queues
 void queues_need_balance(){
+
     int ncpu = num_cpus();
     int tasks_per_rq[ncpu];
     struct proc *pointer;
+
     for (int i = 0; i < ncpu; i++) {
         tasks_per_rq[i] = procqueue[i].len;
     }
 
     int ideal_queue_len = 0;
+
     for (int i = 0; i < ncpu ; i++) {
         ideal_queue_len += tasks_per_rq[i];
     }
+
     ideal_queue_len /= ncpu;
     //25% grace cause we don't need to be exact just close enough
     int padded_ideal = (ideal_queue_len * 125) / 100;
 
     unsigned char unbalanced_rq_mask = 0;
+
     for (int i = 0; i < ncpu; ++i) {
+
         if(procqueue[i].len > padded_ideal){
+
             unbalanced_rq_mask |= (1 << i);
+
         }
     }
+
     return unbalanced_rq_mask;
+}
+
+//balance the queues, you need to pass the rq mask returned from queues_need_balance to save some computation
+void do_balance(unsigned char rq_mask){
+
+    int ncpu = num_cpus();
+    unsigned char inverted_run_mask = ~rq_mask;
+    for (int i = 0; i < ncpu; i++) {
+        if(rq_mask & (1 << i)){
+
+        }
+    }
+
 }
 //************************************************
 //OTHER QUEUES (FOR LATER)
