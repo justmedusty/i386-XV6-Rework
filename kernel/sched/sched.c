@@ -95,21 +95,25 @@ scheduler(void) {
         // Loop over process table looking for process to run.
 
         main:
+
+
         if (readyqueue.head != 0) {
             p = readyqueue.head;
         } else goto sched;
+
+
         //If there is an unhandled signal
         if (signals_pending(p)) {
-            handle_signals(p);
-
+           handle_signals(p);
         }
 
 
         //prempted procs will need to go round the merry-go-round a few times before they are reset
         if (is_queue_empty(&runqueue[this_cpu]) && p->state == PREEMPTED && claim_proc(p, cpuid())) {
+
             p->state = RUNNABLE;
             //Add onto the time quantum with our averaged value, I prefer this to resetting the cpu_usage field because then
-            //the calculations can get skewed
+            //the averaging calculations can get skewed
             p->p_time_quantum += c_avg.avg;
             insert_proc_into_queue(p, &runqueue[this_cpu]);
             goto sched;
@@ -122,7 +126,7 @@ scheduler(void) {
             p->p_pri = MED_USER_PRIORITY;
         }
         if (p->state != RUNNABLE) {
-            continue;
+            panic("Bad state in ready queue");
         }
         if (claim_proc(p, this_cpu)) {
             insert_proc_into_queue(p, &runqueue[this_cpu]);
@@ -144,7 +148,6 @@ scheduler(void) {
         switchuvm(runqueue[this_cpu].head);
 
         runqueue[this_cpu].head->state = RUNNING;
-
         swtch(&(c->scheduler), runqueue[this_cpu].head->context);
         switchkvm();
         shift_queue(&runqueue[this_cpu]);
@@ -155,7 +158,6 @@ scheduler(void) {
 
 
         release(&ptable.lock);
-
     }
 
 }
@@ -189,16 +191,20 @@ sched(void) {
     }
 
     if (p->curr_cpu != NOCPU) {
+        panic("here");
         remove_proc_from_queue(p, &runqueue[p->curr_cpu]);
     }
     //Put this process into the queue if it was not already there
-    if (p->state == RUNNABLE && claim_proc(p, cpu_id)) {
-        insert_proc_into_queue(p, &runqueue[cpu_id]);
+    if (p->state == RUNNABLE && p->curr != 0) {
+
+        remove_proc_from_queue(p, p->curr);
+        insert_proc_into_queue(p,&readyqueue);
+
     }
+
 
     swtch(&p->context, mycpu()->scheduler);
     mycpu()->intena = intena;
-
 }
 
 // Give up the CPU for one scheduling round.
@@ -210,6 +216,7 @@ yield(void) {
     purge_queue(&runqueue[this_cpu]);
     sched();
     release(&ptable.lock);
+
 }
 
 void preempt(void) {

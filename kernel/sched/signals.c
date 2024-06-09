@@ -14,8 +14,10 @@
 #include "sched.h"
 #include "../data/queue.h"
 
+//TODO make concurrency safe
 
 int signals_pending(struct proc *p) {
+
     return (p->p_sig != 0);
 }
 

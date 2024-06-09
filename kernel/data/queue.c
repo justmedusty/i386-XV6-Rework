@@ -51,7 +51,9 @@ int is_proc_alone_in_queue(struct proc *p,struct pqueue *procqueue){
  * the new process in an appropriate place in the queue-> If there is nothing in the queue, it will be placed between head and tail->
  */
 void insert_proc_into_queue(struct proc *new,struct pqueue *procqueue){
-
+    if(!procqueue){
+        return;
+    }
     if(new->state == RUNNING){
         panic("Inserting running proc");
     }
@@ -151,7 +153,9 @@ int unclaim_proc(struct proc *p) {
  * Remove this process from the queue
  */
 void remove_proc_from_queue(struct proc *old,struct pqueue *procqueue) {
-
+    if(!procqueue){
+        return;
+    }
     if(old->state == RUNNING){
         panic("Removing running proc");
     }

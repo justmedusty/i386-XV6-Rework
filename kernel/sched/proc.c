@@ -135,6 +135,7 @@ allocproc(void) {
     memset(p->context, 0, sizeof *p->context);
     p->context->eip = (uint) forkret;
 
+
     return p;
 }
 
@@ -235,6 +236,7 @@ growproc(int n) {
     }
     curproc->sz = sz;
     switchuvm(curproc);
+
     return 0;
 }
 
@@ -243,6 +245,7 @@ growproc(int n) {
 // Caller must set state of returned proc to RUNNABLE.
 int
 fork(void) {
+
     int i, pid;
     struct proc *np;
     struct proc *curproc = myproc();
@@ -323,8 +326,8 @@ fork(void) {
     np->state = RUNNABLE;
     release(&ptable.lock);
 
-    insert_proc_into_queue(np,&readyqueue);
 
+    insert_proc_into_queue(np,&readyqueue);
 
 
     return pid;
@@ -336,10 +339,10 @@ fork(void) {
 
 void
 exit(void) {
+
     struct proc *curproc = myproc();
     struct proc *p;
     int fd;
-
     if (curproc == initproc) {
         panic("initproc exiting");
     }
@@ -385,6 +388,7 @@ exit(void) {
     } else if(curproc->curr != 0){
         remove_proc_from_queue(curproc,curproc->curr);
     }
+
     // Jump into the scheduler, never to return.
     sched();
     panic("zombie exit");
@@ -454,8 +458,11 @@ forkret(void) {
         iinit(SECONDARYDEV,2);
         initlog(ROOTDEV);
         initlog(SECONDARYDEV);
+
         init_cpu_avg_counter();
     }
+
+
 
     // Return to "caller", actually trapret (see allocproc).
 }
@@ -499,6 +506,7 @@ sleep(void *chan, struct spinlock *lk) {
 
 
     sched();
+
     // Tidy up.
     p->chan = 0;
 
@@ -508,6 +516,7 @@ sleep(void *chan, struct spinlock *lk) {
         acquire(lk);
 
     }
+
 }
 
 
@@ -528,6 +537,7 @@ wakeup1(void *chan) {
         }
     }
 
+
 }
 
 
@@ -537,6 +547,8 @@ wakeup(void *chan) {
     acquire(&ptable.lock);
     wakeup1(chan);
     release(&ptable.lock);
+
+
 }
 
 // Kill the process with the given pid.
