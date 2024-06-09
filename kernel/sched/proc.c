@@ -534,6 +534,7 @@ wakeup1(void *chan) {
             p->p_flag = URGENT;
             p->p_pri++;
 
+
         }
     }
 
@@ -607,6 +608,7 @@ int sig(int sigmask, int pid) {
 
 
     }
+
     release(&ptable.lock);
     return ENOPROC;
 }

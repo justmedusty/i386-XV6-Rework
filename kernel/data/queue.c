@@ -46,6 +46,12 @@ int is_proc_alone_in_queue(struct proc *p,struct pqueue *procqueue){
     return (procqueue->head == p && procqueue->head->next == 0);
 }
 
+int is_proc_queued(struct proc *p,struct pqueue *pq){
+    if(p->curr != 0 && p->curr == pq){
+        return 1;
+    }
+    return 0;
+}
 /*
  * This will traverse the queue , comparing priority, cpu usage against time quantum, and insert
  * the new process in an appropriate place in the queue-> If there is nothing in the queue, it will be placed between head and tail->
@@ -57,8 +63,12 @@ void insert_proc_into_queue(struct proc *new,struct pqueue *procqueue){
     if(new->state == RUNNING){
         panic("Inserting running proc");
     }
+    if(is_proc_queued(new,procqueue)){
+        return;
+    }
 
     acquire(&procqueue->qloc);
+    //Is this the head?
     if (procqueue->head == 0) {
 
         procqueue->head = new;
@@ -70,6 +80,7 @@ void insert_proc_into_queue(struct proc *new,struct pqueue *procqueue){
         return;
 
     }
+    //Is this second process and tail needs to be set?
     if (procqueue->head->next == 0) {
         procqueue->tail = new;
         new->next = 0;
@@ -80,8 +91,8 @@ void insert_proc_into_queue(struct proc *new,struct pqueue *procqueue){
         release(&procqueue->qloc);
         return;
     }
-
-    for (struct proc *this = procqueue->head->next; this->next != 0; this = this->next) {
+    //if neither , loop through until we find it
+    for (struct proc *this = procqueue->head->next; this != 0; this = this->next) {
         if (this->state == RUNNABLE && (new->p_pri > this->p_pri || new->p_flag == URGENT)) {
             // Update pointers for the new process
             new->prev = this->prev;
@@ -144,6 +155,7 @@ int unclaim_proc(struct proc *p) {
         result = 1;
         p->curr_cpu = NOCPU;
         p->curr = 0;
+
     }
     release(&check_lock);
     return result;
@@ -153,9 +165,15 @@ int unclaim_proc(struct proc *p) {
  * Remove this process from the queue
  */
 void remove_proc_from_queue(struct proc *old,struct pqueue *procqueue) {
+    //no null pointers
     if(!procqueue){
         return;
     }
+    //can't remove from an empty queue
+    if (procqueue->head == 0) {
+        panic("proc not in queue");
+    }
+    //can't remove a running process
     if(old->state == RUNNING){
         panic("Removing running proc");
     }
@@ -178,7 +196,7 @@ void remove_proc_from_queue(struct proc *old,struct pqueue *procqueue) {
         return;
     }
 
-// Loop through the queue to find the process to remove
+    // Loop through the queue to find the process to remove
     for (struct proc *this = procqueue->head; this != 0; this = this->next) {
         if (this == old) {
             // Update pointers to remove the process
@@ -195,15 +213,11 @@ void remove_proc_from_queue(struct proc *old,struct pqueue *procqueue) {
             this->prev = 0;
             unclaim_proc(old);
             release(&procqueue->qloc);
+
             return;
         }
     }
-    if (procqueue->head == 0) {
-        procqueue->len--;
-        unclaim_proc(old);
-        release(&procqueue->qloc);
-        panic("proc not in queue");
-    }
+
 }
 
 /*
@@ -224,6 +238,7 @@ void purge_queue(struct pqueue *procqueue) {
         pointer = pointer->next;
     }
     release(&procqueue->qloc);
+
 }
 
 /*
@@ -263,7 +278,6 @@ void shift_queue(struct pqueue *procqueue) {
     if(old_head->state == RUNNABLE){
         insert_proc_into_queue(old_head,&readyqueue);
     }
-
     if (procqueue->head != 0 && procqueue->head == procqueue->tail) {
         panic("head eq tail");
     }
