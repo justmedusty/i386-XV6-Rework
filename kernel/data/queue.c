@@ -237,7 +237,6 @@ void shift_queue(struct pqueue *procqueue) {
     acquire(&procqueue->qloc);
 
     if (procqueue->head == 0) {
-        panic("Purging empty queue!");
         release(&procqueue->qloc);
         return;
     }

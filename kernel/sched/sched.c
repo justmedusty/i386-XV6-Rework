@@ -88,20 +88,22 @@ scheduler(void) {
     int this_cpu = cpuid();
 
     for (;;) {
-
+        main:
         // Enable trap on this processor.
         sti();
         // Loop over process table looking for process to run.
-        main:
+
 
         if (readyqueue.head != 0) {
             p = readyqueue.head;
-        } else goto sched;
+        } else {
+            goto sched;
+        }
 
 
         //If there is an unhandled signal
         if (signals_pending(p)) {
-           handle_signals(p);
+            handle_signals(p);
         }
 
 
@@ -123,8 +125,8 @@ scheduler(void) {
             p->p_pri = MED_USER_PRIORITY;
         }
         if (p->state != RUNNABLE) {
-            if(p->curr == &readyqueue){
-                remove_proc_from_queue(p,p->curr);
+            if (p->curr == &readyqueue) {
+                remove_proc_from_queue(p, p->curr);
             }
         }
         if (p->curr == &readyqueue && claim_proc(p, this_cpu)) {
@@ -133,21 +135,24 @@ scheduler(void) {
 
         goto sched;
 
-        sched:    // Switch to chosen process.  It is the process's job
-        // to release ptable.lock and then reacquire it
-        // before jumping back to us.
+        sched:
+        if (is_queue_empty(&runqueue[this_cpu])) {
+            cprintf("EMPTY QUEUE ON CPU %d\n", this_cpu);
+            goto main;
+        }
 
         acquire(&ptable.lock);
-
-
-
+        cprintf("PID ON Q is %d\n", runqueue[this_cpu].head->pid);
         c->proc = runqueue[this_cpu].head;
         switchuvm(runqueue[this_cpu].head);
         runqueue[this_cpu].head->state = RUNNING;
         swtch(&(c->scheduler), runqueue[this_cpu].head->context);
         switchkvm();
-       cprintf("PID ON Q is %d\n",runqueue[this_cpu].head->pid);
         shift_queue(&runqueue[this_cpu]);
+
+
+
+
 
         // Process is done running for now.
         // It should have changed its p->state before coming back.
@@ -195,7 +200,7 @@ sched(void) {
     if (p->state == RUNNABLE && p->curr != 0) {
 
         remove_proc_from_queue(p, p->curr);
-        insert_proc_into_queue(p,&readyqueue);
+        insert_proc_into_queue(p, &readyqueue);
 
     }
 
