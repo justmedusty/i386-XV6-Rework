@@ -14,10 +14,14 @@ Changes made so far:
 
   - Added basic function to do cpu usage averaging to dynamically set time quanta for processes based on a the mean process life in clock cycles 
     
-  - Added per-cpu runqeueus so each cpu will have its own runqueue, will also soon implement rebalancing alongside this
+  - Added per-cpu runqeueus so each cpu will have its own runqueue, will also soon implement rebalancing alongside this. 
+
+  - No more iteration through every process on sleep, wakeup, scheduling. All done on the per-cpu runqueues, a global ready queue and a global sleep queue. This means a lot less time is spent 
+    running through every process, the ones we need are already in queue so just pluck them out of there. Not constant time but it is a lot faster.
 
   - Added basic signals, can be seen in signal.h. Signals can be masked and ignored via the sigignore system call (non fatal signals only)
-    signal handlers not properly implemented yet will get to this later.
+    signal handlers not properly implemented yet will get to this later 
+    (Just need to save the eip of the sig handler and at the end of the routine make sure to force a sig_return style function that restores process context to previous instruction pointer and regs).
 
   - Added mounting of secondary filesystems, can be mounted on any directory in your main filesystem. Can traverse across the mount point and use commands
     across the mountpoint
@@ -25,7 +29,7 @@ Changes made so far:
   - Added multi-disk support in the ide driver. It only supports 2 disks right now so I need to clean it up at some point and allow the maximum disks and just do a probe check
     on boot to check what controllers are there and if any disks are attatched.
 
-  - Added preemption of processes if the time quantum is exceeded and a higher prio process is waiting, i added the special PREEMPTED process state so that I can ensure fairness
+  - Added preemption of processes if the time quantum is exceeded and a higher prio process is waiting, I added the special PREEMPTED process state so that I can ensure fairness
     and allow a preempted process to execute again later even if it is low prio.
 
   - Added nonblocking lock specifically for mounting. It is just a lock that returns immediately if locked instead of spinning or sleeping.
