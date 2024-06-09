@@ -193,8 +193,11 @@ sched(void) {
 
     if (p->curr_cpu != NOCPU) {
         panic("here");
+        unclaim_proc(p);
         remove_proc_from_queue(p, &runqueue[p->curr_cpu]);
     }
+    //Put this process into the queue if it was not already there
+
     //Put this process into the queue if it was not already there
     if (p->state == RUNNABLE && p->curr != 0) {
 

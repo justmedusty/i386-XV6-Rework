@@ -502,7 +502,7 @@ sleep(void *chan, struct spinlock *lk) {
     }
 
     insert_proc_into_queue(p,&sleepqueue);
-    cprintf(" SLEEP : SLEEPQ HEAD : pid %d state %d\n",sleepqueue.head->pid,sleepqueue.head->state);
+    cprintf(" SLEEP : SLEEPQ HEAD : pid %d state %d ADDR %x\n",sleepqueue.head->pid,sleepqueue.head->state,sleepqueue.head);
 
 
     sched();
@@ -526,8 +526,8 @@ static void
 wakeup1(void *chan) {
     struct proc *p;
     for (p = sleepqueue.head; p != 0; p = p->next){
-        cprintf("WAKE : SLEEPQ HEAD : pid %d state %d\n",sleepqueue.head->pid,sleepqueue.head->state);
         if (p->state == SLEEPING && p->chan == chan) {
+            cprintf("WAKE : SLEEPQ HEAD : pid %d state %d\n",sleepqueue.head->pid,sleepqueue.head->state);
             remove_proc_from_queue(p,&sleepqueue);
             p->state = RUNNABLE;
             insert_proc_into_queue(p,&readyqueue);
