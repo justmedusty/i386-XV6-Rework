@@ -88,14 +88,11 @@ scheduler(void) {
     int this_cpu = cpuid();
 
     for (;;) {
+
         // Enable trap on this processor.
         sti();
-
-
         // Loop over process table looking for process to run.
-
         main:
-
 
         if (readyqueue.head != 0) {
             p = readyqueue.head;
@@ -126,9 +123,11 @@ scheduler(void) {
             p->p_pri = MED_USER_PRIORITY;
         }
         if (p->state != RUNNABLE) {
-            panic("Bad state in ready queue");
+            if(p->curr == &readyqueue){
+                remove_proc_from_queue(p,p->curr);
+            }
         }
-        if (claim_proc(p, this_cpu)) {
+        if (p->curr == &readyqueue && claim_proc(p, this_cpu)) {
             insert_proc_into_queue(p, &runqueue[this_cpu]);
         }
 
@@ -137,19 +136,17 @@ scheduler(void) {
         sched:    // Switch to chosen process.  It is the process's job
         // to release ptable.lock and then reacquire it
         // before jumping back to us.
-        if (is_queue_empty(&runqueue[this_cpu])) {
-            goto main;
-        }
 
         acquire(&ptable.lock);
 
-        purge_queue(&runqueue[this_cpu]);
+
+
         c->proc = runqueue[this_cpu].head;
         switchuvm(runqueue[this_cpu].head);
-
         runqueue[this_cpu].head->state = RUNNING;
         swtch(&(c->scheduler), runqueue[this_cpu].head->context);
         switchkvm();
+       cprintf("PID ON Q is %d\n",runqueue[this_cpu].head->pid);
         shift_queue(&runqueue[this_cpu]);
 
         // Process is done running for now.

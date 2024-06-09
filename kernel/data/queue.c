@@ -236,15 +236,26 @@ void shift_queue(struct pqueue *procqueue) {
 
     acquire(&procqueue->qloc);
 
-    if (procqueue->head == 0 || procqueue->head->next == 0) {
+    if (procqueue->head == 0) {
+        panic("Purging empty queue!");
         release(&procqueue->qloc);
         return;
     }
 
+    if(procqueue->head->next == 0){
+
+        unclaim_proc(procqueue->head);
+        remove_proc_from_queue(procqueue->head,procqueue);
+        release(&procqueue->qloc);
+
+        return;
+    }
     struct proc *old_head = procqueue->head;
     struct proc *new_head = procqueue->head->next;
 
-
+    if(old_head->state == RUNNABLE){
+        insert_proc_into_queue(old_head,&readyqueue);
+    }
     new_head->prev = 0;
     procqueue->head = new_head;
     old_head->next = 0;
@@ -257,6 +268,7 @@ void shift_queue(struct pqueue *procqueue) {
     if (procqueue->head != 0 && procqueue->head == procqueue->tail) {
         panic("head eq tail");
     }
+
 
 }
 
