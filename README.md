@@ -11,8 +11,11 @@ Changes made so far:
   - Sched queue based on process priorities, differing from typical unix in that higher number eq higher prio. 
     Insertions into the sched queue are done by placing the highest prio first on the runqeue and as the kernel walks
     down the queue it checks the process to be enqueued against the process in this spot in the queue.
+    I have added a field to the process struct for CPU (current cpu queue it is on) and curr (current queue) so that a process
+    can be found and plucked out or moved very quickly. No iterative searching needed. The queue functions in queue.c handle this. 
 
-  - Added basic function to do cpu usage averaging to dynamically set time quanta for processes based on a the mean process life in clock cycles 
+  - Added basic function to do cpu usage averaging to dynamically set time quanta for processes based on a the mean process life in clock cycles.
+    After a process is preempted , the cpu usage stays but the assigned time quanta is increased by the current average. 
     
   - Added per-cpu runqeueus so each cpu will have its own runqueue.
 
