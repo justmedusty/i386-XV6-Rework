@@ -489,11 +489,14 @@ sleep(void *chan, struct spinlock *lk) {
     if(p->curr_cpu != NOCPU){
         remove_proc_from_queue(p,&runqueue[p->curr_cpu]);
         p->curr_cpu = NOCPU;
-        //else if its on another queue (sleepqueue, readyqueue) remove it
+        //else if its on another queue (sleepqueue (shouldnt be on the sleep queue yet), readyqueue) remove it
     } else if(p->curr != 0){
         remove_proc_from_queue(p,p->curr);
     }
+
     insert_proc_into_queue(p,&sleepqueue);
+    cprintf(" SLEEP : SLEEPQ HEAD : pid %d state %d\n",sleepqueue.head->pid,sleepqueue.head->state);
+
 
     sched();
     // Tidy up.
@@ -507,19 +510,24 @@ sleep(void *chan, struct spinlock *lk) {
     }
 }
 
-//PAGEBREAK!
+
 // Wake up all processes sleeping on chan.
 // The ptable lock must be held.
 static void
 wakeup1(void *chan) {
     struct proc *p;
-
-    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+    for (p = sleepqueue.head; p != 0; p = p->next){
+        cprintf("WAKE : SLEEPQ HEAD : pid %d state %d\n",sleepqueue.head->pid,sleepqueue.head->state);
         if (p->state == SLEEPING && p->chan == chan) {
+            remove_proc_from_queue(p,&sleepqueue);
             p->state = RUNNABLE;
+            insert_proc_into_queue(p,&readyqueue);
             p->p_flag = URGENT;
             p->p_pri++;
+
         }
+    }
+
 }
 
 

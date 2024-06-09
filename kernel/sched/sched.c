@@ -36,15 +36,16 @@ int queueinit = 0;
  * increment n_procs, and then divide total_cpu_time by n_procs to get our new mean
  */
 
-struct cpu_avg{
+struct cpu_avg {
     uint total_cpu_time;
     uint n_procs;
     uint avg;
 };
 
 struct cpu_avg c_avg;
+
 //init our counter, dummy value to start with avg
-void init_cpu_avg_counter(){
+void init_cpu_avg_counter() {
     c_avg.avg = 25;
     c_avg.n_procs = 0;
     c_avg.total_cpu_time = 0;
@@ -52,7 +53,7 @@ void init_cpu_avg_counter(){
 
 
 //Update with the new average
-void update_cpu_avg(uint ticks){
+void update_cpu_avg(uint ticks) {
     c_avg.total_cpu_time += ticks;
     c_avg.n_procs++;
     c_avg.avg = c_avg.total_cpu_time / c_avg.n_procs;
@@ -60,7 +61,7 @@ void update_cpu_avg(uint ticks){
 
 
 //get the avg clock cycles per proc
-uint get_cpu_avg(){
+uint get_cpu_avg() {
     return c_avg.avg;
 }
 
@@ -94,61 +95,63 @@ scheduler(void) {
         // Loop over process table looking for process to run.
 
         main:
-            if(readyqueue.head != 0){
-               p = readyqueue.head;
-            } else goto sched;
-            //If there is an unhandled signal
-            if(signals_pending(p)){
-                handle_signals(p);
-            }
+        if (readyqueue.head != 0) {
+            p = readyqueue.head;
+        } else goto sched;
+        //If there is an unhandled signal
+        if (signals_pending(p)) {
+            handle_signals(p);
+
+        }
 
 
-            //prempted procs will need to go round the merry-go-round a few times before they are reset
-            if (is_queue_empty(&runqueue[this_cpu]) && p->state == PREEMPTED && claim_proc(p,cpuid())) {
-                p->state = RUNNABLE;
-                //Add onto the time quantum with our averaged value, I prefer this to resetting the cpu_usage field because then
-                //the calculations can get skewed
-                p->p_time_quantum += c_avg.avg;
-                insert_proc_into_queue(p,&runqueue[this_cpu]);
-                goto sched;
-            }
-            if (p->state == PREEMPTED && p->p_pri != TOP_PRIORITY) {
-                p->p_pri++;
-
-            } else if (p->state == PREEMPTED && p->p_pri == TOP_PRIORITY) {
-                p->state = RUNNABLE;
-                p->p_pri = MED_USER_PRIORITY;
-            }
-            if (p->state != RUNNABLE) {
-                continue;
-            }
-            if (claim_proc(p,this_cpu)) {
-                insert_proc_into_queue(p,&runqueue[this_cpu]);
-            }
-
+        //prempted procs will need to go round the merry-go-round a few times before they are reset
+        if (is_queue_empty(&runqueue[this_cpu]) && p->state == PREEMPTED && claim_proc(p, cpuid())) {
+            p->state = RUNNABLE;
+            //Add onto the time quantum with our averaged value, I prefer this to resetting the cpu_usage field because then
+            //the calculations can get skewed
+            p->p_time_quantum += c_avg.avg;
+            insert_proc_into_queue(p, &runqueue[this_cpu]);
             goto sched;
+        }
+        if (p->state == PREEMPTED && p->p_pri != TOP_PRIORITY) {
+            p->p_pri++;
 
-            sched:    // Switch to chosen process.  It is the process's job
-            // to release ptable.lock and then reacquire it
-            // before jumping back to us.
+        } else if (p->state == PREEMPTED && p->p_pri == TOP_PRIORITY) {
+            p->state = RUNNABLE;
+            p->p_pri = MED_USER_PRIORITY;
+        }
+        if (p->state != RUNNABLE) {
+            continue;
+        }
+        if (claim_proc(p, this_cpu)) {
+            insert_proc_into_queue(p, &runqueue[this_cpu]);
+        }
+
+        goto sched;
+
+        sched:    // Switch to chosen process.  It is the process's job
+        // to release ptable.lock and then reacquire it
+        // before jumping back to us.
+        if (is_queue_empty(&runqueue[this_cpu])) {
+            goto main;
+        }
+
         acquire(&ptable.lock);
-            if (is_queue_empty(&runqueue[this_cpu])) {
-                goto main;
-            }
 
-            purge_queue(&runqueue[this_cpu]);
-            c->proc = runqueue[this_cpu].head;
-            switchuvm(runqueue[this_cpu].head);
+        purge_queue(&runqueue[this_cpu]);
+        c->proc = runqueue[this_cpu].head;
+        switchuvm(runqueue[this_cpu].head);
 
-            runqueue[this_cpu].head->state = RUNNING;
+        runqueue[this_cpu].head->state = RUNNING;
 
-            swtch(&(c->scheduler), runqueue[this_cpu].head->context);
-            switchkvm();
-            shift_queue(&runqueue[this_cpu]);
+        swtch(&(c->scheduler), runqueue[this_cpu].head->context);
+        switchkvm();
+        shift_queue(&runqueue[this_cpu]);
 
-            // Process is done running for now.
-            // It should have changed its p->state before coming back.
-            c->proc = 0;
+        // Process is done running for now.
+        // It should have changed its p->state before coming back.
+        c->proc = 0;
 
 
         release(&ptable.lock);
@@ -185,12 +188,12 @@ sched(void) {
         p->p_flag = URGENT;
     }
 
-    if(p->curr_cpu != NOCPU){
-        remove_proc_from_queue(p,&runqueue[p->curr_cpu]);
+    if (p->curr_cpu != NOCPU) {
+        remove_proc_from_queue(p, &runqueue[p->curr_cpu]);
     }
     //Put this process into the queue if it was not already there
-    if (p->state == RUNNABLE && claim_proc(p,cpu_id)) {
-       insert_proc_into_queue(p,&runqueue[cpu_id]);
+    if (p->state == RUNNABLE && claim_proc(p, cpu_id)) {
+        insert_proc_into_queue(p, &runqueue[cpu_id]);
     }
 
     swtch(&p->context, mycpu()->scheduler);

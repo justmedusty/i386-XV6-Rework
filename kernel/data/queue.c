@@ -167,6 +167,8 @@ void remove_proc_from_queue(struct proc *old,struct pqueue *procqueue) {
             procqueue->tail = 0; // Queue becomes empty
         }
         procqueue->len--;
+        old->next = 0;
+        old->prev = 0;
         unclaim_proc(old);
         release(&procqueue->qloc);
         return;
@@ -185,6 +187,8 @@ void remove_proc_from_queue(struct proc *old,struct pqueue *procqueue) {
                 procqueue->tail = this->prev; // Update tail if the process is at the tail
             }
             procqueue->len--;
+            this->next = 0;
+            this->prev = 0;
             unclaim_proc(old);
             release(&procqueue->qloc);
             return;
@@ -242,6 +246,9 @@ void shift_queue(struct pqueue *procqueue) {
     old_head->next = 0;
     unclaim_proc(old_head);
     release(&procqueue->qloc);
+    if(old_head->state == RUNNABLE){
+        insert_proc_into_queue(old_head,&readyqueue);
+    }
 
     if (procqueue->head != 0 && procqueue->head == procqueue->tail) {
         panic("head eq tail");
