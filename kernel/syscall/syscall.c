@@ -7,7 +7,7 @@
 #include "../sched/proc.h"
 #include "../arch/x86_32/x86.h"
 #include "syscall.h"
-#include "../sched/signal.h"
+#include "../sched/signals.h"
 
 // User code makes a system call with INT T_SYSCALL.
 // System call number in %eax.

@@ -10,7 +10,7 @@
 #include "../kernel/syscall/syscall.h"
 #include "types.h"
 #include "user.h"
-#include "../kernel/sched/signal.h"
+#include "../kernel/sched/signals.h"
 
 
 void *sig_handler() {

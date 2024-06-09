@@ -12,7 +12,7 @@
 #include "../arch/x86_32/x86.h"
 #include "../sched/proc.h"
 #include "../arch/x86_32/mem/vm.h"
-#include "../sched/signal.h"
+#include "../sched/signals.h"
 #include "../arch/x86_32/mp/mp.h"
 #include "../sched/sched.h"
 
@@ -141,6 +141,7 @@ int unclaim_proc(struct proc *p) {
         p->queue_mask &= ~IN_QUEUE;
         result = 1;
         p->curr_cpu = NOCPU;
+        p->curr = 0;
     }
     release(&check_lock);
     return result;

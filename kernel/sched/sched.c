@@ -11,7 +11,7 @@
 #include "../arch/x86_32/x86.h"
 #include "proc.h"
 #include "../arch/x86_32/mem/vm.h"
-#include "signal.h"
+#include "signals.h"
 #include "sched.h"
 #include "../data/queue.h"
 
@@ -92,51 +92,16 @@ scheduler(void) {
 
 
         // Loop over process table looking for process to run.
-        acquire(&ptable.lock);
+
         main:
+            if(readyqueue.head != 0){
+               p = readyqueue.head;
+            } else goto sched;
             //If there is an unhandled signal
-            if (p->p_sig != 0) {
-
-                /*
-                 * If the signal is one of the fatal signals, terminate no matter what
-                 * and print to console that the process received a fatal signal
-                 */
-                if (((p->p_sig & SIGKILL) != 0) || ((p->p_sig & SIGSEG) != 0) || ((p->p_sig & SIGPIPE) != 0)) {
-                    cprintf("pid %d received fatal signal\n", p->pid);
-                    p->killed = 1;
-                }
-                /*
-                 * If the time quantum has been exceeded, goto sched and let another process run.
-                 * This is handled here with kill seg pipe etc because it cannot be ignored.
-                 */
-                if ((p->p_sig & SIGCPU) != 0) {
-                    p->p_sig &= ~SIGCPU;
-                    release(&ptable.lock);
-                    yield();
-                }
-
-                /*
-                 * If there no ignore mask, terminate
-                 */
-                if (p->p_ign == 0) {
-
-                    p->killed = 1;
-                    /*
-                     * If the ignore is masking the non fatal signal, ignore it
-                     */
-                } else if ((p->p_ign & p->p_sig) != 0) {
-
-                    p->p_sig = 0;
-
-                    /*
-                     * else if the signals being ignored do not cover the signal received, terminate the process.
-                     */
-                } else {
-                    p->killed = 1;
-
-                }
-
+            if(signals_pending(p)){
+                handle_signals(p);
             }
+
 
             //prempted procs will need to go round the merry-go-round a few times before they are reset
             if (is_queue_empty(&runqueue[this_cpu]) && p->state == PREEMPTED && claim_proc(p,cpuid())) {
@@ -176,7 +141,9 @@ scheduler(void) {
             purge_queue(&runqueue[this_cpu]);
             c->proc = runqueue[this_cpu].head;
             switchuvm(runqueue[this_cpu].head);
+            acquire(&ptable.lock);
             runqueue[this_cpu].head->state = RUNNING;
+            release(&ptable.lock);
             swtch(&(c->scheduler), runqueue[this_cpu].head->context);
             switchkvm();
             purge_queue(&runqueue[this_cpu]);
@@ -188,7 +155,6 @@ scheduler(void) {
 
 
 
-        release(&ptable.lock);
 
     }
 

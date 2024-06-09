@@ -20,6 +20,7 @@
 //time quantum exceeded
 #define SIGCPU 64
 
-
+int signals_pending(struct proc *p);
+void handle_signals(struct proc *p);
 
 #endif //XV6_ORIGINAL_SIGNAL_H

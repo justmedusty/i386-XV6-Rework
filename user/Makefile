@@ -18,6 +18,7 @@ OBJS = \
 	../kernel/ipc/pipe.o\
 	../kernel/sched/sched.o\
 	../kernel/sched/proc.o\
+	../kernel/sched/signals.o\
 	../kernel/lock/sleeplock.o\
 	../kernel/lock/spinlock.o\
 	../kernel/mm/string.o\

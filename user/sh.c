@@ -3,7 +3,7 @@
 #include "types.h"
 #include "user.h"
 #include "../kernel/fs/xfcntl.h"
-#include "../kernel/sched/signal.h"
+#include "../kernel/sched/signals.h"
 
 // Parsed command representation
 #define EXEC  1

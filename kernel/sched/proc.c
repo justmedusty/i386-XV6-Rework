@@ -7,7 +7,7 @@
 #include "../lock/spinlock.h"
 #include "proc.h"
 #include "../arch/x86_32/mem/vm.h"
-#include "signal.h"
+#include "signals.h"
 #include "sched.h"
 #include "../arch/x86_32/mp/mp.h"
 #include "../data/queue.h"
