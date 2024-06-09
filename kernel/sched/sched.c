@@ -88,25 +88,24 @@ scheduler(void) {
     int this_cpu = cpuid();
 
     for (;;) {
+        cprintf("GOING IN 2\n");
+        sti();
         main:
         // Enable trap on this processor.
-        sti();
-        // Loop over process table looking for process to run.
 
 
         if (readyqueue.head != 0) {
             p = readyqueue.head;
-        } else {
+        } else{
             goto sched;
         }
-
 
         //If there is an unhandled signal
         if (signals_pending(p)) {
             handle_signals(p);
         }
 
-
+      //  cprintf("QUEUE RQ %x SQ %x RDYQ %x cpu %d\n",runqueue[this_cpu].head,sleepqueue.head,readyqueue.head,this_cpu);
         //prempted procs will need to go round the merry-go-round a few times before they are reset
         if (is_queue_empty(&runqueue[this_cpu]) && p->state == PREEMPTED && claim_proc(p, cpuid())) {
 
@@ -114,6 +113,7 @@ scheduler(void) {
             //Add onto the time quantum with our averaged value, I prefer this to resetting the cpu_usage field because then
             //the averaging calculations can get skewed
             p->p_time_quantum += c_avg.avg;
+            remove_proc_from_queue(p,&readyqueue);
             insert_proc_into_queue(p, &runqueue[this_cpu]);
             goto sched;
         }
@@ -130,36 +130,44 @@ scheduler(void) {
             }
         }
         if (p->curr == &readyqueue && claim_proc(p, this_cpu)) {
+            remove_proc_from_queue(p,&readyqueue);
             insert_proc_into_queue(p, &runqueue[this_cpu]);
         }
-
         goto sched;
 
         sched:
+        cprintf("QUEUE RQ %x SQ %x RDYQ %x cpu %d\n",runqueue[this_cpu].head,sleepqueue.head,readyqueue.head,this_cpu);
         if (is_queue_empty(&runqueue[this_cpu])) {
             cprintf("EMPTY QUEUE ON CPU %d\n", this_cpu);
-            goto main;
+           goto main;
         }
-
-        acquire(&ptable.lock);
-        cprintf("PID ON Q is %d\n", runqueue[this_cpu].head->pid);
+       // acquire(&ptable.lock);
+        cprintf("GOING IN\n");
         c->proc = runqueue[this_cpu].head;
         switchuvm(runqueue[this_cpu].head);
+        acquire(&ptable.lock);
         runqueue[this_cpu].head->state = RUNNING;
+
+
         swtch(&(c->scheduler), runqueue[this_cpu].head->context);
-        switchkvm();
         shift_queue(&runqueue[this_cpu]);
+        switchkvm();
+        release(&ptable.lock);
 
-
-
-
+        cprintf("GOING OUT\n");
 
         // Process is done running for now.
         // It should have changed its p->state before coming back.
         c->proc = 0;
 
-        release(&ptable.lock);
+
+
+
+       cprintf("QUEUE RQ %x SQ %x RDYQ %x cpu %d\n",runqueue[this_cpu].head,sleepqueue.head,readyqueue.head,this_cpu);
+
+
     }
+
 
 }
 
@@ -192,7 +200,6 @@ sched(void) {
     }
 
     if (p->curr_cpu != NOCPU) {
-        panic("here");
         unclaim_proc(p);
         remove_proc_from_queue(p, &runqueue[p->curr_cpu]);
     }
@@ -200,10 +207,10 @@ sched(void) {
 
     //Put this process into the queue if it was not already there
     if (p->state == RUNNABLE && p->curr != 0) {
-
         remove_proc_from_queue(p, p->curr);
         insert_proc_into_queue(p, &readyqueue);
-
+    } else if (p->state == RUNNABLE){
+        insert_proc_into_queue(p, &readyqueue);
     }
 
 
