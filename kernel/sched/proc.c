@@ -530,6 +530,8 @@ wakeup1(void *chan) {
             p->p_pri++;
 
 
+        } else if (p->chan == chan){
+            panic("stuck proc");
         }
     }
 

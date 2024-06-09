@@ -88,12 +88,14 @@ scheduler(void) {
     int this_cpu = cpuid();
 
     for (;;) {
+        // Enable trap on this processor.
         sti();
         main:
-        // Enable trap on this processor.
-
-
-        if (readyqueue.head != 0) {
+       //tight loop, can fill this with other tasks and routines later
+        if (is_queue_empty(&readyqueue) && is_queue_empty(&runqueue[this_cpu])){
+            goto main;
+        }
+        if (!is_queue_empty(&readyqueue)) {
             p = readyqueue.head;
         } else{
             goto sched;
@@ -182,16 +184,20 @@ sched(void) {
         panic("sched running");
     if (readeflags() & FL_IF)
         panic("sched interruptible");
-    intena = mycpu()->intena;
 
-    //Is this a higher priority than the current process? if so, set it to URGENT so that it will be swapped in immediately
-    if (mycpu()->proc->p_pri < p->p_pri || mycpu()->proc->space_flag < p->space_flag) {
-        p->p_flag = URGENT;
-    }
+    intena = mycpu()->intena;
 
     if (p->curr_cpu != NOCPU) {
         unclaim_proc(p);
         remove_proc_from_queue(p, &runqueue[p->curr_cpu]);
+    }
+
+    if(p->state == PREEMPTED){
+        p->p_pri = LOW_USER_PRIORITY;
+        p->state = RUNNABLE;
+        p->curr = 0;
+        insert_proc_into_queue(p,&readyqueue);
+        goto done;
     }
     //Put this process into the queue if it was not already there
 
@@ -203,7 +209,7 @@ sched(void) {
         insert_proc_into_queue(p, &readyqueue);
     }
 
-
+    done:
     swtch(&p->context, mycpu()->scheduler);
     mycpu()->intena = intena;
 }
@@ -222,8 +228,9 @@ yield(void) {
 
 void preempt(void) {
     acquire(&ptable.lock);  //DOC: yieldlock
+    struct proc *p =  myproc();
     int this_cpu = cpuid();
-    myproc()->state = PREEMPTED;
+    p->state = PREEMPTED;
     purge_queue(&runqueue[this_cpu]);
     sched();
     release(&ptable.lock);
