@@ -7,7 +7,7 @@
 #include "../defs/param.h"
 #include "../data/queue.h"
 //one for each possible cpu, only use one per CPU based off num_cpu result from mp.c
-extern struct pqueue procqueue[NCPU];
+extern struct pqueue runqueue[NCPU];
 
 void sched(void);
 

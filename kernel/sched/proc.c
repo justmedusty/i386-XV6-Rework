@@ -149,10 +149,10 @@ userinit(void) {
      */
     int ncpus = num_cpus();
     if(ncpus == 0){
-        initprocqueue(&procqueue[0]);
+        initprocqueue(&runqueue[0]);
     } else{
         for(int i = 0;i < ncpus; i++){
-            initprocqueue(&procqueue[i]);
+            initprocqueue(&runqueue[i]);
         }
     }
 

@@ -250,7 +250,7 @@ void queues_need_balance(){
     struct proc *pointer;
 
     for (int i = 0; i < ncpu; i++) {
-        tasks_per_rq[i] = procqueue[i].len;
+        tasks_per_rq[i] = runqueue[i].len;
     }
 
     int ideal_queue_len = 0;
@@ -267,7 +267,7 @@ void queues_need_balance(){
 
     for (int i = 0; i < ncpu; ++i) {
 
-        if(procqueue[i].len > padded_ideal){
+        if(runqueue[i].len > padded_ideal){
 
             unbalanced_rq_mask |= (1 << i);
 

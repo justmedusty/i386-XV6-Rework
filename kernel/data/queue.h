@@ -10,7 +10,7 @@ struct pqueue {
     struct proc *tail;
     int len;
 };
-
+//proc queues
 void initprocqueue(struct pqueue *procqueue);
 int is_queue_empty(struct pqueue *procqueue);
 int is_proc_alone_in_queue(struct proc *p,struct pqueue *procqueue);
