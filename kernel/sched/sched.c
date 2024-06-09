@@ -25,8 +25,8 @@
 
 
 struct pqueue runqueue[NCPU];
-struct pqueue waitqueue;
-struct pqueue idlequeue;
+struct pqueue sleepqueue;
+struct pqueue readyqueue;
 
 int queueinit = 0;
 
@@ -94,8 +94,6 @@ scheduler(void) {
         // Loop over process table looking for process to run.
         acquire(&ptable.lock);
         main:
-        for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
-
             //If there is an unhandled signal
             if (p->p_sig != 0) {
 
@@ -189,7 +187,6 @@ scheduler(void) {
             c->proc = 0;
 
 
-        }
 
         release(&ptable.lock);
 

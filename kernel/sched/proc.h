@@ -97,6 +97,7 @@ struct proc {
   struct proc *next;           // Will work this doubly linked list for scheduling right into the process table, like what was done with the buffer cache
   struct proc *prev;           // Will work this doubly linked list for scheduling right into the process table, like what was done with the buffer cache
   int curr_cpu;                //the cpu this proc is queued on
+  struct pqueue *curr;         //address of the current queue this proc is in
 };
 
 // Process memory is laid out contiguously, low addresses first:

@@ -155,6 +155,8 @@ userinit(void) {
             initprocqueue(&runqueue[i]);
         }
     }
+    initprocqueue(&sleepqueue);
+    initprocqueue(&readyqueue);
 
     struct proc *p;
     extern char _binary_initcode_start[], _binary_initcode_size[];
@@ -210,6 +212,8 @@ userinit(void) {
     p->prev = 0;
     p->queue_mask = 0;
     p->curr_cpu = NOCPU;
+    insert_proc_into_queue(p,&readyqueue);
+    p->curr = &readyqueue;
 
     release(&ptable.lock);
 }
@@ -320,6 +324,8 @@ fork(void) {
 
 
     release(&ptable.lock);
+    insert_proc_into_queue(np,&readyqueue);
+
 
 
     return pid;
@@ -329,11 +335,6 @@ fork(void) {
 // An exited process remains in the zombie state
 // until its parent calls wait() to find out it exited.
 
-/*
- * We will get rid of the zombieification of processes. When a child exits there will no longer be a zombie that is required
- * to be reaped, but instead we will clear the process entry in the process table and zero it.
- * Dustyn - 5/7/24
- */
 void
 exit(void) {
     struct proc *curproc = myproc();
@@ -376,6 +377,15 @@ exit(void) {
 
     //update our average cpu usage metrics for dynamic time quanta calculation
     update_cpu_avg(curproc->p_cpu_usage);
+
+    //If it is on a runqueue, remove it
+    if(curproc->curr_cpu != NOCPU){
+        remove_proc_from_queue(curproc,&runqueue[curproc->curr_cpu]);
+        curproc->curr_cpu = NOCPU;
+        //else if its on another queue (sleepqueue, readyqueue) remove it
+    } else if(curproc->curr != 0){
+        remove_proc_from_queue(curproc,curproc->curr);
+    }
     // Jump into the scheduler, never to return.
     sched();
     panic("zombie exit");
@@ -421,6 +431,15 @@ wait(void) {
 
 
         // Wait for children to exit.  (See wakeup1 call in proc_exit.)
+        if(curproc->curr_cpu != NOCPU){
+            remove_proc_from_queue(curproc,&runqueue[curproc->curr_cpu]);
+            curproc->curr_cpu = NOCPU;
+            //else if its on another queue (sleepqueue, readyqueue) remove it
+        } else if(curproc->curr != 0){
+            remove_proc_from_queue(curproc,curproc->curr);
+            curproc->curr = 0;
+        }
+        insert_proc_into_queue(curproc,&sleepqueue);
         sleep(curproc, &ptable.lock);  //DOC: wait-sleep
 
 

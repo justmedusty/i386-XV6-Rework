@@ -8,6 +8,8 @@
 #include "../data/queue.h"
 //one for each possible cpu, only use one per CPU based off num_cpu result from mp.c
 extern struct pqueue runqueue[NCPU];
+extern struct pqueue sleepqueue;
+extern struct pqueue readyqueue;
 
 void sched(void);
 

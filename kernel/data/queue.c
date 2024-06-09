@@ -20,6 +20,8 @@
  * We will create some reusable functions for dealing with proc queues and other types of queues in order to make it simpler to deal with many different
  * data structures, can reuse the wrapper functions defined here
  */
+
+//this lock is just for a cpu claiming a process
 struct spinlock check_lock;
 int lock_init = 0;
 //*************************************************************
@@ -28,7 +30,7 @@ int lock_init = 0;
 
 void initprocqueue(struct pqueue *procqueue) {
     if(!lock_init){
-        initlock(&check_lock,"queuelock");
+        initlock(&check_lock,"claimlock");
     }
     initlock(&procqueue->qloc, "procqueue");
     procqueue->head = 0;
