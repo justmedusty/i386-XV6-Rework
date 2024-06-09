@@ -88,7 +88,6 @@ scheduler(void) {
     int this_cpu = cpuid();
 
     for (;;) {
-        cprintf("GOING IN 2\n");
         sti();
         main:
         // Enable trap on this processor.
@@ -136,13 +135,10 @@ scheduler(void) {
         goto sched;
 
         sched:
-        cprintf("QUEUE RQ %x SQ %x RDYQ %x cpu %d\n",runqueue[this_cpu].head,sleepqueue.head,readyqueue.head,this_cpu);
         if (is_queue_empty(&runqueue[this_cpu])) {
-            cprintf("EMPTY QUEUE ON CPU %d\n", this_cpu);
            goto main;
         }
        // acquire(&ptable.lock);
-        cprintf("GOING IN\n");
         c->proc = runqueue[this_cpu].head;
         switchuvm(runqueue[this_cpu].head);
         acquire(&ptable.lock);
@@ -152,18 +148,12 @@ scheduler(void) {
         swtch(&(c->scheduler), runqueue[this_cpu].head->context);
         shift_queue(&runqueue[this_cpu]);
         switchkvm();
-        release(&ptable.lock);
-
-        cprintf("GOING OUT\n");
-
         // Process is done running for now.
         // It should have changed its p->state before coming back.
         c->proc = 0;
+        release(&ptable.lock);
 
 
-
-
-       cprintf("QUEUE RQ %x SQ %x RDYQ %x cpu %d\n",runqueue[this_cpu].head,sleepqueue.head,readyqueue.head,this_cpu);
 
 
     }

@@ -245,7 +245,6 @@ growproc(int n) {
 // Caller must set state of returned proc to RUNNABLE.
 int
 fork(void) {
-
     int i, pid;
     struct proc *np;
     struct proc *curproc = myproc();
@@ -524,7 +523,6 @@ wakeup1(void *chan) {
     struct proc *p;
     for (p = sleepqueue.head; p != 0; p = p->next){
         if (p->state == SLEEPING && p->chan == chan) {
-            cprintf("WAKEUP");
             remove_proc_from_queue(p,&sleepqueue);
             p->state = RUNNABLE;
             insert_proc_into_queue(p,&readyqueue);
