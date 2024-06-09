@@ -286,7 +286,7 @@ void shift_queue(struct pqueue *procqueue) {
 }
 
 // check the per-cpu rqs to see if we need to rebalance the queues
-void queues_need_balance(){
+unsigned char queues_need_balance(){
 
     int ncpu = num_cpus();
     int tasks_per_rq[ncpu];
@@ -316,7 +316,6 @@ void queues_need_balance(){
 
         }
     }
-
     return unbalanced_rq_mask;
 }
 
@@ -327,7 +326,13 @@ void do_balance(unsigned char rq_mask){
     unsigned char inverted_run_mask = ~rq_mask;
     for (int i = 0; i < ncpu; i++) {
         if(rq_mask & (1 << i)){
-
+            //just playing around for now will just pluck the tail ,if there isn't a tail then there shouldnt be any migration anyway
+            //we won't map the migrations to specific cpus yet we'll just throw it in the ready queue since this function is only called by a spinning scheduler with nothing to do
+            if(runqueue[i].tail){
+                struct proc *p2migrate = runqueue[i].tail;
+                remove_proc_from_queue(p2migrate,p2migrate->curr);
+                insert_proc_into_queue(p2migrate,&readyqueue);
+            }
         }
     }
 

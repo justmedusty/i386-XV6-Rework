@@ -21,4 +21,6 @@ int claim_proc(struct proc *p,int cpu);
 int unclaim_proc(struct proc *p);
 void purge_queue(struct pqueue *procqueue);
 void shift_queue(struct pqueue *procqueue);
+unsigned char queues_need_balance();
+void do_balance(unsigned char rq_mask);
 #endif //I386_XV6_REWORK_QUEUE_H

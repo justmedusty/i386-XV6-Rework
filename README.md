@@ -14,7 +14,10 @@ Changes made so far:
 
   - Added basic function to do cpu usage averaging to dynamically set time quanta for processes based on a the mean process life in clock cycles 
     
-  - Added per-cpu runqeueus so each cpu will have its own runqueue, will also soon implement rebalancing alongside this. 
+  - Added per-cpu runqeueus so each cpu will have its own runqueue.
+
+  - Very basic cpu balancing routine, when a cpu has no tasks on the ready queue or its run queue it will spin checking if queues need balancing and any that do it will free the tail and place it on
+    on the ready queue which the hungry cpu will be able to take very quickly.
 
   - No more iteration through every process on sleep, wakeup, scheduling. All done on the per-cpu runqueues, a global ready queue and a global sleep queue. This means a lot less time is spent 
     running through every process, the ones we need are already in queue so just pluck them out of there. Not constant time but it is a lot faster.

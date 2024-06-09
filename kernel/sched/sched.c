@@ -83,6 +83,7 @@ void
 scheduler(void) {
     struct proc *p;
     struct cpu *c = mycpu();
+    unsigned char qmask;
     //Init to a null pointer so we can assign the first proc to it and then from there keep checking.
     c->proc = 0;
     int this_cpu = cpuid();
@@ -93,6 +94,10 @@ scheduler(void) {
         main:
        //tight loop, can fill this with other tasks and routines later
         if (is_queue_empty(&readyqueue) && is_queue_empty(&runqueue[this_cpu])){
+            //Check if the queues are balanced, if not pluck some out and place them in the ready queue where this cpu can snag them.
+            if((qmask = queues_need_balance()) > 0 ){
+                do_balance(qmask);
+            }
             goto main;
         }
         if (!is_queue_empty(&readyqueue)) {
@@ -106,30 +111,6 @@ scheduler(void) {
             handle_signals(p);
         }
 
-      //  cprintf("QUEUE RQ %x SQ %x RDYQ %x cpu %d\n",runqueue[this_cpu].head,sleepqueue.head,readyqueue.head,this_cpu);
-        //prempted procs will need to go round the merry-go-round a few times before they are reset
-        if (is_queue_empty(&runqueue[this_cpu]) && p->state == PREEMPTED && claim_proc(p, cpuid())) {
-
-            p->state = RUNNABLE;
-            //Add onto the time quantum with our averaged value, I prefer this to resetting the cpu_usage field because then
-            //the averaging calculations can get skewed
-            p->p_time_quantum += c_avg.avg;
-            remove_proc_from_queue(p,&readyqueue);
-            insert_proc_into_queue(p, &runqueue[this_cpu]);
-            goto sched;
-        }
-        if (p->state == PREEMPTED && p->p_pri != TOP_PRIORITY) {
-            p->p_pri++;
-
-        } else if (p->state == PREEMPTED && p->p_pri == TOP_PRIORITY) {
-            p->state = RUNNABLE;
-            p->p_pri = MED_USER_PRIORITY;
-        }
-        if (p->state != RUNNABLE) {
-            if (p->curr == &readyqueue) {
-                remove_proc_from_queue(p, p->curr);
-            }
-        }
         if (p->curr == &readyqueue && claim_proc(p, this_cpu)) {
             remove_proc_from_queue(p,&readyqueue);
             insert_proc_into_queue(p, &runqueue[this_cpu]);
@@ -137,10 +118,10 @@ scheduler(void) {
         goto sched;
 
         sched:
+
         if (is_queue_empty(&runqueue[this_cpu])) {
            goto main;
         }
-       // acquire(&ptable.lock);
         c->proc = runqueue[this_cpu].head;
         switchuvm(runqueue[this_cpu].head);
         acquire(&ptable.lock);
@@ -199,7 +180,6 @@ sched(void) {
         insert_proc_into_queue(p,&readyqueue);
         goto done;
     }
-    //Put this process into the queue if it was not already there
 
     //Put this process into the queue if it was not already there
     if (p->state == RUNNABLE && p->curr != 0) {
