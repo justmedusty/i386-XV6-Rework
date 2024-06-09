@@ -122,18 +122,16 @@ scheduler(void) {
             if (p->state != RUNNABLE) {
                 continue;
             }
-
-            if (claim_proc(p,cpuid())) {
+            if (claim_proc(p,this_cpu)) {
                 insert_proc_into_queue(p,&runqueue[this_cpu]);
             }
-
 
             goto sched;
 
             sched:    // Switch to chosen process.  It is the process's job
             // to release ptable.lock and then reacquire it
             // before jumping back to us.
-
+        acquire(&ptable.lock);
             if (is_queue_empty(&runqueue[this_cpu])) {
                 goto main;
             }
@@ -141,12 +139,11 @@ scheduler(void) {
             purge_queue(&runqueue[this_cpu]);
             c->proc = runqueue[this_cpu].head;
             switchuvm(runqueue[this_cpu].head);
-            acquire(&ptable.lock);
+
             runqueue[this_cpu].head->state = RUNNING;
-            release(&ptable.lock);
+
             swtch(&(c->scheduler), runqueue[this_cpu].head->context);
             switchkvm();
-            purge_queue(&runqueue[this_cpu]);
             shift_queue(&runqueue[this_cpu]);
 
             // Process is done running for now.
@@ -154,7 +151,7 @@ scheduler(void) {
             c->proc = 0;
 
 
-
+        release(&ptable.lock);
 
     }
 

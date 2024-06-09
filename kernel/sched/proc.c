@@ -147,6 +147,7 @@ userinit(void) {
     /*
      * Init the procqueues based on number of cpus detected by MP.c
      */
+
     int ncpus = num_cpus();
     if(ncpus == 0){
         initprocqueue(&runqueue[0]);
@@ -155,6 +156,7 @@ userinit(void) {
             initprocqueue(&runqueue[i]);
         }
     }
+
     initprocqueue(&sleepqueue);
     initprocqueue(&readyqueue);
 
@@ -213,7 +215,6 @@ userinit(void) {
     p->queue_mask = 0;
     p->curr_cpu = NOCPU;
     insert_proc_into_queue(p,&readyqueue);
-
     release(&ptable.lock);
 }
 
@@ -319,11 +320,9 @@ fork(void) {
     np->curr = 0;
 
     acquire(&ptable.lock);
-
     np->state = RUNNABLE;
-
-
     release(&ptable.lock);
+
     insert_proc_into_queue(np,&readyqueue);
 
 
