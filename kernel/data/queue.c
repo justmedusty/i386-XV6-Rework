@@ -63,6 +63,7 @@ void insert_proc_into_queue(struct proc *new,struct pqueue *procqueue){
         new->next = 0;
         new->prev = 0;
         procqueue->len++;
+        new->curr = procqueue;
         release(&procqueue->qloc);
         return;
 
@@ -73,6 +74,7 @@ void insert_proc_into_queue(struct proc *new,struct pqueue *procqueue){
         new->prev = procqueue->head;
         procqueue->head->next = new;
         procqueue->len++;
+        new->curr = procqueue;
         release(&procqueue->qloc);
         return;
     }
@@ -91,6 +93,7 @@ void insert_proc_into_queue(struct proc *new,struct pqueue *procqueue){
 
             this->prev = new;
             procqueue->len++;
+            new->curr = procqueue;
             release(&procqueue->qloc);
             return;
         }
@@ -101,6 +104,7 @@ void insert_proc_into_queue(struct proc *new,struct pqueue *procqueue){
     new->next = 0;
     procqueue->tail = new;
     procqueue->len++;
+    new->curr = procqueue;
     release(&procqueue->qloc);
     return;
 

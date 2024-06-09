@@ -213,7 +213,6 @@ userinit(void) {
     p->queue_mask = 0;
     p->curr_cpu = NOCPU;
     insert_proc_into_queue(p,&readyqueue);
-    p->curr = &readyqueue;
 
     release(&ptable.lock);
 }
@@ -317,6 +316,7 @@ fork(void) {
     np->next = 0;
     np->prev = 0;
     np->curr_cpu = NOCPU;
+    np->curr = 0;
 
     acquire(&ptable.lock);
 
@@ -429,17 +429,6 @@ wait(void) {
             return -1;
         }
 
-
-        // Wait for children to exit.  (See wakeup1 call in proc_exit.)
-        if(curproc->curr_cpu != NOCPU){
-            remove_proc_from_queue(curproc,&runqueue[curproc->curr_cpu]);
-            curproc->curr_cpu = NOCPU;
-            //else if its on another queue (sleepqueue, readyqueue) remove it
-        } else if(curproc->curr != 0){
-            remove_proc_from_queue(curproc,curproc->curr);
-            curproc->curr = 0;
-        }
-        insert_proc_into_queue(curproc,&sleepqueue);
         sleep(curproc, &ptable.lock);  //DOC: wait-sleep
 
 
@@ -498,6 +487,14 @@ sleep(void *chan, struct spinlock *lk) {
     p->chan = chan;
     p->state = SLEEPING;
 
+    if(p->curr_cpu != NOCPU){
+        remove_proc_from_queue(p,&runqueue[p->curr_cpu]);
+        p->curr_cpu = NOCPU;
+        //else if its on another queue (sleepqueue, readyqueue) remove it
+    } else if(p->curr != 0){
+        remove_proc_from_queue(p,p->curr);
+    }
+    insert_proc_into_queue(p,&sleepqueue);
 
     sched();
     // Tidy up.
