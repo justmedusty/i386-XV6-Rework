@@ -16,6 +16,8 @@ Changes made so far:
 
   - Added basic function to do cpu usage averaging to dynamically set time quanta for processes based on a the mean process life in clock cycles.
     After a process is preempted , the cpu usage stays but the assigned time quanta is increased by the current average. 
+
+  - Pressing the tab key now clears the console
     
   - Added per-cpu runqeueus so each cpu will have its own runqueue.
 

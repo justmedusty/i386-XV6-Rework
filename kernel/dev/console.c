@@ -3,7 +3,7 @@
 // Output is written to the screen and serial port.
 
 #include "../../user/types.h"
-#include "../defs/defs.h"
+#include "../defs/defs.h"BACKSPA
 #include "../defs/param.h"
 #include "../arch/x86_32/traps.h"
 #include "../lock/spinlock.h"
@@ -168,6 +168,20 @@ cgaputc(int c) {
     crt[pos] = ' ' | 0x0700;
 }
 
+void clear_screen() {
+    int i;
+    for (i = 0; i < 25 * 80; i++) {
+        crt[i] = ' ' | 0x0700; // space character with white text on black background
+    }
+
+    // Move cursor to the top-left corner
+    int pos = 0;
+    outb(CRTPORT, 14);
+    outb(CRTPORT + 1, pos >> 8);
+    outb(CRTPORT, 15);
+    outb(CRTPORT + 1, pos);
+    consputc('$');
+}
 
 void
 consputc(int c) {
@@ -179,6 +193,10 @@ consputc(int c) {
     if (passwd_mode == 1) {
         return;
     }
+    if(c == '\t'){
+        clear_screen();
+        return;
+    }
     if (c == BACKSPACE) {
         uartputc('\b');
         uartputc(' ');
@@ -186,7 +204,9 @@ consputc(int c) {
     } else
         uartputc(c);
     cgaputc(c);
+
 }
+
 
 #define INPUT_BUF 128
 struct {
