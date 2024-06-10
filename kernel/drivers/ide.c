@@ -25,10 +25,26 @@
 #define IDE_CMD_RDMUL 0xc4
 #define IDE_CMD_WRMUL 0xc5
 
+
+#define DISK1 0x1  // ata0 master (xv6.img)
+#define DISK2 0x2  // ata0 slave (secondaryfs.img)
+#define DISK3 0x4  // ata1 master (secondaryfs.img)
+#define DISK4 0x8  // ata1 slave (unimplemented)
+#define DISK5 0x10 // ata2 master (unimplemented)
+#define DISK6 0x20 // ata2 slave (unimplemented)
+#define DISK7 0x40 // ata3 master (unimplemented)
+#define DISK8 0x80 // ata3 slave (unimplemented)
+
 #define BASEPORT1     0x1f0
 #define BASEPORT2     0x170
-#define CONTROLBASE1  0x3F6
-#define CONTROLBASE2  0x370
+#define BASEPORT3     0x1e8
+#define BASEPORT4     0x168
+
+#define CONTROLBASE1  0x3f6
+#define CONTROLBASE2  0x376
+#define CONTROLBASE3  0x3e6
+#define CONTROLBASE4  0x366
+
 
 // idequeue points to the buf now being read/written to the disk.
 // idequeue->qnext points to the next buf to be processed.
@@ -39,15 +55,8 @@ static struct spinlock idelock2;
 static struct buf *idequeue;
 static struct buf *idequeue2;
 
+unsigned char disk_presence;
 
-static int havedisk1; // ata0 master (xv6.img)
-static int havedisk2; // ata0 slave (secondaryfs.img)
-static int havedisk3; // ata1 master (secondaryfs.img)
-static int havedisk4; // ata1 slave (unimplemented)
-static int havedisk5; // ata2 master (unimplemented)
-static int havedisk6; // ata2 slave (unimplemented)
-static int havedisk7; // ata3 master (unimplemented)
-static int havedisk8; // ata3 slave (unimplemented)
 
 // Wait for IDE disk to become ready.
 static void idestart(uint dev, struct buf *);
@@ -56,31 +65,6 @@ static void idestart(uint dev, struct buf *);
  * Simple function that returns a char bitmask indicating which disks are present, will be useful for santizing random device numbers passed as parameters.
  */
 char disk_query(){
-
-    char disk_presence = 0;
-
-    if(havedisk2){
-        disk_presence |= DEV1;
-    }
-    if(havedisk3){
-        disk_presence |= DEV2;
-    }
-    if(havedisk4){
-        disk_presence |= DEV3;
-    }
-    if(havedisk5){
-        disk_presence |= DEV4;
-    }
-    if(havedisk6){
-        disk_presence |= DEV5;
-    }
-    if(havedisk7){
-        disk_presence |= DEV6;
-    }
-    if(havedisk8){
-        disk_presence |= DEV7;
-    }
-
     return disk_presence;
 }
 
@@ -93,7 +77,7 @@ static int idewait(int dev, int checkerr) {
      * I have to send the ident cmd to the secondary ata controller for some reason, I did not have to do this
      * for the first disk. I am not sure why. But anyway, this is why this is here.
      */
-    if (!havedisk3) {
+    if (!(disk_presence & DISK3) || !((disk_presence & DISK4)) || !((disk_presence & DISK5)) || !((disk_presence & DISK6))|| !((disk_presence & DISK7)) || !((disk_presence & DISK8))) {
         outb(BASEPORT2 + 6, 0xe0 | (0 << 4));
     }
 
@@ -116,16 +100,7 @@ void
 ideinit(void) {
     int i;
     initlock(&idelock, "ide");
-
-    havedisk1 = 0;
-    havedisk2 = 0;
-    havedisk3 = 0;
-    havedisk4 = 0;
-    havedisk5 = 0;
-    havedisk6 = 0;
-    havedisk7 = 0;
-    havedisk8 = 0;
-
+    disk_presence = 0;
     ioapicenable(IRQ_IDE, ncpu - 1);
     ioapicenable(IRQ_IDE2, ncpu - 1);
     idewait(1, 0);
@@ -135,7 +110,7 @@ ideinit(void) {
     outb(BASEPORT1 + 6, 0xe0 | (0 << 4));
     for (i = 0; i < 1000; i++) {
         if (inb(BASEPORT1 + 7) != 0) {
-            havedisk1 = 1;
+            disk_presence |= DISK1;
             cprintf("Found disk 0 master : %x\n", inb(BASEPORT1 + 7));
             break;
         }
@@ -145,7 +120,7 @@ ideinit(void) {
     outb(BASEPORT1 + 6, 0xe0 | (1 << 4));
     for (i = 0; i < 1000; i++) {
         if (inb(BASEPORT1 + 7) != 0) {
-            havedisk2 = 1;
+            disk_presence |= DISK2;
             cprintf("Found disk 0 slave : %x\n", inb(BASEPORT1 + 7));
             break;
         }
@@ -156,22 +131,74 @@ ideinit(void) {
     outb(BASEPORT2 + 6, 0xe0 | (0 << 4));
     for (i = 0; i < 1000; i++) {
         if (inb(BASEPORT2 + 7) != 0) {
-            havedisk3 = 1;
+            disk_presence |= DISK3;
             cprintf("Found disk 1 master : %x\n", inb(BASEPORT2 + 7));
             break;
         }
     }
 
+    // Check if disk 3 (ata1 slave) is present
+    outb(BASEPORT2 + 6, 0xe0 | (1 << 4));
+    for (i = 0; i < 1000; i++) {
+        if (inb(BASEPORT2 + 7) != 0) {
+            disk_presence |= DISK4;
+            cprintf("Found disk 1 slave : %x\n", inb(BASEPORT2 + 7));
+            break;
+        }
+    }
+
+    // Check if disk 4 (ata2 master) is present
+    outb(BASEPORT3 + 6, 0xe0 | (0 << 4));
+    for (i = 0; i < 1000; i++) {
+        if (inb(BASEPORT3 + 7) != 0) {
+            disk_presence |= DISK5;
+            cprintf("Found disk 2 master : %x\n", inb(BASEPORT3 + 7));
+            break;
+        }
+    }
+
+    // Check if disk 5 (ata2 slave) is present
+    outb(BASEPORT3 + 6, 0xe0 | (1 << 4));
+    for (i = 0; i < 1000; i++) {
+        if (inb(BASEPORT3 + 7) != 0) {
+            disk_presence |= DISK6;
+            cprintf("Found disk 2 master : %x\n", inb(BASEPORT3 + 7));
+            break;
+        }
+    }
+
+    // Check if disk 6 (ata3 master) is present
+    outb(BASEPORT4 + 6, 0xe0 | (0 << 4));
+    for (i = 0; i < 1000; i++) {
+        if (inb(BASEPORT4 + 7) != 0) {
+            disk_presence |= DISK7;
+            cprintf("Found disk 2 master : %x\n", inb(BASEPORT4 + 7));
+            break;
+        }
+    }
+
+    // Check if disk 6 (ata3 master) is present
+    outb(BASEPORT4 + 6, 0xe0 | (1 << 4));
+    for (i = 0; i < 1000; i++) {
+        if (inb(BASEPORT4 + 7) != 0) {
+            disk_presence |= DISK8;
+            cprintf("Found disk 2 master : %x\n", inb(BASEPORT4 + 7));
+            break;
+        }
+    }
+
+
+
     // Switch back to disk 0.
     outb(BASEPORT1 + 7, 0xe0 | (0 << 4));
 
-    if (!havedisk1) {
+    if (!(disk_presence & DISK1)) {
         panic("Missing disk 1");
     }
-    if (!havedisk2) {
+    if (!(disk_presence & DISK2))  {
         panic("Missing disk 2");
     }
-    if (!havedisk3) {
+    if (!(disk_presence & DISK3))  {
         panic("Missing disk 3");
     }
 
@@ -317,10 +344,6 @@ iderw(struct buf *b, uint dev) {
         panic("iderw: buf not locked");
     if ((b->flags & (B_VALID | B_DIRTY)) == B_VALID)
         panic("iderw: nothing to do");
-    if (b->dev != 0 && !havedisk1)
-        panic("iderw: ide disk 1 not present");
-    if (b->dev != 1 && !havedisk2)
-        panic("iderw: ide disk 2 not present");
 
     if (dev == 1) {
         acquire(&idelock);  //DOC:acquire-lock
