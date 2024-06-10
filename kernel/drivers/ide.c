@@ -95,23 +95,23 @@ static int idewait(int dev, int checkerr) {
         outb(BASEPORT2 + 6, 0xe0 | (0 << 4));
         startup |= DISK3;
     }
-    if (!(disk_presence & DISK4)) {
+    if (!(startup & DISK4)) {
         outb(BASEPORT2 + 6, 0xe0 | (1 << 4));
         startup |= DISK4;
     }
-    if (!(disk_presence & DISK5)) {
+    if (!(startup & DISK5)) {
         outb(BASEPORT3 + 6, 0xe0 | (0 << 4));
         startup |= DISK5;
     }
-    if (!(disk_presence & DISK6)) {
+    if (!(startup & DISK6)) {
         outb(BASEPORT3 + 6, 0xe0 | (1 << 4));
         startup |= DISK6;
     }
-    if (!(disk_presence & DISK7)) {
+    if (!(startup & DISK7)) {
         outb(BASEPORT4 + 6, 0xe0 | (0 << 4));
         startup |= DISK7;
     }
-    if (!(disk_presence & DISK8)) {
+    if (!(startup & DISK8)) {
         outb(BASEPORT4 + 6, 0xe0 | (1 << 4));
         startup |= DISK8;
     }
