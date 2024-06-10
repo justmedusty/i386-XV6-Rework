@@ -120,11 +120,11 @@ static int idewait(int dev, int checkerr) {
     while (((r = inb(port)) & (IDE_BSY | IDE_DRDY)) != IDE_DRDY) {
 
         if (r & 0xff) {
-            cprintf("Error on port : %x on dev: %x\n", inb(port), dev);
+            //cprintf("Error on port : %x on dev: %x\n", inb(port), dev);
             return -1;
         }
         if (r == 0) {
-            cprintf("Disk not found on dev: %x on port: %x\n", dev, port);
+            //cprintf("Disk not found on dev: %x on port: %x\n", dev, port);
             return -1;
         }
         if (checkerr && (r & (IDE_DF | IDE_ERR)) != 0) {
@@ -438,45 +438,143 @@ iderw(struct buf *b, uint dev) {
     if ((b->flags & (B_VALID | B_DIRTY)) == B_VALID)
         panic("iderw: nothing to do");
 
-    if (dev == 1) {
-        acquire(&idelock);  //DOC:acquire-lock
+    switch(dev){
+        case 1:
+            acquire(&idelock);  //DOC:acquire-lock
+            // Append b to idequeue.
+            b->qnext = 0;
+            for (pp = &idequeue; *pp; pp = &(*pp)->qnext)  //DOC:insert-queue
+                ;
+            *pp = b;
+            // Start disk if necessary.
+            if (idequeue == b)
+                idestart(b->dev, b);
+            // Wait for request to finish.
+            while ((b->flags & (B_VALID | B_DIRTY)) != B_VALID) {
+                sleep(b, &idelock);
+            }
+            release(&idelock);
+            return;
 
-        // Append b to idequeue.
-        b->qnext = 0;
-        for (pp = &idequeue; *pp; pp = &(*pp)->qnext)  //DOC:insert-queue
-            ;
-        *pp = b;
+        case 2:
+            acquire(&idelock2);  //DOC:acquire-lock
+            // Append b to idequeue.
+            b->qnext = 0;
+            for (pp = &idequeue2; *pp; pp = &(*pp)->qnext)  //DOC:insert-queue
+                ;
+            *pp = b;
+            // Start disk if necessary.
+            if (idequeue2 == b)
+                idestart(b->dev, b);
+            // Wait for request to finish.
+            while ((b->flags & (B_VALID | B_DIRTY)) != B_VALID) {
+                sleep(b, &idelock2);
+            }
+            release(&idelock2);
+            return;
 
-        // Start disk if necessary.
-        if (idequeue == b)
-            idestart(1, b);
+        case 3:
+            acquire(&idelock3);  //DOC:acquire-lock
+            // Append b to idequeue.
+            b->qnext = 0;
+            for (pp = &idequeue3; *pp; pp = &(*pp)->qnext)  //DOC:insert-queue
+                ;
+            *pp = b;
+            // Start disk if necessary.
+            if (idequeue3 == b)
+                idestart(b->dev, b);
+            // Wait for request to finish.
+            while ((b->flags & (B_VALID | B_DIRTY)) != B_VALID) {
+                sleep(b, &idelock3);
+            }
+            release(&idelock3);
+            return;
 
-        // Wait for request to finish.
-        while ((b->flags & (B_VALID | B_DIRTY)) != B_VALID) {
-            sleep(b, &idelock);
-        }
+        case 4:
+            acquire(&idelock4);  //DOC:acquire-lock
+            // Append b to idequeue.
+            b->qnext = 0;
+            for (pp = &idequeue4; *pp; pp = &(*pp)->qnext)  //DOC:insert-queue
+                ;
+            *pp = b;
+            // Start disk if necessary.
+            if (idequeue4 == b)
+                idestart(b->dev, b);
+            // Wait for request to finish.
+            while ((b->flags & (B_VALID | B_DIRTY)) != B_VALID) {
+                sleep(b, &idelock4);
+            }
+            release(&idelock4);
+            return;
+        case 5:
+            acquire(&idelock5);  //DOC:acquire-lock
+            // Append b to idequeue.
+            b->qnext = 0;
+            for (pp = &idequeue5; *pp; pp = &(*pp)->qnext)  //DOC:insert-queue
+                ;
+            *pp = b;
+            // Start disk if necessary.
+            if (idequeue5 == b)
+                idestart(b->dev, b);
+            // Wait for request to finish.
+            while ((b->flags & (B_VALID | B_DIRTY)) != B_VALID) {
+                sleep(b, &idelock5);
+            }
+            release(&idelock5);
+            return;
 
+        case 6:
+            acquire(&idelock6);  //DOC:acquire-lock
+            // Append b to idequeue.
+            b->qnext = 0;
+            for (pp = &idequeue6; *pp; pp = &(*pp)->qnext)  //DOC:insert-queue
+                ;
+            *pp = b;
+            // Start disk if necessary.
+            if (idequeue6 == b)
+                idestart(b->dev, b);
+            // Wait for request to finish.
+            while ((b->flags & (B_VALID | B_DIRTY)) != B_VALID) {
+                sleep(b, &idelock6);
+            }
+            release(&idelock6);
+            return;
 
-        release(&idelock);
-        return;
-    } else if (dev == 2) {
-        acquire(&idelock2);  //DOC:acquire-lock
+        case 7:
+            acquire(&idelock7);  //DOC:acquire-lock
+            // Append b to idequeue.
+            b->qnext = 0;
+            for (pp = &idequeue7; *pp; pp = &(*pp)->qnext)  //DOC:insert-queue
+                ;
+            *pp = b;
+            // Start disk if necessary.
+            if (idequeue7 == b)
+                idestart(b->dev, b);
+            // Wait for request to finish.
+            while ((b->flags & (B_VALID | B_DIRTY)) != B_VALID) {
+                sleep(b, &idelock7);
+            }
+            release(&idelock7);
+            return;
 
-        // Append b to idequeue.
-        b->qnext = 0;
-        for (pp = &idequeue2; *pp; pp = &(*pp)->qnext)  //DOC:insert-queue
-            ;
-        *pp = b;
-
-        // Start disk if necessary.
-        if (idequeue2 == b)
-            idestart(2, b);
-        // Wait for request to finish.
-        while ((b->flags & (B_VALID | B_DIRTY)) != B_VALID) {
-            sleep(b, &idelock2);
-        }
-        release(&idelock2);
-        return;
+        case 8:
+            acquire(&idelock8);  //DOC:acquire-lock
+            // Append b to idequeue.
+            b->qnext = 0;
+            for (pp = &idequeue8; *pp; pp = &(*pp)->qnext)  //DOC:insert-queue
+                ;
+            *pp = b;
+            // Start disk if necessary.
+            if (idequeue8 == b)
+                idestart(b->dev, b);
+            // Wait for request to finish.
+            while ((b->flags & (B_VALID | B_DIRTY)) != B_VALID) {
+                sleep(b, &idelock8);
+            }
+            release(&idelock8);
+            return;
     }
+
+
 
 }
