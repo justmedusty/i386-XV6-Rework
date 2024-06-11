@@ -56,8 +56,8 @@ bzero(int dev, int bno) {
 // Blocks.
 
 // Allocate a zeroed disk block.
-static uint
-balloc(uint dev) {
+static uint32
+balloc(uint32 dev) {
     struct superblock *superb;
 
     int b, bi, m;
@@ -103,7 +103,7 @@ balloc(uint dev) {
 
 // Free a disk block.
 static void
-bfree(int dev, uint b) {
+bfree(int dev, uint32 b) {
     struct buf *bp;
     int bi, m;
     if (dev == 2) {
@@ -227,14 +227,14 @@ iinit(int dev, int sbnum) {
 
 }
 
-static struct inode *iget(uint dev, uint inum);
+static struct inode *iget(uint32 dev, uint32 inum);
 
 //PAGEBREAK!
 // Allocate an inode on device dev.
 // Mark it as allocated by  giving it type type.
 // Returns an unlocked but allocated and referenced inode.
 struct inode *
-ialloc(uint dev, short type) {
+ialloc(uint32 dev, short type) {
     int inum;
     struct buf *bp;
     struct dinode *dip;
@@ -307,7 +307,7 @@ iupdate(struct inode *ip) {
 // and return the in-memory copy. Does not lock
 // the inode and does not read it from disk.
 static struct inode *
-iget(uint dev, uint inum) {
+iget(uint32 dev, uint32 inum) {
     struct inode *ip, *empty;
     if (dev == 2) {
         acquire(&icache2.lock);
@@ -497,9 +497,9 @@ iputmount(struct inode *ip) {
 
 // Return the disk block address of the nth block in inode ip.
 // If there is no such block, bmap allocates one.
-static uint
-bmap(struct inode *ip, uint bn) {
-    uint addr, *a;
+static uint32
+bmap(struct inode *ip, uint32 bn) {
+    uint32 addr, *a;
     struct buf *bp;
 
     if (bn < NDIRECT) {
@@ -514,7 +514,7 @@ bmap(struct inode *ip, uint bn) {
         if ((addr = ip->addrs[NDIRECT]) == 0)
             ip->addrs[NDIRECT] = addr = balloc(ip->dev);
         bp = bread(ip->dev, addr);
-        a = (uint *) bp->data;
+        a = (uint32 *) bp->data;
         if ((addr = a[bn]) == 0) {
             a[bn] = addr = balloc(ip->dev);
             log_write(bp);
@@ -535,7 +535,7 @@ static void
 itrunc(struct inode *ip) {
     int i, j;
     struct buf *bp;
-    uint *a;
+    uint32 *a;
 
     for (i = 0; i < NDIRECT; i++) {
         if (ip->addrs[i]) {
@@ -546,7 +546,7 @@ itrunc(struct inode *ip) {
 
     if (ip->addrs[NDIRECT]) {
         bp = bread(ip->dev, ip->addrs[NDIRECT]);
-        a = (uint *) bp->data;
+        a = (uint32 *) bp->data;
         for (j = 0; j < NINDIRECT; j++) {
             if (a[j])
                 bfree(ip->dev, a[j]);
@@ -582,9 +582,9 @@ stati(struct inode *ip, struct stat *st) {
 // Read data from inode.
 // Caller must hold ip->lock.
 int
-readi(struct inode *ip, char *dst, uint off, uint n) {
+readi(struct inode *ip, char *dst, uint32 off, uint32 n) {
 
-    uint tot, m;
+    uint32 tot, m;
     struct buf *bp;
 
     if (ip->type == T_DEV) {
@@ -635,8 +635,8 @@ readi(struct inode *ip, char *dst, uint off, uint n) {
 // Write data to inode.
 // Caller must hold ip->lock.
 int
-writei(struct inode *ip, char *src, uint off, uint n) {
-    uint tot, m;
+writei(struct inode *ip, char *src, uint32 off, uint32 n) {
+    uint32 tot, m;
     struct buf *bp;
 
     if (ip->type == T_DEV) {
@@ -677,7 +677,7 @@ namecmp(const char *s, const char *t) {
 // Look for a directory entry in a directory.
 // If found, set *poff to byte offset of entry.
 struct inode *
-dirlookup(struct inode *dp, char *name, uint *poff, uint leaving_mount) {
+dirlookup(struct inode *dp, char *name, uint32 *poff, uint32 leaving_mount) {
 
     if (!leaving_mount) {
         if (dp->is_mount_point) {
@@ -685,7 +685,7 @@ dirlookup(struct inode *dp, char *name, uint *poff, uint leaving_mount) {
         }
     }
 
-    uint off, inum;
+    uint32 off, inum;
     struct dirent de;
 
     if (dp->type != T_DIR)
@@ -710,7 +710,7 @@ dirlookup(struct inode *dp, char *name, uint *poff, uint leaving_mount) {
 
 // Write a new directory entry (name, inum) into the directory dp.
 int
-dirlink(struct inode *dp, char *name, uint inum) {
+dirlink(struct inode *dp, char *name, uint32 inum) {
     if (dp->is_mount_point) {
         dp = mounttable.mount_root;
     }
@@ -786,7 +786,7 @@ skipelem(char *path, char *name) {
 // path element into name, which must have room for DIRSIZ bytes.
 // Must be called inside a transaction since it calls iput().
 static struct inode *
-namex(uint dev, char *path, int nameiparent, char *name) {
+namex(uint32 dev, char *path, int nameiparent, char *name) {
     struct inode *ip, *next;
 
     if (*path == '/') {
@@ -827,7 +827,7 @@ namex(uint dev, char *path, int nameiparent, char *name) {
 }
 
 struct inode *
-namei(uint dev, char *path) {
+namei(uint32 dev, char *path) {
     if (dev == 0) {
         dev = myproc()->cwd->dev;
     }
@@ -849,7 +849,7 @@ namei(uint dev, char *path) {
 }
 
 struct inode *
-nameiparent(uint dev, char *path, char *name) {
+nameiparent(uint32 dev, char *path, char *name) {
     return namex(dev, path, 1, name);
 }
 

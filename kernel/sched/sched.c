@@ -37,9 +37,9 @@ int queueinit = 0;
  */
 
 struct cpu_avg {
-    uint total_cpu_time;
-    uint n_procs;
-    uint avg;
+    uint32 total_cpu_time;
+    uint32 n_procs;
+    uint32 avg;
 };
 
 struct cpu_avg c_avg;
@@ -53,7 +53,7 @@ void init_cpu_avg_counter() {
 
 
 //Update with the new average
-void update_cpu_avg(uint ticks) {
+void update_cpu_avg(uint32 ticks) {
     c_avg.total_cpu_time += ticks;
     c_avg.n_procs++;
     c_avg.avg = c_avg.total_cpu_time / c_avg.n_procs;
@@ -61,7 +61,7 @@ void update_cpu_avg(uint ticks) {
 
 
 //get the avg clock cycles per proc
-uint get_cpu_avg() {
+uint32 get_cpu_avg() {
     return c_avg.avg;
 }
 

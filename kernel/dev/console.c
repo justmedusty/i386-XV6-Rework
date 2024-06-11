@@ -40,7 +40,7 @@ printint(int xx, int base, int sign) {
     static char digits[] = "0123456789abcdef";
     char buf[16];
     int i;
-    uint x;
+    uint32 x;
 
     if (sign && (sign = xx < 0))
         x = -xx;
@@ -64,7 +64,7 @@ printint(int xx, int base, int sign) {
 void
 cprintf(char *fmt, ...) {
     int i, c, locking;
-    uint * argp;
+    uint32 * argp;
     char *s;
 
     locking = cons.locking;
@@ -74,7 +74,7 @@ cprintf(char *fmt, ...) {
     if (fmt == 0)
         panic("null fmt");
 
-    argp = (uint *) (void *) (&fmt + 1);
+    argp = (uint32 *) (void *) (&fmt + 1);
     for (i = 0; (c = fmt[i] & 0xff) != 0; i++) {
         if (c != '%') {
             consputc(c);
@@ -115,7 +115,7 @@ cprintf(char *fmt, ...) {
 void
 panic(char *s) {
     int i;
-    uint pcs[10];
+    uint32 pcs[10];
 
     cli();
     cons.locking = 0;
@@ -133,7 +133,7 @@ panic(char *s) {
 //PAGEBREAK: 50
 #define BACKSPACE 0x100
 #define CRTPORT 0x3d4
-static ushort *crt = (ushort *) P2V(0xb8000);  // CGA memory
+static uint16 *crt = (uint16 *) P2V(0xb8000);  // CGA memory
 
 static void
 cgaputc(int c) {
@@ -211,9 +211,9 @@ consputc(int c) {
 #define INPUT_BUF 128
 struct {
     char buf[INPUT_BUF];
-    uint r;  // Read index
-    uint w;  // Write index
-    uint e;  // Edit index
+    uint32 r;  // Read index
+    uint32 w;  // Write index
+    uint32 e;  // Edit index
 } input;
 
 #define C(x)  ((x)-'@')  // Control-x
@@ -264,7 +264,7 @@ consoleintr(int (*getc)(void)) {
 
 int
 consoleread(struct inode *ip, char *dst, int n) {
-    uint target;
+    uint32 target;
     int c;
 
     iunlock(ip);

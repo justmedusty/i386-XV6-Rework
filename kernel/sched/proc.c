@@ -55,7 +55,7 @@ mycpu(void) {
  * well as tallying up allocated kernel pages.
  */
 int freemem(void) {
-    uint total_pages = 0;
+    uint32 total_pages = 0;
     struct proc *p;
     // Tally memory used by all procs
 
@@ -128,12 +128,12 @@ allocproc(void) {
     // Set up new context to start executing at forkret,
     // which returns to trapret.
     sp -= 4;
-    *(uint *) sp = (uint) trapret;
+    *(uint32 *) sp = (uint32) trapret;
 
     sp -= sizeof *p->context;
     p->context = (struct context *) sp;
     memset(p->context, 0, sizeof *p->context);
-    p->context->eip = (uint) forkret;
+    p->context->eip = (uint32) forkret;
 
 
     return p;
@@ -223,7 +223,7 @@ userinit(void) {
 // Return 0 on success, -1 on failure.
 int
 growproc(int n) {
-    uint sz;
+    uint32 sz;
     struct proc *curproc = myproc();
 
     sz = curproc->sz;
@@ -667,7 +667,7 @@ procdump(void) {
     int i;
     struct proc *p;
     char *state;
-    uint pc[10];
+    uint32 pc[10];
 
     for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
         if (p->state == UNUSED)
@@ -678,7 +678,7 @@ procdump(void) {
             state = "???";
         cprintf("%d %s %s", p->pid, state, p->name);
         if (p->state == SLEEPING) {
-            getcallerpcs((uint *) p->context->ebp + 2, pc);
+            getcallerpcs((uint32 *) p->context->ebp + 2, pc);
             for (i = 0; i < 10 && pc[i] != 0; i++)
                 cprintf(" %p", pc[i]);
         }

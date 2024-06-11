@@ -26,12 +26,12 @@ volatile struct ioapic *ioapic;
 
 // IO APIC MMIO structure: write reg, then read or write data.
 struct ioapic {
-  uint reg;
-  uint pad[3];
-  uint data;
+  uint32 reg;
+  uint32 pad[3];
+  uint32 data;
 };
 
-static uint
+static uint32
 ioapicread(int reg)
 {
   ioapic->reg = reg;
@@ -39,7 +39,7 @@ ioapicread(int reg)
 }
 
 static void
-ioapicwrite(int reg, uint data)
+ioapicwrite(int reg, uint32 data)
 {
   ioapic->reg = reg;
   ioapic->data = data;

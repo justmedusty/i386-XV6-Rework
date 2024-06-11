@@ -17,9 +17,9 @@ void yield(void);
 
 void preempt(void);
 
-uint get_cpu_avg();
+uint32 get_cpu_avg();
 
-void update_cpu_avg(uint ticks);
+void update_cpu_avg(uint32 ticks);
 
 void init_cpu_avg_counter();
 

@@ -164,7 +164,7 @@ define printdesc
   if $argc != 1
     echo Usage: printdesc expr
   else
-    _printdesc ((uint*)&($arg0))[0] ((uint*)&($arg0))[1]
+    _printdesc ((uint32*)&($arg0))[0] ((uint32*)&($arg0))[1]
     printf "\n"
   end
 end

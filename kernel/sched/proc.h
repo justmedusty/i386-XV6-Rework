@@ -1,11 +1,11 @@
 // Per-CPU state
 
 struct cpu {
-  uchar apicid;                // Local APIC ID
+  uint8 apicid;                // Local APIC ID
   struct context *scheduler;   // swtch() here to enter scheduler
   struct taskstate ts;         // Used by x86 to find stack for interrupt
   struct segdesc gdt[NSEGS];   // x86 global descriptor table
-  volatile uint started;       // Has the CPU started?
+  volatile uint32 started;       // Has the CPU started?
   int ncli;                    // Depth of pushcli nesting.
   int intena;                  // Were trap enabled before pushcli?
   struct proc *proc;           // The process running on this cpu or null
@@ -29,11 +29,11 @@ extern int ncpu;
 // at the "Switch stacks" comment. Switch doesn't save eip explicitly,
 // but it is on the stack and allocproc() manipulates it.
 struct context {
-  uint edi;
-  uint esi;
-  uint ebx;
-  uint ebp;
-  uint eip;
+  uint32 edi;
+  uint32 esi;
+  uint32 ebx;
+  uint32 ebp;
+  uint32 eip;
 };
 /*
  * Added WAIT which will be a low priority sleep
@@ -70,8 +70,8 @@ enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE, WAIT, PREE
 #define IN_QUEUE               0x1
 // Per-process state
 struct proc {
-  uint sz;                     // Size of process memory (bytes)
-  uint stack_base;              //stack base
+  uint32 sz;                     // Size of process memory (bytes)
+  uint32 stack_base;              //stack base
   int p_sig;                   //The signal sent to this process
   void (*signal_handler)(int); // Pointer to signal handler function
   int p_ign;                   //flag to ignore signals (other than a kill, seg fault)
@@ -113,7 +113,7 @@ extern struct proctable {
 
 
 /* Dustyn's extra functions */
-uint tally_allocated_memory_for_all_procs(void);
+uint32 tally_allocated_memory_for_all_procs(void);
 void inc_time_quantum(struct proc *p);
 void change_process_space(int state_flag);
 void preempt(void);

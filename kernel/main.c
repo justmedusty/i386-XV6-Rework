@@ -7,7 +7,6 @@
 #include "sched/proc.h"
 #include "arch/x86_32/x86.h"
 #include "fs/mount.h"
-
 #include "sched/sched.h"
 static void startothers(void);
 static void mpmain(void)  __attribute__((noreturn));
@@ -70,8 +69,8 @@ pde_t entrypgdir[];  // For entry.S
 static void
 startothers(void)
 {
-  extern uchar _binary_entryother_start[], _binary_entryother_size[];
-  uchar *code;
+  extern uint8 _binary_entryother_start[], _binary_entryother_size[];
+  uint8 *code;
   struct cpu *c;
   char *stack;
 
@@ -79,7 +78,7 @@ startothers(void)
   // The linker has placed the image of entryother.S in
   // _binary_entryother_start.
   code = P2V(0x7000);
-  memmove(code, _binary_entryother_start, (uint)_binary_entryother_size);
+  memmove(code, _binary_entryother_start, (uint32)_binary_entryother_size);
 
   for(c = cpus; c < cpus+ncpu; c++){
     if(c == mycpu())  // We've started already.

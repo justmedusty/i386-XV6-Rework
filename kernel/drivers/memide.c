@@ -12,22 +12,22 @@
 #include "fs.h"
 #include "buf.h"
 
-extern uchar _binary_fs_img_start[], _binary_fs_img_size[];
+extern uint8 _binary_fs_img_start[], _binary_fs_img_size[];
 
-extern uchar _binary_fs_secondary_img_start[], _binary_fs_secondary_img_size[];
+extern uint8 _binary_fs_secondary_img_start[], _binary_fs_secondary_img_size[];
 
 static int disksize;
-static uchar *memdisk;
+static uint8 *memdisk;
 
 static int secondarydisksize;
-static uchar *secondarymemdisk;
+static uint8 *secondarymemdisk;
 
 void
 ideinit(void) {
     memdisk = _binary_fs_img_start;
-    disksize = (uint) _binary_fs_img_size / BSIZE;
+    disksize = (uint32) _binary_fs_img_size / BSIZE;
     secondarymemdisk = _binary_fs_secondary_img_start;
-    secondarydisksize = (uint) _binary_fs_secondary_img_size / BSIZE;
+    secondarydisksize = (uint32) _binary_fs_secondary_img_size / BSIZE;
     cprintf("IDE initialization complete. Disk size: %d blocks, Secondary disk size: %d blocks\n", disksize, secondarydisksize);
 }
 
@@ -42,7 +42,7 @@ ideintr(void) {
 // Else if B_VALID is not set, read buf from disk, set B_VALID.
 void
 iderw(struct buf *b, int dev) {
-    uchar * p;
+    uint8 * p;
     panic("here");
     //main device
     if (dev == 1) {

@@ -1,8 +1,8 @@
 // Routines to let C code use special x86 instructions.
 
 // Reads a byte from the specified I/O port.
-static inline uchar inb(ushort port) {
-    uchar data;
+static inline uint8 inb(uint16 port) {
+    uint8 data;
     asm volatile("in %1,%0" : "=a" (data) : "d" (port));
     return data;
 }
@@ -24,12 +24,12 @@ static inline void insq(int port, void *addr, int cnt) {
 }
 
 // Writes a byte to the specified I/O port.
-static inline void outb(ushort port, uchar data) {
+static inline void outb(uint16 port, uint8 data) {
     asm volatile("out %0,%1" : : "a" (data), "d" (port));
 }
 
 // Writes a 16-bit value to the specified I/O port.
-static inline void outw(ushort port, ushort data) {
+static inline void outw(uint16 port, uint16 data) {
     asm volatile("out %0,%1" : : "a" (data), "d" (port));
 }
 
@@ -76,36 +76,36 @@ static inline void stosq(void *addr, long long data, int cnt) {
 
 // Loads the Global Descriptor Table (GDT) register.
 static inline void lgdt(struct segdesc *p, int size) {
-    volatile ushort pd[3];
+    volatile uint16 pd[3];
     pd[0] = size - 1;
-    pd[1] = (uint) p;
-    pd[2] = (uint) p >> 16;
+    pd[1] = (uint32) p;
+    pd[2] = (uint32) p >> 16;
     asm volatile("lgdt (%0)" : : "r" (pd));
 }
 
 // Loads the Interrupt Descriptor Table (IDT) register.
 static inline void lidt(struct gatedesc *p, int size) {
-    volatile ushort pd[3];
+    volatile uint16 pd[3];
     pd[0] = size - 1;
-    pd[1] = (uint) p;
-    pd[2] = (uint) p >> 16;
+    pd[1] = (uint32) p;
+    pd[2] = (uint32) p >> 16;
     asm volatile("lidt (%0)" : : "r" (pd));
 }
 
 // Loads the Task Register (TR).
-static inline void ltr(ushort sel) {
+static inline void ltr(uint16 sel) {
     asm volatile("ltr %0" : : "r" (sel));
 }
 
 // Reads the EFLAGS register.
-static inline uint readeflags(void) {
-    uint eflags;
+static inline uint32 readeflags(void) {
+    uint32 eflags;
     asm volatile("pushfl; popq %0" : "=r" (eflags));
     return eflags;
 }
 
 // Loads a 16-bit value into the GS segment register.
-static inline void loadgs(ushort v) {
+static inline void loadgs(uint16 v) {
     asm volatile("movw %0, %%gs" : : "r" (v));
 }
 
@@ -120,8 +120,8 @@ static inline void sti(void) {
 }
 
 // Atomic exchange of a value.
-static inline uint xchg(volatile unsigned long long *addr, uint newval) {
-    uint result;
+static inline uint32 xchg(volatile unsigned long long *addr, uint32 newval) {
+    uint32 result;
     asm volatile("lock; xchgq %0, %1" :
             "+m" (*addr), "=a" (result) :
             "1" (newval) :
@@ -130,14 +130,14 @@ static inline uint xchg(volatile unsigned long long *addr, uint newval) {
 }
 
 // Reads the CR2 register.
-static inline uint rcr2(void) {
-    uint val;
+static inline uint32 rcr2(void) {
+    uint32 val;
     asm volatile("movq %%cr2,%0" : "=r" (val));
     return val;
 }
 
 // Loads a value into the CR3 register.
-static inline void lcr3(uint val) {
+static inline void lcr3(uint32 val) {
     asm volatile("movq %0,%%cr3" : : "r" (val));
 }
 
@@ -156,25 +156,25 @@ struct trapframe {
     unsigned long long rax;
 
     // rest of trap frame
-    ushort gs;
-    ushort padding1;
-    ushort fs;
-    ushort padding2;
-    ushort es;
-    ushort padding3;
-    ushort ds;
-    ushort padding4;
-    uint trapno;
+    uint16 gs;
+    uint16 padding1;
+    uint16 fs;
+    uint16 padding2;
+    uint16 es;
+    uint16 padding3;
+    uint16 ds;
+    uint16 padding4;
+    uint32 trapno;
 
     // below here defined by x86 hardware
     unsigned long long err;
     unsigned long long rip;
-    ushort cs;
-    ushort padding5;
+    uint16 cs;
+    uint16 padding5;
     unsigned long long eflags;
 
     // below here only when crossing rings, such as from user to kernel
-    uint rsp;
-    ushort ss;
-    ushort padding6;
+    uint32 rsp;
+    uint16 ss;
+    uint16 padding6;
 };

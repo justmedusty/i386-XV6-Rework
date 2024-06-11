@@ -11,9 +11,9 @@
 #include "../sched/sched.h"
 // Interrupt descriptor table (shared by all CPUs).
 struct gatedesc idt[256];
-extern uint vectors[];  // in vectors.S: array of 256 entry pointers
+extern uint32 vectors[];  // in vectors.S: array of 256 entry pointers
 struct spinlock tickslock;
-uint ticks;
+uint32 ticks;
 
 void
 tvinit(void) {
@@ -46,14 +46,14 @@ trap(struct trapframe *tf) {
     switch (tf->trapno) {
         case T_PGFLT:
 
-            uint addr = rcr2();
+            uint32 addr = rcr2();
             cprintf("Page Fault, offending address is %x \n",addr);
             panic("PAGE FAULT");
 
             /*
             if(myproc() && addr < myproc()->sz && addr >= myproc()->stack_base - MAXSTACKSIZE){
                 // Check if the faulting address is within the stack growth range
-                uint newstacksize = PGROUNDUP(addr);
+                uint32 newstacksize = PGROUNDUP(addr);
                 if(allocuvm(myproc()->pgdir, myproc()->stack_base - PGSIZE, newstacksize,0) == 0) {
                     cprintf("allocuvm failed for stack growth\n");
                     myproc()->p_sig |= SIGSEG;

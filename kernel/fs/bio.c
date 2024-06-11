@@ -61,7 +61,7 @@ binit(void)
 // If not found, allocate a buffer.
 // In either case, return locked buffer.
 static struct buf*
-bget(uint dev, uint blockno)
+bget(uint32 dev, uint32 blockno)
 {
   struct buf *b;
 
@@ -96,7 +96,7 @@ bget(uint dev, uint blockno)
 
 // Return a locked buf with the contents of the indicated block.
 struct buf*
-bread(uint dev, uint blockno)
+bread(uint32 dev, uint32 blockno)
 {
   struct buf *b;
 
@@ -108,7 +108,7 @@ bread(uint dev, uint blockno)
 }
 
 struct buf*
-breada(uint dev, uint blockno,uint reada_len){
+breada(uint32 dev, uint32 blockno,uint32 reada_len){
 
     if(reada_len > MAX_READA){
         return -1;

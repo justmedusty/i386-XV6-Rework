@@ -58,9 +58,9 @@ char* strchr(const char*, char c);
 int strcmp(const char*, const char*);
 void printf(int, const char*, ...);
 char* gets(char*, int max);
-uint strlen(const char*);
-void* memset(void*, int, uint);
-void* malloc(uint);
+uint32 strlen(const char*);
+void* memset(void*, int, uint32);
+void* malloc(uint32);
 void free(void*);
 int atoi(const char*);
 

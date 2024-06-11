@@ -14,10 +14,10 @@
 
 struct cpu cpus[NCPU];
 int ncpu;
-uchar ioapicid;
+uint8 ioapicid;
 
-static uchar
-sum(uchar *addr, int len)
+static uint8
+sum(uint8 *addr, int len)
 {
   int i, sum;
 
@@ -29,9 +29,9 @@ sum(uchar *addr, int len)
 
 // Look for an MP structure in the len bytes at addr.
 static struct mp*
-mpsearch1(uint a, int len)
+mpsearch1(uint32 a, int len)
 {
-  uchar *e, *p, *addr;
+  uint8 *e, *p, *addr;
 
   addr = P2V(a);
   e = addr+len;
@@ -49,11 +49,11 @@ mpsearch1(uint a, int len)
 static struct mp*
 mpsearch(void)
 {
-  uchar *bda;
-  uint p;
+  uint8 *bda;
+  uint32 p;
   struct mp *mp;
 
-  bda = (uchar *) P2V(0x400);
+  bda = (uint8 *) P2V(0x400);
   if((p = ((bda[0x0F]<<8)| bda[0x0E]) << 4)){
     if((mp = mpsearch1(p, 1024)))
       return mp;
@@ -78,12 +78,12 @@ mpconfig(struct mp **pmp)
 
   if((mp = mpsearch()) == 0 || mp->physaddr == 0)
     return 0;
-  conf = (struct mpconf*) P2V((uint) mp->physaddr);
+  conf = (struct mpconf*) P2V((uint32) mp->physaddr);
   if(memcmp(conf, "PCMP", 4) != 0)
     return 0;
   if(conf->version != 1 && conf->version != 4)
     return 0;
-  if(sum((uchar*)conf, conf->length) != 0)
+  if(sum((uint8*)conf, conf->length) != 0)
     return 0;
   *pmp = mp;
   return conf;
@@ -92,7 +92,7 @@ mpconfig(struct mp **pmp)
 void
 mpinit(void)
 {
-  uchar *p, *e;
+  uint8 *p, *e;
   int ismp;
   struct mp *mp;
   struct mpconf *conf;
@@ -102,8 +102,8 @@ mpinit(void)
   if((conf = mpconfig(&mp)) == 0)
     panic("Expect to run on an SMP");
   ismp = 1;
-  lapic = (uint*)conf->lapicaddr;
-  for(p=(uchar*)(conf+1), e=(uchar*)conf+conf->length; p<e; ){
+  lapic = (uint32*)conf->lapicaddr;
+  for(p=(uint8*)(conf+1), e=(uint8*)conf+conf->length; p<e; ){
     switch(*p){
     case MPPROC:
       proc = (struct mpproc*)p;

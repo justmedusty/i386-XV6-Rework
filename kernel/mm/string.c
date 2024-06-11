@@ -2,7 +2,7 @@
 #include "../arch/x86_32/x86.h"
 
 void*
-memset(void *dst, int c, uint n)
+memset(void *dst, int c, uint32 n)
 {
   if ((int)dst%4 == 0 && n%4 == 0){
     c &= 0xFF;
@@ -13,9 +13,9 @@ memset(void *dst, int c, uint n)
 }
 
 int
-memcmp(const void *v1, const void *v2, uint n)
+memcmp(const void *v1, const void *v2, uint32 n)
 {
-  const uchar *s1, *s2;
+  const uint8 *s1, *s2;
 
   s1 = v1;
   s2 = v2;
@@ -28,7 +28,7 @@ memcmp(const void *v1, const void *v2, uint n)
   return 0;
 }
 
-void* memmove(void *dst, const void *src, uint n)
+void* memmove(void *dst, const void *src, uint32 n)
 {
     // Define pointers to source and destination memory regions
     const char *s; // Pointer to source memory region (const to indicate that it won't be modified)
@@ -60,19 +60,19 @@ void* memmove(void *dst, const void *src, uint n)
 
 // memcpy exists to placate GCC.  Use memmove.
 void*
-memcpy(void *dst, const void *src, uint n)
+memcpy(void *dst, const void *src, uint32 n)
 {
   return memmove(dst, src, n);
 }
 
 int
-strncmp(const char *p, const char *q, uint n)
+strncmp(const char *p, const char *q, uint32 n)
 {
   while(n > 0 && *p && *p == *q)
     n--, p++, q++;
   if(n == 0)
     return 0;
-  return (uchar)*p - (uchar)*q;
+  return (uint8)*p - (uint8)*q;
 }
 
 char*

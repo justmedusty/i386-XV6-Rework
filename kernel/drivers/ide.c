@@ -72,7 +72,7 @@ unsigned char disk_presence;
 unsigned char startup;
 
 // Wait for IDE disk to become ready.
-static void idestart(uint dev, struct buf *);
+static void idestart(uint32 dev, struct buf *);
 
 /*
  * Simple function that returns a char bitmask indicating which disks are present, will be useful for santizing random device numbers passed as parameters.
@@ -245,7 +245,7 @@ ideinit(void) {
 
 // Start the request for b.  Caller must hold idelock.
 static void
-idestart(uint dev, struct buf *b) {
+idestart(uint32 dev, struct buf *b) {
     if (b == 0)
         panic("idestart");
     if (b->blockno >= FSSIZE)
@@ -430,7 +430,7 @@ ideintr2(void) {
 // If B_DIRTY is set, write buf to disk, clear B_DIRTY, set B_VALID.
 // Else if B_VALID is not set, read buf from disk, set B_VALID.
 void
-iderw(struct buf *b, uint dev) {
+iderw(struct buf *b, uint32 dev) {
     struct buf **pp;
 
     if (!holdingsleep(&b->lock))

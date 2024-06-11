@@ -20,10 +20,10 @@ strcmp(const char *p, const char *q)
 {
   while(*p && *p == *q)
     p++, q++;
-  return (uchar)*p - (uchar)*q;
+  return (uint8)*p - (uint8)*q;
 }
 
-uint
+uint32
 strlen(const char *s)
 {
   int n;
@@ -34,7 +34,7 @@ strlen(const char *s)
 }
 
 void*
-memset(void *dst, int c, uint n)
+memset(void *dst, int c, uint32 n)
 {
   stosb(dst, c, n);
   return dst;

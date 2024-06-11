@@ -1,9 +1,9 @@
 // Routines to let C code use special x86 instructions.
 
 // Reads a byte from the specified I/O port.
-static inline uchar inb(ushort port)
+static inline uint8 inb(uint16 port)
 {
-    uchar data;
+    uint8 data;
     asm volatile("in %1,%0" : "=a" (data) : "d" (port));
     return data;
 }
@@ -18,13 +18,13 @@ static inline void insl(int port, void *addr, int cnt)
 }
 
 // Writes a byte to the specified I/O port.
-static inline void outb(ushort port, uchar data)
+static inline void outb(uint16 port, uint8 data)
 {
     asm volatile("out %0,%1" : : "a" (data), "d" (port));
 }
 
 // Writes a 16-bit value to the specified I/O port.
-static inline void outw(ushort port, ushort data)
+static inline void outw(uint16 port, uint16 data)
 {
     asm volatile("out %0,%1" : : "a" (data), "d" (port));
 }
@@ -59,39 +59,39 @@ static inline void stosl(void *addr, int data, int cnt)
 // Loads the Global Descriptor Table (GDT) register.
 static inline void lgdt(struct segdesc *p, int size)
 {
-    volatile ushort pd[3];
+    volatile uint16 pd[3];
     pd[0] = size-1;
-    pd[1] = (uint)p;
-    pd[2] = (uint)p >> 16;
+    pd[1] = (uint32)p;
+    pd[2] = (uint32)p >> 16;
     asm volatile("lgdt (%0)" : : "r" (pd));
 }
 
 // Loads the Interrupt Descriptor Table (IDT) register.
 static inline void lidt(struct gatedesc *p, int size)
 {
-    volatile ushort pd[3];
+    volatile uint16 pd[3];
     pd[0] = size-1;
-    pd[1] = (uint)p;
-    pd[2] = (uint)p >> 16;
+    pd[1] = (uint32)p;
+    pd[2] = (uint32)p >> 16;
     asm volatile("lidt (%0)" : : "r" (pd));
 }
 
 // Loads the Task Register (TR).
-static inline void ltr(ushort sel)
+static inline void ltr(uint16 sel)
 {
     asm volatile("ltr %0" : : "r" (sel));
 }
 
 // Reads the EFLAGS register.
-static inline uint readeflags(void)
+static inline uint32 readeflags(void)
 {
-    uint eflags;
+    uint32 eflags;
     asm volatile("pushfl; popl %0" : "=r" (eflags));
     return eflags;
 }
 
 // Loads a 16-bit value into the GS segment register.
-static inline void loadgs(ushort v)
+static inline void loadgs(uint16 v)
 {
     asm volatile("movw %0, %%gs" : : "r" (v));
 }
@@ -109,9 +109,9 @@ static inline void sti(void)
 }
 
 // Atomic exchange of a value.
-static inline uint xchg(volatile uint *addr, uint newval)
+static inline uint32 xchg(volatile uint32 *addr, uint32 newval)
 {
-    uint result;
+    uint32 result;
     asm volatile("lock; xchgl %0, %1" :
             "+m" (*addr), "=a" (result) :
             "1" (newval) :
@@ -120,15 +120,15 @@ static inline uint xchg(volatile uint *addr, uint newval)
 }
 
 // Reads the CR2 register.
-static inline uint rcr2(void)
+static inline uint32 rcr2(void)
 {
-    uint val;
+    uint32 val;
     asm volatile("movl %%cr2,%0" : "=r" (val));
     return val;
 }
 
 // Loads a value into the CR3 register.
-static inline void lcr3(uint val)
+static inline void lcr3(uint32 val)
 {
     asm volatile("movl %0,%%cr3" : : "r" (val));
 }
@@ -138,35 +138,35 @@ static inline void lcr3(uint val)
 // hardware and by trapasm.S, and passed to trap().
 struct trapframe {
   // registers as pushed by pusha
-  uint edi;
-  uint esi;
-  uint ebp;
-  uint oesp;      // useless & ignored
-  uint ebx;
-  uint edx;
-  uint ecx;
-  uint eax;
+  uint32 edi;
+  uint32 esi;
+  uint32 ebp;
+  uint32 oesp;      // useless & ignored
+  uint32 ebx;
+  uint32 edx;
+  uint32 ecx;
+  uint32 eax;
 
   // rest of trap frame
-  ushort gs;
-  ushort padding1;
-  ushort fs;
-  ushort padding2;
-  ushort es;
-  ushort padding3;
-  ushort ds;
-  ushort padding4;
-  uint trapno;
+  uint16 gs;
+  uint16 padding1;
+  uint16 fs;
+  uint16 padding2;
+  uint16 es;
+  uint16 padding3;
+  uint16 ds;
+  uint16 padding4;
+  uint32 trapno;
 
   // below here defined by x86 hardware
-  uint err;
-  uint eip;
-  ushort cs;
-  ushort padding5;
-  uint eflags;
+  uint32 err;
+  uint32 eip;
+  uint16 cs;
+  uint16 padding5;
+  uint32 eflags;
 
   // below here only when crossing rings, such as from user to kernel
-  uint esp;
-  ushort ss;
-  ushort padding6;
+  uint32 esp;
+  uint16 ss;
+  uint16 padding6;
 };

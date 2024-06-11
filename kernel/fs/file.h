@@ -5,14 +5,14 @@ struct file {
   char writable;
   struct pipe *pipe;
   struct inode *ip;
-  uint off;
+  uint32 off;
 };
 
 
 // in-memory copy of an inode
 struct inode {
-  uint dev;           // Device number
-  uint inum;          // Inode number
+  uint32 dev;           // Device number
+  uint32 inum;          // Inode number
   int ref;            // Reference count
   struct sleeplock lock; // protects everything below here
   int valid;          // inode has been read from disk?
@@ -20,9 +20,9 @@ struct inode {
   short major;
   short minor;
   short nlink;
-  uint size;
+  uint32 size;
   int is_mount_point; // 0 for no 1 for yes
-  uint addrs[NDIRECT+1];
+  uint32 addrs[NDIRECT+1];
 };
 
 // table mapping major device number to

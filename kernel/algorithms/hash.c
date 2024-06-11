@@ -1,6 +1,7 @@
 //
 // Created by dustyn on 6/11/24.
 //
+
 #include "../../user/types.h"
 #include "../defs/defs.h"
 #include "hash.h"
@@ -33,7 +34,7 @@ void hash_test_8(){
         hash_table[i]= 0;
     }
     for(int i=1;i < 512;i++){
-        unsigned char j = hash_8(~i  * hash_8(~i));
+        unsigned char j = hash_8(i);
         if(hash_table[j] != 0){
             collisions++;
         }

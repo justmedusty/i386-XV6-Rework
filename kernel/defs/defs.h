@@ -14,10 +14,10 @@ struct nonblockinglock;
 #define NOCPU   777
 // bio.c
 void            binit(void);
-struct buf*     bread(uint, uint);
+struct buf*     bread(uint32, uint32);
 void            brelse(struct buf*);
 void            bwrite(struct buf*);
-struct buf*   breada(uint,uint,uint);
+struct buf*   breada(uint32,uint32,uint32);
 
 // console.c
 void            consoleinit(void);
@@ -39,9 +39,9 @@ int             filewrite(struct file*, char*, int n);
 
 // fs.c
 void            readsb(int dev, struct superblock *sb);
-int             dirlink(struct inode*, char*, uint);
-struct inode*   dirlookup(struct inode*, char*, uint*,uint);
-struct inode*   ialloc(uint, short);
+int             dirlink(struct inode*, char*, uint32);
+struct inode*   dirlookup(struct inode*, char*, uint32*,uint32);
+struct inode*   ialloc(uint32, short);
 struct inode*   idup(struct inode*);
 void            iinit(int dev,int sbnum);
 void            ilock(struct inode*);
@@ -50,11 +50,11 @@ void            iunlock(struct inode*);
 void            iunlockput(struct inode*);
 void            iupdate(struct inode*);
 int             namecmp(const char*, const char*);
-struct inode*   namei(uint dev,char*);
-struct inode*   nameiparent(uint dev,char*, char*);
-int             readi(struct inode*, char*, uint, uint);
+struct inode*   namei(uint32 dev,char*);
+struct inode*   nameiparent(uint32 dev,char*, char*);
+int             readi(struct inode*, char*, uint32, uint32);
 void            stati(struct inode*, struct stat*);
-int             writei(struct inode*, char*, uint, uint);
+int             writei(struct inode*, char*, uint32, uint32);
 int             iputmount(struct inode *ip);
 
 // ide.c
@@ -62,11 +62,11 @@ void            ideinit(void);
 void            secondaryideinit(void);
 void            ideintr(void);
 void            ideintr2(void);
-void            iderw(struct buf*,uint dev);
+void            iderw(struct buf*,uint32 dev);
 
 // ioapic.c
 void            ioapicenable(int irq, int cpu);
-extern uchar    ioapicid;
+extern uint8    ioapicid;
 void            ioapicinit(void);
 
 // kalloc.c
@@ -81,10 +81,10 @@ void            kbdintr(void);
 // lapic.c
 void            cmostime(struct rtcdate *r);
 int             lapicid(void);
-extern volatile uint*    lapic;
+extern volatile uint32*    lapic;
 void            lapiceoi(void);
 void            lapicinit(void);
-void            lapicstartap(uchar, uint);
+void            lapicstartap(uint8, uint32);
 void            microdelay(int);
 
 // log.c
@@ -94,7 +94,7 @@ void            begin_op();
 void            end_op();
 
 //mount.c
-int             mount(uint dev, char *path);
+int             mount(uint32 dev, char *path);
 int             unmount(char *mountpoint);
 
 // mp.c
@@ -140,7 +140,7 @@ void            swtch(struct context**, struct context*);
 
 // spinlock.c
 void            acquire(struct spinlock*);
-void            getcallerpcs(void*, uint*);
+void            getcallerpcs(void*, uint32*);
 int             holding(struct spinlock*);
 void            initlock(struct spinlock*, char*);
 void            release(struct spinlock*);
@@ -159,20 +159,20 @@ void            releasenonblocking(struct nonblockinglock *lk);
 
 
 // string.c
-int             memcmp(const void*, const void*, uint);
-void*           memmove(void*, const void*, uint);
-void*           memset(void*, int, uint);
+int             memcmp(const void*, const void*, uint32);
+void*           memmove(void*, const void*, uint32);
+void*           memset(void*, int, uint32);
 char*           safestrcpy(char*, const char*, int);
 int             strlen(const char*);
-int             strncmp(const char*, const char*, uint);
+int             strncmp(const char*, const char*, uint32);
 char*           strncpy(char*, const char*, int);
 
 // syscall.c
 int             argint(int, int*);
 int             argptr(int, char**, int);
 int             argstr(int, char**);
-int             fetchint(uint, int*);
-int             fetchstr(uint, char**);
+int             fetchint(uint32, int*);
+int             fetchstr(uint32, char**);
 void            syscall(void);
 
 // timer.c
@@ -180,7 +180,7 @@ void            timerinit(void);
 
 // trap.c
 void            idtinit(void);
-extern uint     ticks;
+extern uint32     ticks;
 void            tvinit(void);
 extern struct spinlock tickslock;
 
@@ -194,15 +194,15 @@ void            seginit(void);
 void            kvmalloc(void);
 pde_t*          setupkvm(void);
 char*           uva2ka(pde_t*, char*);
-int             allocuvm(pde_t*, uint, uint,int);
-int             deallocuvm(pde_t*, uint, uint);
+int             allocuvm(pde_t*, uint32, uint32,int);
+int             deallocuvm(pde_t*, uint32, uint32);
 void            freevm(pde_t*);
-void            inituvm(pde_t*, char*, uint);
-int             loaduvm(pde_t*, char*, struct inode*, uint, uint);
-pde_t*          copyuvm(pde_t*, uint);
+void            inituvm(pde_t*, char*, uint32);
+int             loaduvm(pde_t*, char*, struct inode*, uint32, uint32);
+pde_t*          copyuvm(pde_t*, uint32);
 void            switchuvm(struct proc*);
 void            switchkvm(void);
-int             copyout(pde_t*, uint, void*, uint);
+int             copyout(pde_t*, uint32, void*, uint32);
 void            clearpteu(pde_t *pgdir, char *uva);
 
 // number of elements in fixed-size array

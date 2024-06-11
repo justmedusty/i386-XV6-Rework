@@ -768,7 +768,7 @@ concreate(void)
   int i, pid, n, fd;
   char fa[40];
   struct {
-    ushort inum;
+    uint16 inum;
     char name[14];
   } de;
 
@@ -1416,7 +1416,7 @@ sbrktest(void)
 {
   int fds[2], pid, pids[10], ppid;
   char *a, *b, *c, *lastaddr, *oldbrk, *p, scratch;
-  uint amt;
+  uint32 amt;
 
   printf(stdout, "sbrk test\n");
   oldbrk = sbrk(0);
@@ -1451,7 +1451,7 @@ sbrktest(void)
   // can one grow address space to something big?
 #define BIG (100*1024*1024)
   a = sbrk(0);
-  amt = (BIG) - (uint)a;
+  amt = (BIG) - (uint32)a;
   p = sbrk(amt);
   if (p != a) {
     printf(stdout, "sbrk test failed to grow big address space; enough phys mem?\n");
@@ -1518,7 +1518,7 @@ sbrktest(void)
   for(i = 0; i < sizeof(pids)/sizeof(pids[0]); i++){
     if((pids[i] = fork()) == 0){
       // allocate a lot of memory
-      sbrk(BIG - (uint)sbrk(0));
+      sbrk(BIG - (uint32)sbrk(0));
       write(fds[1], "x", 1);
       // sit around until killed
       for(;;) sleep(1000);
@@ -1563,12 +1563,12 @@ void
 validatetest(void)
 {
   int hi, pid;
-  uint p;
+  uint32 p;
 
   printf(stdout, "validate test\n");
   hi = 1100*1024;
 
-  for(p = 0; p <= (uint)hi; p += 4096){
+  for(p = 0; p <= (uint32)hi; p += 4096){
     if((pid = fork()) == 0){
       // try to crash the kernel by passing in a badly placed integer
       validateint((int*)p);
@@ -1701,8 +1701,8 @@ uio()
   #define RTC_ADDR 0x70
   #define RTC_DATA 0x71
 
-  ushort port = 0;
-  uchar val = 0;
+  uint16 port = 0;
+  uint8 val = 0;
   int pid;
 
   printf(1, "uio test\n");

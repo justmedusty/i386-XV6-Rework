@@ -39,7 +39,7 @@ void init_mount_lock() {
 /*
  * The mount function for our mounting functionality. It will take a path mountpoint
  */
-int mount(uint dev, char *path) {
+int mount(uint32 dev, char *path) {
     begin_op();
 
 
