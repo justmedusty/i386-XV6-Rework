@@ -1,16 +1,14 @@
 // Routines to let C code use special x86 instructions.
 
 // Reads a byte from the specified I/O port.
-static inline uchar inb(ushort port)
-{
+static inline uchar inb(ushort port) {
     uchar data;
     asm volatile("in %1,%0" : "=a" (data) : "d" (port));
     return data;
 }
 
 // Reads a sequence of 32-bit values from the specified I/O port into memory.
-static inline void insl(int port, void *addr, int cnt)
-{
+static inline void insl(int port, void *addr, int cnt) {
     asm volatile("cld; rep insl" :
             "=D" (addr), "=c" (cnt) :
             "d" (port), "0" (addr), "1" (cnt) :
@@ -18,28 +16,25 @@ static inline void insl(int port, void *addr, int cnt)
 }
 
 // Reads a sequence of 64-bit values from the specified I/O port into memory.
-static inline void insq(int port, void *addr, int cnt)
-{
+static inline void insq(int port, void *addr, int cnt) {
     asm volatile("cld; rep insq" :
             "=D" (addr), "=c" (cnt) :
             "d" (port), "0" (addr), "1" (cnt) :
             "memory", "cc");
 }
+
 // Writes a byte to the specified I/O port.
-static inline void outb(ushort port, uchar data)
-{
+static inline void outb(ushort port, uchar data) {
     asm volatile("out %0,%1" : : "a" (data), "d" (port));
 }
 
 // Writes a 16-bit value to the specified I/O port.
-static inline void outw(ushort port, ushort data)
-{
+static inline void outw(ushort port, ushort data) {
     asm volatile("out %0,%1" : : "a" (data), "d" (port));
 }
 
 // Writes a sequence of 32-bit values from memory to the specified I/O port.
-static inline void outsl(int port, const void *addr, int cnt)
-{
+static inline void outsl(int port, const void *addr, int cnt) {
     asm volatile("cld; rep outsl" :
             "=S" (addr), "=c" (cnt) :
             "d" (port), "0" (addr), "1" (cnt) :
@@ -47,8 +42,7 @@ static inline void outsl(int port, const void *addr, int cnt)
 }
 
 // Writes a sequence of 64-bit values from memory to the specified I/O port.
-static inline void outsq(int port, const void *addr, int cnt)
-{
+static inline void outsq(int port, const void *addr, int cnt) {
     asm volatile("cld; rep outsq" :
             "=S" (addr), "=c" (cnt) :
             "d" (port), "0" (addr), "1" (cnt) :
@@ -56,8 +50,7 @@ static inline void outsq(int port, const void *addr, int cnt)
 }
 
 // Writes a byte value repeatedly to a memory location.
-static inline void stosb(void *addr, int data, int cnt)
-{
+static inline void stosb(void *addr, int data, int cnt) {
     asm volatile("cld; rep stosb" :
             "=D" (addr), "=c" (cnt) :
             "0" (addr), "1" (cnt), "a" (data) :
@@ -65,8 +58,7 @@ static inline void stosb(void *addr, int data, int cnt)
 }
 
 // Writes a 32-bit value repeatedly to a memory location.
-static inline void stosl(void *addr, int data, int cnt)
-{
+static inline void stosl(void *addr, int data, int cnt) {
     asm volatile("cld; rep stosl" :
             "=D" (addr), "=c" (cnt) :
             "0" (addr), "1" (cnt), "a" (data) :
@@ -74,8 +66,7 @@ static inline void stosl(void *addr, int data, int cnt)
 }
 
 // Writes a 64-bit value repeatedly to a memory location.
-static inline void stosq(void *addr, long long data, int cnt)
-{
+static inline void stosq(void *addr, long long data, int cnt) {
     asm volatile("cld; rep stosq" :
             "=D" (addr), "=c" (cnt) :
             "0" (addr), "1" (cnt), "a" (data) :
@@ -84,60 +75,52 @@ static inline void stosq(void *addr, long long data, int cnt)
 
 
 // Loads the Global Descriptor Table (GDT) register.
-static inline void lgdt(struct segdesc *p, int size)
-{
+static inline void lgdt(struct segdesc *p, int size) {
     volatile ushort pd[3];
-    pd[0] = size-1;
-    pd[1] = (uint)p;
-    pd[2] = (uint)p >> 16;
+    pd[0] = size - 1;
+    pd[1] = (uint) p;
+    pd[2] = (uint) p >> 16;
     asm volatile("lgdt (%0)" : : "r" (pd));
 }
 
 // Loads the Interrupt Descriptor Table (IDT) register.
-static inline void lidt(struct gatedesc *p, int size)
-{
+static inline void lidt(struct gatedesc *p, int size) {
     volatile ushort pd[3];
-    pd[0] = size-1;
-    pd[1] = (uint)p;
-    pd[2] = (uint)p >> 16;
+    pd[0] = size - 1;
+    pd[1] = (uint) p;
+    pd[2] = (uint) p >> 16;
     asm volatile("lidt (%0)" : : "r" (pd));
 }
 
 // Loads the Task Register (TR).
-static inline void ltr(ushort sel)
-{
+static inline void ltr(ushort sel) {
     asm volatile("ltr %0" : : "r" (sel));
 }
 
 // Reads the EFLAGS register.
-static inline uint readeflags(void)
-{
+static inline uint readeflags(void) {
     uint eflags;
     asm volatile("pushfl; popq %0" : "=r" (eflags));
     return eflags;
 }
 
 // Loads a 16-bit value into the GS segment register.
-static inline void loadgs(ushort v)
-{
+static inline void loadgs(ushort v) {
     asm volatile("movw %0, %%gs" : : "r" (v));
 }
 
 // Disables trap.
-static inline void cli(void)
-{
+static inline void cli(void) {
     asm volatile("cli");
 }
 
 // Enables trap.
-static inline void sti(void)
-{
+static inline void sti(void) {
     asm volatile("sti");
 }
 
 // Atomic exchange of a value.
-static inline uint xchg(volatile unsigned long long *addr, uint newval)
-{
+static inline uint xchg(volatile unsigned long long *addr, uint newval) {
     uint result;
     asm volatile("lock; xchgq %0, %1" :
             "+m" (*addr), "=a" (result) :
@@ -147,16 +130,14 @@ static inline uint xchg(volatile unsigned long long *addr, uint newval)
 }
 
 // Reads the CR2 register.
-static inline uint rcr2(void)
-{
+static inline uint rcr2(void) {
     uint val;
     asm volatile("movq %%cr2,%0" : "=r" (val));
     return val;
 }
 
 // Loads a value into the CR3 register.
-static inline void lcr3(uint val)
-{
+static inline void lcr3(uint val) {
     asm volatile("movq %0,%%cr3" : : "r" (val));
 }
 
@@ -164,36 +145,36 @@ static inline void lcr3(uint val)
 // Layout of the trap frame built on the stack by the
 // hardware and by trapasm.S, and passed to trap().
 struct trapframe {
-  // registers as pushed by pusha
-  uint rdi;
-  uint rsi;
-  uint rbp;
-  uint resp;      // useless & ignored
-  uint rbx;
-  uint rdx;
-  uint rcx;
-  uint rax;
+    // registers as pushed by pusha
+    unsigned long long rdi;
+    unsigned long long rsi;
+    unsigned long long rbp;
+    unsigned long long resp;      // useless & ignored
+    unsigned long long rbx;
+    unsigned long long rdx;
+    unsigned long long rcx;
+    unsigned long long rax;
 
-  // rest of trap frame
-  ushort gs;
-  ushort padding1;
-  ushort fs;
-  ushort padding2;
-  ushort es;
-  ushort padding3;
-  ushort ds;
-  ushort padding4;
-  uint trapno;
+    // rest of trap frame
+    ushort gs;
+    ushort padding1;
+    ushort fs;
+    ushort padding2;
+    ushort es;
+    ushort padding3;
+    ushort ds;
+    ushort padding4;
+    uint trapno;
 
-  // below here defined by x86 hardware
-  uint err;
-  uint rip;
-  ushort cs;
-  ushort padding5;
-  uint eflags;
+    // below here defined by x86 hardware
+    unsigned long long err;
+    unsigned long long rip;
+    ushort cs;
+    ushort padding5;
+    unsigned long long eflags;
 
-  // below here only when crossing rings, such as from user to kernel
-  uint rsp;
-  ushort ss;
-  ushort padding6;
+    // below here only when crossing rings, such as from user to kernel
+    uint rsp;
+    ushort ss;
+    ushort padding6;
 };
