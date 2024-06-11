@@ -19,6 +19,10 @@ Changes made so far:
 
   - Pressing the tab key now clears the console
     
+  - Implemented semaphores , only inside the kernel for now. Will add to userspace later.
+
+  - Implemented basic hashing functions for creating creating hash queues and hash tables.
+
   - Added per-cpu runqeueus so each cpu will have its own runqueue.
 
   - Very basic cpu balancing routine, when a cpu has no tasks on the ready queue or its run queue it will spin checking if queues need balancing and any that do it will free the tail and place it on

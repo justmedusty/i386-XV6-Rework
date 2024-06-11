@@ -1,4 +1,5 @@
 OBJS = \
+	../kernel/algorithms/hash.o\
 	../kernel/fs/bio.o\
 	../kernel/dev/console.o\
 	../kernel/exec.o\
@@ -14,7 +15,7 @@ OBJS = \
 	../kernel/fs/mount.o\
 	../kernel/arch/x86_32/mp/mp.o\
 	../kernel/lock/nonblockinglock.o\
-		../kernel/lock/semaphore.o\
+	../kernel/lock/semaphore.o\
 	../kernel/arch/x86_32/cpu/picirq.o\
 	../kernel/ipc/pipe.o\
 	../kernel/sched/sched.o\
