@@ -9,17 +9,20 @@
 #include "spinlock.h"
 #include "../sched/proc.h"
 #include "semaphore.h"
-
+static int remove_pid(int pid, struct semaphore *sem);
 //increment semaphore value
 void sem_inc(struct semaphore *sem) {
     struct proc *this = myproc();
     sem->sem_value++;
+    sem->holding--;
+    remove_pid(this->pid);
     if (sem->sem_waiting > 0) {
         wakeup(sem);
     }
+
 }
 //find a pid in the sem holders array to verify that they are actually there
-static int find_pid(int pid, struct semaphore *sem) {
+static int remove_pid(int pid, struct semaphore *sem) {
     for (int i = 0; i < MAX_HOLDERS; i++) {
         if (sem->holder_pids[i] == pid) {
             sem->holder_pids[i] = 0;
@@ -64,4 +67,5 @@ int sem_dec(struct semaphore *sem){
     sem->sem_value--;
     sem->holding++;
     release(sem->lk);
+    return 0;
 }
