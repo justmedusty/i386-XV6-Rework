@@ -10,5 +10,6 @@
 
 unsigned short hash_16(int value);
 unsigned char hash_8(int value);
+void hash_test_8();
 
 #endif //I386_XV6_REWORK_HASH_H
