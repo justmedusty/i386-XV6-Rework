@@ -8,9 +8,8 @@
 unsigned short hash_16(int value){
     value *= HASH_CONSTANT_1;
     value ^= (value >> 16);
-    value *= HASH_CONSTANT_2;
-    value ^= (value >>10);
-    value ^= HASH_CONSTANT_1 + HASH_CONSTANT_2;
+    value &= HASH_CONSTANT_2;
+    value ^= (value >> 13);
     value &= 0xFFFF;
     return value;
 }
@@ -20,11 +19,12 @@ unsigned char hash_8(int value){
     value *= HASH_CONSTANT_1;
     value ^= (value >> 16);
     value *= HASH_CONSTANT_2;
-    value ^= (value >>10);
+    value ^= (value >>11);
     value ^= HASH_CONSTANT_1 + HASH_CONSTANT_2;
     value &= 0xFF;
     return value;
 }
+
 
 void hash_test_8(){
     int hash_table[256];
@@ -39,9 +39,6 @@ void hash_test_8(){
         }
         hash_table[j]= 1;
     }
-    if(collisions > 256){
-        cprintf("Over 256 collisions! %d\n",collisions);
-    } else{
-        cprintf("Under 256 collisions!%d\n",collisions);
-    }
+        cprintf("%d collisions! %d\n",collisions);
+
 }
