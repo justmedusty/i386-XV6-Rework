@@ -26,7 +26,7 @@ static struct {
 } cons;
 
 static int passwd_mode = 0;
-
+//password mode on/off
 void change_mode(int mode) {
     if (mode == 0) {
         passwd_mode = 0;
