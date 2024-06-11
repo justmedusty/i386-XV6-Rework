@@ -14,6 +14,7 @@ OBJS = \
 	../kernel/fs/mount.o\
 	../kernel/arch/x86_32/mp/mp.o\
 	../kernel/lock/nonblockinglock.o\
+		../kernel/lock/semaphore.o\
 	../kernel/arch/x86_32/cpu/picirq.o\
 	../kernel/ipc/pipe.o\
 	../kernel/sched/sched.o\
