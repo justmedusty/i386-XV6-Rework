@@ -15,7 +15,7 @@ void sem_inc(struct semaphore *sem) {
     struct proc *this = myproc();
     sem->sem_value++;
     sem->holding--;
-    remove_pid(this->pid);
+    remove_pid(this->pid,sem);
     if (sem->sem_waiting > 0) {
         wakeup(sem);
     }
