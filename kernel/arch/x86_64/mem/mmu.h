@@ -62,16 +62,16 @@ struct segdesc {
 #define STA_R       0x2     // Readable (executable segments)
 
 // System segment type bits
-#define STS_T32A    0x9     // Available 32-bit TSS
-#define STS_IG32    0xE     // 32-bit Interrupt Gate
-#define STS_TG32    0xF     // 32-bit Trap Gate
+#define STS_T64A    0x9     // Available 32-bit TSS
+#define STS_IG64    0xE     // 32-bit Interrupt Gate
+#define STS_TG64    0xF     // 32-bit Trap Gate
 
 // A virtual address 'la' has a three-part structure as follows:
 //
-// +--------9-------+-------9--------+----------9--------+---------9---------+---------9---------+---------12---------+
-// | PGD  Directory |   P4D  Table   |     PUD Table     |      PMD Table    |      PTE Table    |   Offset within    |
-// |      Index     |      Index     |     Index         |        Index      |        Index      |         page       |
-// +----------------+----------------+-------------------+-------------------+-------------------+--------------------+
+// +-------9--------+----------9--------+---------9---------+---------9---------+---------12---------+
+// |   P4D  Table   |     PUD Table     |      PMD Table    |      PTE Table    |   Offset within    |
+// |      Index     |     Index         |        Index      |        Index      |         page       |
+// +----------------+-------------------+-------------------+-------------------+--------------------+
 //  \--- PDX(va) --/ \--- PTX(va) --/
 
 
@@ -89,7 +89,7 @@ struct segdesc {
 #define PTX(va)         (((uint64)(va) >> PTXSHIFT) & 0x1FF)
 
 // construct virtual address from indexes and offset
-#define PGADDR(d, t, o) ((uint64)((d) << PDXSHIFT | (t) << PTXSHIFT | (o)))
+#define PGADDR(p4d,pud,pmd, t, o) ((uint64)((p4d << P4DXSHIFT | pud << PUDXSHIFT | (pmd) << PMDDXSHIFT | (t) << PTXSHIFT | (o)))
 
 // Page directory and page table constants.
 #define NP4DENTRIES     512    // # directory entries per page middle directory
@@ -102,7 +102,6 @@ struct segdesc {
 #define PMDXSHIFT       21     // offset of PMDX in a linear address
 #define PUDXSHIFT       30     // offset of PUDX in a linear address
 #define P4DXSHIFT       39     // offset of P4DX (or pgd if pae in a linear address
-#define PGDXSHIFT       48     // offset of PMDX in a linear address
 
 #define PGROUNDUP(sz)  (((sz)+PGSIZE-1) & ~(PGSIZE-1))
 #define PGROUNDDOWN(a) (((a)) & ~(PGSIZE-1))
