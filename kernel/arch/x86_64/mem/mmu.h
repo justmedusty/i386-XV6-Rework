@@ -68,20 +68,25 @@ struct segdesc {
 
 // A virtual address 'la' has a three-part structure as follows:
 //
-// +--------9-------+-------9-------+---------12----------+
-// | PMD  Directory |   PTE  Table   | Offset within Page  |
-// |      Index     |      Index     |                     |
-// +----------------+----------------+---------------------+
+// +--------9-------+-------9--------+----------9--------+---------9---------+---------9---------+---------12---------+
+// | PGD  Directory |   P4D  Table   |     PUD Table     |      PMD Table    |      PTE Table    |   Offset within    |
+// |      Index     |      Index     |     Index         |        Index      |        Index      |         page       |
+// +----------------+----------------+-------------------+-------------------+-------------------+--------------------+
 //  \--- PDX(va) --/ \--- PTX(va) --/
 
 
-
+// page middle directory index
+#define PGDX(va)         (((uint64)(va) >> PGDXSHIFT) & 0x1FF)
+// page 4 directory index
+#define P4DX(va)         (((uint64)(va) >> P4DXSHIFT) & 0x1FF)
+// page upper directory index
+#define PUDX(va)         (((uint64)(va) >> PUDXSHIFT) & 0x1FF)
 
 // page middle directory index
-#define PDX(va)         (((uint64)(va) >> PMDXSHIFT) & 0x3FF)
+#define PMDX(va)         (((uint64)(va) >> PMDXSHIFT) & 0x1FF)
 
 // page table index
-#define PTX(va)         (((uint64)(va) >> PTXSHIFT) & 0x3FF)
+#define PTX(va)         (((uint64)(va) >> PTXSHIFT) & 0x1FF)
 
 // construct virtual address from indexes and offset
 #define PGADDR(d, t, o) ((uint64)((d) << PDXSHIFT | (t) << PTXSHIFT | (o)))
@@ -95,8 +100,8 @@ struct segdesc {
 
 #define PTXSHIFT        12      // offset of PTX in a linear address
 #define PMDXSHIFT       21     // offset of PMDX in a linear address
-#define PUDXSHIFT       30     // offset of PMDX in a linear address
-#define P4DXSHIFT       39     // offset of PMDX in a linear address
+#define PUDXSHIFT       30     // offset of PUDX in a linear address
+#define P4DXSHIFT       39     // offset of P4DX (or pgd if pae in a linear address
 #define PGDXSHIFT       48     // offset of PMDX in a linear address
 
 #define PGROUNDUP(sz)  (((sz)+PGSIZE-1) & ~(PGSIZE-1))
