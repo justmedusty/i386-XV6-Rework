@@ -8,7 +8,8 @@
 #define CR0_PE          0x00000001      // Protection Enable
 #define CR0_WP          0x00010000      // Write Protect
 #define CR0_PG          0x80000000      // Paging
-
+#define CR0_PG_OFF     ~0x80000000      //turn paging off
+#define CR4_PAE
 #define CR4_PSE         0x00000010      // Page size extension
 
 // various segment selectors.
@@ -88,7 +89,7 @@ struct segdesc {
 // page table index
 #define PTX(va)         (((uint64)(va) >> PTXSHIFT) & 0x1FF)
 
-// construct virtual address from indexes and offset
+// construct virtual address from indexes (long mode) and offset
 #define PGADDR(p4d,pud,pmd, t, o) ((uint64)((p4d << P4DXSHIFT | pud << PUDXSHIFT | (pmd) << PMDDXSHIFT | (t) << PTXSHIFT | (o)))
 
 // Page directory and page table constants.
