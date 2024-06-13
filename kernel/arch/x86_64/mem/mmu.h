@@ -73,11 +73,9 @@ struct segdesc {
 // |   P4D  Table   |     PUD Table     |      PMD Table    |      PTE Table    |   Offset within    |
 // |      Index     |     Index         |        Index      |        Index      |         page       |
 // +----------------+-------------------+-------------------+-------------------+--------------------+
-//  \--- PDX(va) --/ \--- PTX(va) --/
+//
 
 
-// page middle directory index
-#define PGDX(va)         (((uint64)(va) >> PGDXSHIFT) & 0x1FF)
 // page 4 directory index
 #define P4DX(va)         (((uint64)(va) >> P4DXSHIFT) & 0x1FF)
 // page upper directory index
@@ -90,19 +88,19 @@ struct segdesc {
 #define PTX(va)         (((uint64)(va) >> PTXSHIFT) & 0x1FF)
 
 // construct virtual address from indexes (long mode) and offset
-#define PGADDR(p4d,pud,pmd, t, o) ((uint64)((p4d << P4DXSHIFT | pud << PUDXSHIFT | (pmd) << PMDDXSHIFT | (t) << PTXSHIFT | (o)))
+#define PGADDR(p4d,pud,pmd, pte, offset) ((uint64)((p4d << P4DXSHIFT | pud << PUDXSHIFT | (pmd) << PMDDXSHIFT | (pte) << PTXSHIFT | (offset)))
 
 // Page directory and page table constants.
 #define NP4DENTRIES     512    // # directory entries per page middle directory
 #define NPUDENTRIES     512    // # directory entries per page upper directory
 #define NPMDENTRIES     512    // # directory entries per page middle directory
 #define NPTENTRIES      512    // # PTEs per page table
-#define PGSIZE          4096    // bytes mapped by a page
+#define PGSIZE          4096   // bytes mapped by a page
 
 #define PTXSHIFT        12      // offset of PTX in a linear address
 #define PMDXSHIFT       21     // offset of PMDX in a linear address
 #define PUDXSHIFT       30     // offset of PUDX in a linear address
-#define P4DXSHIFT       39     // offset of P4DX (or pgd if pae in a linear address
+#define P4DXSHIFT       39     // offset of P4DX
 
 #define PGROUNDUP(sz)  (((sz)+PGSIZE-1) & ~(PGSIZE-1))
 #define PGROUNDDOWN(a) (((a)) & ~(PGSIZE-1))
