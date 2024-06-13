@@ -19,7 +19,7 @@ exec(char *path, char **argv)
     struct elfhdr elf;
     struct inode *ip;
     struct proghdr ph;
-    pde_t *pgdir, *oldpgdir;
+    pmde_t *pgdir, *oldpgdir;
     struct proc *curproc = myproc();
 
     begin_op();

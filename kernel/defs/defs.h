@@ -192,18 +192,18 @@ void            uartputc(int);
 // vm.c
 void            seginit(void);
 void            kvmalloc(void);
-pde_t*          setupkvm(void);
-char*           uva2ka(pde_t*, char*);
-int             allocuvm(pde_t*, uint32, uint32,int);
-int             deallocuvm(pde_t*, uint32, uint32);
-void            freevm(pde_t*);
-void            inituvm(pde_t*, char*, uint32);
-int             loaduvm(pde_t*, char*, struct inode*, uint32, uint32);
-pde_t*          copyuvm(pde_t*, uint32);
+pmde_t*          setupkvm(void);
+char*           uva2ka(pmde_t*, char*);
+int             allocuvm(pmde_t*, uint32, uint32,int);
+int             deallocuvm(pmde_t*, uint32, uint32);
+void            freevm(pmde_t*);
+void            inituvm(pmde_t*, char*, uint32);
+int             loaduvm(pmde_t*, char*, struct inode*, uint32, uint32);
+pmde_t*          copyuvm(pmde_t*, uint32);
 void            switchuvm(struct proc*);
 void            switchkvm(void);
-int             copyout(pde_t*, uint32, void*, uint32);
-void            clearpteu(pde_t *pgdir, char *uva);
+int             copyout(pmde_t*, uint32, void*, uint32);
+void            clearpteu(pmde_t *pgdir, char *uva);
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))

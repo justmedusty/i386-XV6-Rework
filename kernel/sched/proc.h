@@ -82,7 +82,7 @@ struct proc {
   int queue_mask;              //for enqueuing / dequeuing purposes
   int space_flag;              //flag to mark a process as either kernel space or user space
   int child_pri;               //A binary flag that will just indicate whether any children on fork should retain the same scheduling priority.
-  pde_t* pgdir;                // Page table
+  pmde_t* pgdir;                // Page table
   char *kstack;                // Bottom of kernel stack for this process
   enum procstate state;        // Process state
   int pid;                     // Process ID

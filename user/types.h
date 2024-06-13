@@ -7,5 +7,7 @@ typedef char int8;
 typedef unsigned long long uint64;
 typedef long long int64;
 
-typedef uint32 pde_t;
+typedef uint32 pmde_t;
+typedef uint32 pude_t;
+typedef uint16 p4de_t;
 

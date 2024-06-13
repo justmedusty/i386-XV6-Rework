@@ -98,7 +98,7 @@ static inline void ltr(uint16 sel) {
 }
 
 // Reads the EFLAGS register.
-static inline uint32 readeflags(void) {
+static inline uint64 readeflags(void) {
     uint32 eflags;
     asm volatile("pushfl; popq %0" : "=r" (eflags));
     return eflags;
@@ -120,7 +120,7 @@ static inline void sti(void) {
 }
 
 // Atomic exchange of a value.
-static inline uint32 xchg(volatile unsigned long long *addr, uint32 newval) {
+static inline uint64 xchg(volatile unsigned long long *addr, uint32 newval) {
     uint32 result;
     asm volatile("lock; xchgq %0, %1" :
             "+m" (*addr), "=a" (result) :
@@ -130,14 +130,14 @@ static inline uint32 xchg(volatile unsigned long long *addr, uint32 newval) {
 }
 
 // Reads the CR2 register.
-static inline uint32 rcr2(void) {
+static inline uint64 rcr2(void) {
     uint32 val;
     asm volatile("movq %%cr2,%0" : "=r" (val));
     return val;
 }
 
 // Loads a value into the CR3 register.
-static inline void lcr3(uint32 val) {
+static inline void lcr3(uint64 val) {
     asm volatile("movq %0,%%cr3" : : "r" (val));
 }
 
