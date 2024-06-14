@@ -141,6 +141,14 @@ static inline void lcr3(uint64 val) {
     asm volatile("movq %0,%%cr3" : : "r" (val));
 }
 
+static inline void flush_tlb(){
+    asm volatile("mov %%cr3, %%rax\n\t"
+                 "mov %%rax, %%cr3\n\t"
+            :
+            :
+            : "rax");
+}
+
 //PAGEBREAK: 36
 // Layout of the trap frame built on the stack by the
 // hardware and by trapasm.S, and passed to trap().

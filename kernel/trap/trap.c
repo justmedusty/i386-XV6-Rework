@@ -63,7 +63,12 @@ trap(struct trapframe *tf) {
                 return;*/
 
 
-
+        case T_DBLFLT:
+            panic("DOUBLE FAULT OCCURRED");
+        case T_FPERR:
+            panic("FPU ERROR");
+        case T_GPFLT:
+            panic("GENERAL PROTECTION FAULT");
         case T_IRQ0 + IRQ_TIMER:
             if (cpuid() == 0) {
                 acquire(&tickslock);
