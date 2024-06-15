@@ -84,7 +84,7 @@ mappages(p4de_t *pgdir, void *va, uint64 size, uint64 pa, int perm) {
 }
 
 
-uint64 tally_page_directory(pmde_t *pgdir) {
+uint64 tally_page_directory(p4de_t *pgdir) {
     uint64 total_pages = 0;
 
     // Traverse page directory and count allocated pages
@@ -104,7 +104,7 @@ uint64 tally_page_directory(pmde_t *pgdir) {
 
 uint64 tally_kernel_page_directory(void) {
     uint64 total_pages = 0;
-    pmde_t *pgdir = kpgdir;
+    p4de_t *pgdir = kpgdir;
 
 
     // Traverse page directory and count allocated pages
@@ -160,9 +160,7 @@ p4de_t *
 setupkvm(void) {
     p4de_t *pgdir;
     struct kmap *k;
-
-
-    if ((pgdir = (pmde_t *) kalloc()) == 0)
+    if ((pgdir = (p4de_t *) kalloc()) == 0)
         return 0;
     memset(pgdir, 0, PGSIZE);
     if (P2V(PHYSTOP) > (void *) DEVSPACE)
@@ -220,7 +218,7 @@ switchuvm(struct proc *p) {
 // Load the initcode into address 0 of pgdir.
 // sz must be less than a page.
 void
-inituvm(pmde_t *pgdir, char *init, uint64 sz) {
+inituvm(p4de_t *pgdir, char *init, uint64 sz) {
     char *mem;
 
     if (sz >= PGSIZE)
@@ -234,7 +232,7 @@ inituvm(pmde_t *pgdir, char *init, uint64 sz) {
 // Load a program segment into pgdir.  addr must be page-aligned
 // and the pages from addr to addr+sz must already be mapped.
 int
-loaduvm(pmde_t *pgdir, char *addr, struct inode *ip, uint64 offset, uint64 sz) {
+loaduvm(p4de_t *pgdir, char *addr, struct inode *ip, uint64 offset, uint64 sz) {
     uint64 i, pa, n;
     pte_t *pte;
 
@@ -257,7 +255,7 @@ loaduvm(pmde_t *pgdir, char *addr, struct inode *ip, uint64 offset, uint64 sz) {
 // Allocate page tables and physical memory to grow process from oldsz to
 // newsz, which need not be page aligned.  Returns new size or 0 on error.
 int
-allocuvm(pmde_t *pgdir, uint64 oldsz, uint64 newsz, int grow_down) {
+allocuvm(p4de_t *pgdir, uint64 oldsz, uint64 newsz, int grow_down) {
     char *mem;
     uint64 a;
 
@@ -308,7 +306,7 @@ allocuvm(pmde_t *pgdir, uint64 oldsz, uint64 newsz, int grow_down) {
 // need to be less than oldsz.  oldsz can be larger than the actual
 // process size.  Returns the new process size.
 int
-deallocuvm(pmde_t *pgdir, uint64 oldsz, uint64 newsz) {
+deallocuvm(p4de_t *pgdir, uint64 oldsz, uint64 newsz) {
     pte_t *pte;
     uint64 a, pa;
 
@@ -335,7 +333,7 @@ deallocuvm(pmde_t *pgdir, uint64 oldsz, uint64 newsz) {
 // Free a page table and all the physical memory pages
 // in the user part.
 void
-freevm(pmde_t *pgdir) {
+freevm(p4de_t *pgdir) {
     uint64 i;
 
     if (pgdir == 0)
@@ -353,7 +351,7 @@ freevm(pmde_t *pgdir) {
 // Clear PTE_U on a page. Used to create an inaccessible
 // page beneath the user stack.
 void
-clearpteu(pmde_t *pgdir, char *uva) {
+clearpteu(p4de_t *pgdir, char *uva) {
     pte_t *pte;
 
     pte = walkpgdir(pgdir, uva, 0);
@@ -364,17 +362,15 @@ clearpteu(pmde_t *pgdir, char *uva) {
 
 // Given a parent process's page table, create a copy
 // of it for a child.
-pmde_t *
+p4de_t *
 copyuvm(p4de_t *pgdir, uint64 sz) {
     pude_t *pud;
-    pmde_t *d;
+    pmde_t *pmd;
     pte_t *pte;
     uint64 pa, i, flags;
     char *mem;
 
-
-    pud = &pgdir[PUDXSHIFT(va)];
-    if ((d = setupkvm()) == 0)
+    if ((pmd = setupkvm()) == 0)
         return 0;
     for (i = 0; i < sz; i += PGSIZE) {
         if ((pte = walkpgdir(pgdir, (void *) i, 0)) == 0)
@@ -416,7 +412,7 @@ uva2ka(p4de_t *pgdir, char *uva) {
 // Most useful when pgdir is not the current page table.
 // uva2ka ensures this only works for PTE_U pages.
 int
-copyout(pmde_t *pgdir, uint64 va, void *p, uint64 len) {
+copyout(p4de_t *pgdir, uint64 va, void *p, uint64 len) {
     char *buf, *pa0;
     uint64 n, va0;
 

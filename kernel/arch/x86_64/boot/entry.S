@@ -43,31 +43,47 @@ _start = V2P_WO(entry)
 # Entering xv6 on boot processor, with paging off.
 .globl entry
 entry:
+
   # Turn on page size extension for 4Mbyte pages
   movl    %cr4, %eax
   orl     $(CR4_PSE), %eax
   movl    %eax, %cr4
+
   # Set page directory
   movl    $(V2P_WO(entrypgdir)), %eax
   movl    %eax, %cr3
+
   # Turn on paging.
   movl    %cr0, %eax
   orl     $(CR0_PG|CR0_WP), %eax
   movl    %eax, %cr0
+
   #Detect long mode
   movl 0x80000000, %eax
   cpuid
   cmpl %eax, 0x80000001
   jb .done
+
   #Extended is available, check for long mode
   movl 0x80000001, %eax
   cpuid
   testl %edx, 1 << 29
   jb .done
+
   #Long mode is supported, we can use it
   movl %cr0, %eax
   andl 01111111111111111111111111111111b %eax
-  movl %eax %cr0
+  movl %eax, %cr0
+
+  #identity map the first mb
+  movl 01000, %edi
+  movl %edi, %cr3
+  xorl %eax, %eax
+  movl 4096, %ecx
+  rep stosd
+  movl %cr3, %edi
+
+  #fill up the page table
 
 
 
