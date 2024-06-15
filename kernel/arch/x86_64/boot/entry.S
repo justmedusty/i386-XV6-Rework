@@ -53,10 +53,10 @@ entry:
   movl    $(V2P_WO(entrypgdir)), %eax
   movl    %eax, %cr3
 
-  # Turn on paging.
-  movl    %cr0, %eax
-  orl     $(CR0_PG|CR0_WP), %eax
-  movl    %eax, %cr0
+# Turn on paging.
+#  movl    %cr0, %eax
+#  orl     $(CR0_PG|CR0_WP), %eax
+#  movl    %eax, %cr0
 
   #Detect long mode
   movl 0x80000000, %eax
@@ -111,6 +111,7 @@ entry:
   orl 1 << 8, %eax
   wrmsr
 
+   #turn paging back on
   movl %cr0, %eax
   movl 1 << 31, %eax
   movl %eax, %cr0
