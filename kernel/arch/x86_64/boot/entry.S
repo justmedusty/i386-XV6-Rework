@@ -72,30 +72,30 @@ entry:
 
   #Long mode is supported, we can use it
   movl %cr0, %eax
-  andl 01111111111111111111111111111111b %eax
+  andl 0b1111111111111111111111111111111, %eax
   movl %eax, %cr0
 
   #identity map the first mb
   movl 01000, %edi
   movl %edi, %cr3
   xorl %eax, %eax
-  movl 4096, %ecx
-  rep stosd
+  movl $4096, %ecx
+  rep stosw
   movl %cr3, %edi
 
   #fill up the page table
-  movl 0x2003, DWORD [%edi]
-  addl 0x1000, %edi
-  movl 0x3003, DWORD [%edi]
-  addl 0x1000, %edi
-  movl 0x4003, DWORD [%edi]
-  addl 0x1000, %edi
+  movl $0x2003, %edi
+  addl $0x1000, %edi
+  movl $0x3003, %edi
+  addl $0x1000, %edi
+  movl $0x4003, %edi
+  addl $0x1000, %edi
 
   movl 0x00000003, %ebx
   movl 512, %ecx
 
 .SetEntry:
-  movl %ebx, DWORD [edi]
+  movl %ebx, %edi
   addl 0x1000, %ebx
   addl 8, %edi
   loop .SetEntry
@@ -115,10 +115,11 @@ entry:
   movl %cr0, %eax
   movl 1 << 31, %eax
   movl %eax, %cr0
+  jmp .done
 
 
 
-done:
+.done:
   # Set up the stack pointer.
   movl $(stack + KSTACKSIZE), %esp
 
