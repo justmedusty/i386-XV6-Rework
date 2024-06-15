@@ -255,6 +255,9 @@ balloc(int used)
 void
 iappend(uint32 inum, void *xp, int n)
 {
+    if(inum == 17){
+        return;
+    }
     char *p = (char*)xp;
     uint32 fbn, off, n1;
     struct dinode din;
@@ -267,6 +270,7 @@ iappend(uint32 inum, void *xp, int n)
     // printf("append inum %d at off %d sz %d\n", inum, off, n);
     while(n > 0){
         fbn = off / BSIZE;
+        printf("inum : %d FBN %d\n",inum,fbn);
         assert(fbn < MAXFILE);
         if(fbn < NDIRECT){
             if(xint(din.addrs[fbn]) == 0){

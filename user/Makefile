@@ -43,9 +43,9 @@ OBJS = \
 
 # Try to infer the correct TOOLPREFIX if not set
 ifndef TOOLPREFIX
-TOOLPREFIX := $(shell if i386-jos-elf-objdump -i 2>&1 | grep '^elf32-i386$$' >/dev/null 2>&1; \
+TOOLPREFIX := $(shell if i386-jos-elf-objdump -i 2>&1 | grep '^elf64-i386$$' >/dev/null 2>&1; \
 	then echo 'i386-jos-elf-'; \
-	elif objdump -i 2>&1 | grep 'elf32-i386' >/dev/null 2>&1; \
+	elif objdump -i 2>&1 | grep 'elf64-i386' >/dev/null 2>&1; \
 	then echo ''; \
 	else echo "***" 1>&2; \
 	echo "*** Error: Couldn't find an i386-*-elf version of GCC/binutils." 1>&2; \
@@ -83,11 +83,11 @@ AS = $(TOOLPREFIX)gas
 LD = $(TOOLPREFIX)ld
 OBJCOPY = $(TOOLPREFIX)objcopy
 OBJDUMP = $(TOOLPREFIX)objdump
-CFLAGS = -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -mno-sse -m32 -fno-omit-frame-pointer
+CFLAGS = -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -mno-sse -m64 -fno-omit-frame-pointer
 CFLAGS += $(shell $(CC) -fno-stack-protector -E -x c /dev/null >/dev/null 2>&1 && echo -fno-stack-protector)
-ASFLAGS = -m32 -gdwarf-2 -Wa,-divide
+ASFLAGS = -m64 -gdwarf-2 -Wa,-divide
 # FreeBSD ld wants ``elf_i386_fbsd''
-LDFLAGS += -m $(shell $(LD) -V | grep elf_i386 2>/dev/null | head -n 1)
+LDFLAGS += -m elf_x86_64
 
 # Disable PIE when possible (for Ubuntu 16.10 toolchain)
 ifneq ($(shell $(CC) -dumpspecs 2>/dev/null | grep -e '[^f]no-pie'),)
@@ -148,8 +148,8 @@ xkernel: $(OBJS) ../kernel/arch/x86_32/boot/entry.o kernel/arch/x86_32/boot/entr
 tags: $(OBJS) ../kernel/arch/x86_32/boot/entryother.S _init
 	etags *.S *.c
 
-vectors.S: ../kernel/scripts/vectors.pl
-	./../kernel/scripts/vectors.pl > ../kernel/scripts/vectors.S
+vectors.S: ../kernel/scripts/vectors64.pl
+	./../kernel/scripts/vectors64.pl > ../kernel/scripts/vectors.S
 
 ULIB = ulib.o ../kernel/syscall/usys.o printf.o umalloc.o
 
@@ -237,7 +237,7 @@ qemu: vectors.S drives xv6.img
 #qemu-memfs: xv6memfs.img
 #	$(QEMU) -drive file=xv6memfs.img,index=0,media=disk,format=raw -smp $(CPUS) -m 256
 
-qemu-nox: secondaryfs.img secondaryfs.img xv6.img
+qemu-nox: secondaryfs.img  xv6.img
 	$(QEMU) -nographic $(QEMUOPTS)
 
 .gdbinit: ../files/.gdbinit.tmpl
