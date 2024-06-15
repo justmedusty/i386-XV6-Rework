@@ -142,11 +142,8 @@ static inline void lcr3(uint64 val) {
 }
 
 static inline void flush_tlb(){
-    asm volatile("mov %%cr3, %%rax\n\t"
-                 "mov %%rax, %%cr3\n\t"
-            :
-            :
-            : "rax");
+    asm volatile("movl %cr3, %eax"
+                 "movl %eax, %cr3");
 }
 
 //PAGEBREAK: 36

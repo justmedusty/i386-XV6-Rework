@@ -12,18 +12,18 @@ swtch:
   movl 8(%esp), %edx
 
   # Save old callee-saved registers
-  pushl %ebp
-  pushl %ebx
-  pushl %esi
-  pushl %edi
+  push %rbp
+  push %rbx
+  push %rsi
+  push %rdi
 
   # Switch stacks
   movl %esp, (%eax)
   movl %edx, %esp
 
   # Load new callee-saved registers
-  popl %edi
-  popl %esi
-  popl %ebx
-  popl %ebp
+  pop %rdi
+  pop %rsi
+  pop %rbx
+  pop %rbp
   ret

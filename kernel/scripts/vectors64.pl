@@ -12,9 +12,9 @@ for(my $i = 0; $i < 256; $i++){
     print ".globl vector$i\n";
     print "vector$i:\n";
     if(!($i == 8 || ($i >= 10 && $i <= 14) || $i == 17)){
-        print "  pushq \$0\n";
+        print "  push \$0\n";
     }
-    print "  pushq \$$i\n";
+    print "  push \$$i\n";
     print "  jmp alltraps\n";
 }
 

@@ -85,8 +85,8 @@ static inline void ltr(uint16 sel)
 // Reads the EFLAGS register.
 static inline uint32 readeflags(void)
 {
-    uint32 eflags;
-    asm volatile("pushfl; popl %0" : "=r" (eflags));
+    uint64 eflags;
+    asm volatile("pushf; pop %0" : "=r" (eflags));
     return eflags;
 }
 
@@ -122,8 +122,8 @@ static inline uint32 xchg(volatile uint32 *addr, uint32 newval)
 // Reads the CR2 register.
 static inline uint32 rcr2(void)
 {
-    uint32 val;
-    asm volatile("movl %%cr2,%0" : "=r" (val));
+    uint64 val;
+    asm volatile("mov %%cr2,%0" : "=r" (val));
     return val;
 }
 
