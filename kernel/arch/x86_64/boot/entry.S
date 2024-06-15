@@ -84,6 +84,27 @@ entry:
   movl %cr3, %edi
 
   #fill up the page table
+  movl 0x2003, DWORD [%edi]
+  addl 0x1000, %edi
+  movl 0x3003, DWORD [%edi]
+  addl 0x1000, %edi
+  movl 0x4003, DWORD [%edi]
+  addl 0x1000, %edi
+
+  movl 0x00000003, %ebx
+  movl 512, %ecx
+
+.SetEntry:
+  movl %ebx, DWORD [edi]
+  addl 0x1000, %ebx
+  addl 8, %edi
+  loop .SetEntry
+
+  #enable PAE
+  movl %cr4, %eax
+  orl 1 << 5, %eax
+
+
 
 
 
