@@ -103,10 +103,17 @@ entry:
   #enable PAE
   movl %cr4, %eax
   orl 1 << 5, %eax
+  movl %eax, %cr4
 
+  #get out of protected mode (into compat 64 bit mode)
+  movl 0xC00000080, %eax
+  rdmsr
+  orl 1 << 8, %eax
+  wrmsr
 
-
-
+  movl %cr0, %eax
+  movl 1 << 31, %eax
+  movl %eax, %cr0
 
 
 
