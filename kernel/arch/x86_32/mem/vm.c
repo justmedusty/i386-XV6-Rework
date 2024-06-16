@@ -146,8 +146,8 @@ uint32 tally_kernel_page_directory(void) {
 // every process's page table.
 static struct kmap {
   void *virt;
-  uint32 phys_start;
-  uint32 phys_end;
+  uint64 phys_start;
+  uint64 phys_end;
   int perm;
 } kmap[] = {
  { (void*)KERNBASE, 0,             EXTMEM,    PTE_W}, // I/O space

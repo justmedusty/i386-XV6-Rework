@@ -128,9 +128,9 @@ static inline uint32 rcr2(void)
 }
 
 // Loads a value into the CR3 register.
-static inline void lcr3(uint32 val)
+static inline void lcr3(uint64 val)
 {
-    asm volatile("movl %0,%%cr3" : : "r" (val));
+    asm volatile("mov %0,%%cr3" : : "r" (val));
 }
 
 //PAGEBREAK: 36

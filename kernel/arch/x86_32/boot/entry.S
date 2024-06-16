@@ -45,54 +45,54 @@ _start = V2P_WO(entry)
 entry:
 
   # Turn on page size extension for 4Mbyte pages
-  movl    %cr4, %eax
-  orl     $(CR4_PSE), %eax
-  movl    %eax, %cr4
+  mov     eax, cr4
+  or     eax, $(CR4_PSE)
+  mov    cr4, eax
 
   # Set page directory
-  movl    $(V2P_WO(entrypgdir)), %eax
-  movl    %eax, %cr3
+  mov    eax, $(V2P_WO(entrypgdir))
+  mov    cr3, eax
 
 # Turn on paging.
-#  movl    %cr0, %eax
+#  mov    %cr0, %eax
 #  orl     $(CR0_PG|CR0_WP), %eax
-#  movl    %eax, %cr0
+#  mov    %eax, %cr0
 
   #Detect long mode
-  movl 0x80000000, %eax
+  mov 0x80000000, eax
   cpuid
-  cmpl %eax, 0x80000001
+  cmp %eax, 0x80000001
   jb .done
 
   #Extended is available, check for long mode
-  movl 0x80000001, %eax
+  mov eax, 0x80000001
   cpuid
-  testl %edx, 1 << 29
+  test 1 << 29, edx
   jb .done
 
   #Long mode is supported, we can use it
-  movl %cr0, %eax
-  andl 0b1111111111111111111111111111111, %eax
-  movl %eax, %cr0
+  mov eax, cr0
+  and eax, 0b1111111111111111111111111111111,
+  mov cr0, eax
 
   #identity map the first mb
-  movl 01000, %edi
-  movl %edi, %cr3
-  xorl %eax, %eax
-  movl $4096, %ecx
-  rep stosw
-  movl %cr3, %edi
+  mov edi, 0x1000
+  mov cr3, edi
+  xor eax, eax
+  mov ecx, 4096
+  rep stosd
+  mov edi, cr3
 
   #fill up the page table
-  movl $0x2003, %edi
+  mov $0x2003, %edi
   addl $0x1000, %edi
-  movl $0x3003, %edi
+  mov $0x3003, %edi
   addl $0x1000, %edi
-  movl $0x4003, %edi
+  mov $0x4003, %edi
   addl $0x1000, %edi
 
-  movl 0x00000003, %ebx
-  movl 512, %ecx
+  mov 0x00000003, %ebx
+  mov 512, %ecx
 
 .SetEntry:
   movl %ebx, %edi
@@ -101,27 +101,27 @@ entry:
   loop .SetEntry
 
   #enable PAE
-  movl %cr4, %eax
+  mov %cr4, %eax
   orl 1 << 5, %eax
-  movl %eax, %cr4
+  mov %eax, %cr4
 
   #get out of protected mode (into compat 64 bit mode)
-  movl 0xC00000080, %eax
+  mov 0xC00000080, %eax
   rdmsr
   orl 1 << 8, %eax
   wrmsr
 
    #turn paging back on
-  movl %cr0, %eax
-  movl 1 << 31, %eax
-  movl %eax, %cr0
+  mov %cr0, %eax
+  mov 1 << 31, %eax
+  mov cr0, eax
   jmp .done
 
 
 
 .done:
   # Set up the stack pointer.
-  movl $(stack + KSTACKSIZE), %esp
+  mov $(stack + KSTACKSIZE), %esp
 
   # Jump to main(), and switch to executing at
   # high addresses. The indirect call is needed because
