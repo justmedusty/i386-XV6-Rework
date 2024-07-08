@@ -1,4 +1,4 @@
-This is my rework of the x86 xv6 operating system.
+This is my rework of the x86 xv6 operating system. I have stopped updating it for now.
 
 
 IMPORTANT NOTE: I add changes in many commits, and it may be broken between these implementations, if you are trying to run this yourself find a commit with a message prefix of FUNCTIONAL. Going forward I will mark commits as FUNCTIONAL if everything is working properly so you can find a commit that works if you wish to run it.
